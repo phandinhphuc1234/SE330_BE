@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -83,6 +84,7 @@ public class BookController implements BookApiDocs {
         ));
     }
     // Tạo sách mới thành công
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PostMapping
     @Override
     public ResponseEntity<ApiResponse<BookDetailResponse>> createBook(@Valid @RequestBody CreateBookRequest request) {
@@ -91,6 +93,7 @@ public class BookController implements BookApiDocs {
                 .body(ApiResponse.success("Tạo sách thành công", book));
     }
     // Cập nhật thông tin sách
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PatchMapping("/{bookId}")
     @Override
     public ResponseEntity<ApiResponse<BookDetailResponse>> updateBook(
@@ -102,6 +105,7 @@ public class BookController implements BookApiDocs {
         ));
     }
     // Xóa đầu sách trong hệ thống
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{bookId}")
     @Override
     public ResponseEntity<ApiResponse<Void>> deleteBook(
@@ -111,6 +115,7 @@ public class BookController implements BookApiDocs {
         return ResponseEntity.ok(ApiResponse.success("Xóa sách thành công", null));
     }
     // Lấy danh sách bản sao của đầu sách đó
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @GetMapping("/{bookId}/copies")
     @Override
     public ResponseEntity<ApiResponse<List<BookCopyResponse>>> getBookCopies(@PathVariable Long bookId) {
@@ -120,6 +125,7 @@ public class BookController implements BookApiDocs {
         ));
     }
     // Tạo 1 bản copy mới cho sách đó
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PostMapping("/{bookId}/copies")
     @Override
     public ResponseEntity<ApiResponse<BookCopyResponse>> createBookCopy(
@@ -130,6 +136,7 @@ public class BookController implements BookApiDocs {
                 .body(ApiResponse.success("Tạo bản sao sách thành công", copy));
     }
     // Tạo nhiều bản copy vật lý cho cùng một sách bằng danh sách barcode rõ ràng
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PostMapping("/{bookId}/copies/bulk")
     @Override
     public ResponseEntity<ApiResponse<List<BookCopyResponse>>> createBookCopies(
@@ -140,6 +147,7 @@ public class BookController implements BookApiDocs {
                 .body(ApiResponse.success("Tạo danh sách bản sao sách thành công", copies));
     }
     // Import sách và bản copy từ CSV. Mỗi dòng CSV tương ứng một bản copy vật lý.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PostMapping(value = "/import-csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public ResponseEntity<ApiResponse<BookImportResultResponse>> importBooksFromCsv(
@@ -150,6 +158,7 @@ public class BookController implements BookApiDocs {
         ));
     }
     // Cập nhật tác giả cho sách
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PutMapping("/{bookId}/authors")
     @Override
     public ResponseEntity<ApiResponse<BookDetailResponse>> updateBookAuthors(

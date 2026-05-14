@@ -11,6 +11,7 @@ import com.vn.service.BookCopyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,6 +27,7 @@ public class BookCopyController implements BookCopyApiDocs {
 
     private final BookCopyService bookCopyService;
     // Cập nhật bản sao sách
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PatchMapping("/{copyId}")
     @Override
     public ResponseEntity<ApiResponse<BookCopyResponse>> updateBookCopy(
@@ -37,6 +39,7 @@ public class BookCopyController implements BookCopyApiDocs {
         ));
     }
     // Xóa 1 bản sao sách
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{copyId}")
     @Override
     public ResponseEntity<ApiResponse<Void>> deleteBookCopy(

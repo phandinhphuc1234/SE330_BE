@@ -13,7 +13,7 @@ ALTER TABLE audit_logs
     ALTER COLUMN metadata SET DEFAULT '{}'::jsonb;
 
 ALTER TABLE audit_logs
-DROP CONSTRAINT IF EXISTS chk_audit_actor_role;
+    DROP CONSTRAINT IF EXISTS chk_audit_actor_role;
 
 ALTER TABLE audit_logs
     ADD CONSTRAINT chk_audit_actor_role

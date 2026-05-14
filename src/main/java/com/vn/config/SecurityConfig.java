@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 // Import HttpMethod để cấu hình rule theo từng HTTP method.
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @EnableAsync // cho @Async trong EmailServiceImpl
 //
 @RequiredArgsConstructor
@@ -56,16 +58,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/authors", "/api/categories").permitAll()
                         // Cho phép truy cập swagger-ui và api-docs không cần đăng nhập
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                        // Catalog management endpoints
-                        .requestMatchers(HttpMethod.DELETE, "/api/books/*", "/api/book-copies/*").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/categories/*").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/books", "/api/books/import-csv", "/api/authors").hasAnyRole("LIBRARIAN", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/books/*", "/api/book-copies/*", "/api/authors/*").hasAnyRole("LIBRARIAN", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/books/*/copies").hasAnyRole("LIBRARIAN", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/books/*/copies/bulk").hasAnyRole("LIBRARIAN", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/books/*/copies").hasAnyRole("LIBRARIAN", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/books/*/authors").hasAnyRole("LIBRARIAN", "ADMIN")
                         // Tất cả request còn lại phải authenticated
                         .anyRequest().authenticated()
                 )

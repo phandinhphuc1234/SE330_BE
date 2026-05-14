@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,7 @@ public class CategoryController implements CategoryApiDocs {
         ));
     }
     // Tạo thể loại mới thành công
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @Override
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
@@ -44,6 +46,7 @@ public class CategoryController implements CategoryApiDocs {
                 .body(ApiResponse.success("Tạo thể loại thành công", category));
     }
     // Cập nhật thông tin của thể loại thành công
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{categoryId}")
     @Override
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
