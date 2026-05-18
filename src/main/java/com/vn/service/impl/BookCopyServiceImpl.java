@@ -132,7 +132,10 @@ public class BookCopyServiceImpl implements BookCopyService {
         BookCopy copy = getBookCopy(copyId);
 
         // Không cho xóa copy đang được mượn hoặc đang được đặt trước
-        if (copy.getStatus() == BookCopyStatus.BORROWED || copy.getStatus() == BookCopyStatus.RESERVED) {
+        if (copy.getStatus() == BookCopyStatus.BORROWED
+                || copy.getStatus() == BookCopyStatus.RESERVED
+                || copy.getStatus() == BookCopyStatus.OVERDUE
+                || copy.getStatus() == BookCopyStatus.ON_HOLD_SHELF) {
             throw new AppException(ErrorCode.BOOK_HAS_ACTIVE_COPIES);
         }
 

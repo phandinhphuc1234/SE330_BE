@@ -1,10 +1,9 @@
-package com.vn.unit.mapper;
+package com.vn.mapper;
 
 import com.vn.dto.auth.request.RegistrationRequest;
 import com.vn.dto.member.response.MyProfileResponse;
 import com.vn.entity.Member;
-import com.vn.mapper.MemberMapper;
-import com.vn.support.TestDataFactory;
+import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

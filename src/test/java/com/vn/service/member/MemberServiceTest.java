@@ -1,4 +1,4 @@
-package com.vn.unit.service;
+package com.vn.service.member;
 
 import com.vn.dto.member.request.UpdateMyProfileRequest;
 import com.vn.dto.member.response.MyProfileResponse;
@@ -8,7 +8,7 @@ import com.vn.exception.ErrorCode;
 import com.vn.mapper.MemberMapper;
 import com.vn.repository.MemberRepository;
 import com.vn.service.impl.MemberServiceImpl;
-import com.vn.support.TestDataFactory;
+import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

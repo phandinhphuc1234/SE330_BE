@@ -47,7 +47,9 @@ public class BookServiceImpl implements BookService {
     // Các trạng thái không cho phép xóa sách vì sách đang được sử dụng
     private static final List<BookCopyStatus> ACTIVE_COPY_STATUSES = List.of(
             BookCopyStatus.BORROWED,
-            BookCopyStatus.RESERVED
+            BookCopyStatus.RESERVED,
+            BookCopyStatus.OVERDUE,
+            BookCopyStatus.ON_HOLD_SHELF
     );
 
     private final BookRepository bookRepository;

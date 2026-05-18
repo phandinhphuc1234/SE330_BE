@@ -7,8 +7,10 @@ import java.util.Optional;
 
 public interface AuthorRepository extends JpaRepository<Author, Long> {
 
+    // Tìm tác giả theo tên không phân biệt hoa/thường, dùng khi tạo sách và import CSV.
     Optional<Author> findByNameIgnoreCase(String name);
 
+    // Kiểm tra trùng tên tác giả trước khi tạo mới.
     boolean existsByNameIgnoreCase(String name);
 }
 

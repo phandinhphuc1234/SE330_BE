@@ -1,4 +1,4 @@
-package com.vn.unit.service;
+package com.vn.service.auth;
 
 import com.vn.dto.auth.request.LoginRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
@@ -18,7 +18,7 @@ import com.vn.service.EmailService;
 import com.vn.service.EmailVerificationRateLimitService;
 import com.vn.service.RedisTokenService;
 import com.vn.service.impl.AuthServiceImpl;
-import com.vn.support.TestDataFactory;
+import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
