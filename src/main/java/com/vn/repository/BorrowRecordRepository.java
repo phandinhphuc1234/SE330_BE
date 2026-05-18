@@ -58,6 +58,16 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
             """)
     Optional<BorrowRecord> findLockedForRenewalById(@Param("id") Long id);
 
+    // Lock lượt mượn khi job overdue xử lý để không đụng với checkin/renewal cùng thời điểm.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
+    @Query("""
+            select borrow
+            from BorrowRecord borrow
+            where borrow.id = :id
+            """)
+    Optional<BorrowRecord> findLockedForOverdueById(@Param("id") Long id);
+
     // Tìm lượt mượn đang mở gần nhất của một bản sách, dùng khi check-in bằng barcode.
     @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
     Optional<BorrowRecord> findFirstByBookCopyIdAndStatusInOrderByBorrowedAtDesc(
