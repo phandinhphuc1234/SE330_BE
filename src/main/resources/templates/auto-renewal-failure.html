@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Không thể tự động gia hạn sách</title>
+</head>
+<body>
+<p>Chào <span th:text="${fullName}">Bạn đọc</span>,</p>
+
+<p>Hệ thống không thể tự động gia hạn lượt mượn sau:</p>
+
+<ul>
+    <li><strong>Sách:</strong> <span th:text="${bookTitle}">Tên sách</span></li>
+    <li><strong>Barcode:</strong> <span th:text="${barcode}">BARCODE</span></li>
+    <li><strong>Hạn trả:</strong> <span th:text="${dueDate}">due date</span></li>
+    <li><strong>Lý do:</strong> <span th:text="${reasonMessage}">Reason</span></li>
+</ul>
+
+<p>Vui lòng hoàn trả sách đúng hạn hoặc liên hệ thủ thư nếu bạn cần hỗ trợ thêm.</p>
+<p>Mã lý do: <span th:text="${reasonCode}">REASON_CODE</span></p>
+</body>
+</html>

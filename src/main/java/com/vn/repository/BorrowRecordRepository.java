@@ -6,9 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
@@ -33,9 +36,27 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     @EntityGraph(attributePaths = {"bookCopy", "bookCopy.book", "bookCopy.book.authors", "bookCopy.book.category"})
     Page<BorrowRecord> findByMemberIdOrderByBorrowedAtDesc(Long memberId, Pageable pageable);
 
+    // Lấy các lượt mượn đã phát sinh tiền phạt của member hiện tại.
+    @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
+    Page<BorrowRecord> findByMemberIdAndFineAmountGreaterThanOrderByFineCalculatedAtDesc(
+            Long memberId,
+            BigDecimal minimumFineAmount,
+            Pageable pageable
+    );
+
     // Lấy một lượt mượn kèm member, copy và book để xử lý gia hạn hoặc nghiệp vụ staff.
     @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
     Optional<BorrowRecord> findById(Long id);
+
+    // Lock lượt mượn khi gia hạn từ job nền để tránh renewCount bị tăng trùng với user/staff renew.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
+    @Query("""
+            select borrow
+            from BorrowRecord borrow
+            where borrow.id = :id
+            """)
+    Optional<BorrowRecord> findLockedForRenewalById(@Param("id") Long id);
 
     // Tìm lượt mượn đang mở gần nhất của một bản sách, dùng khi check-in bằng barcode.
     @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
@@ -54,4 +75,19 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     Page<BorrowRecord> findOverdueCandidates(@Param("status") BorrowStatus status,
                                              @Param("now") Instant now,
                                              Pageable pageable);
+
+    // Lấy các lượt mượn sắp đến hạn trong một ngày nghiệp vụ để job auto-renewal xử lý.
+    @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
+    @Query("""
+            select borrow
+            from BorrowRecord borrow
+            where borrow.status = :status
+              and borrow.dueDate >= :windowStart
+              and borrow.dueDate < :windowEnd
+            order by borrow.dueDate asc
+            """)
+    Page<BorrowRecord> findAutoRenewalCandidates(@Param("status") BorrowStatus status,
+                                                 @Param("windowStart") Instant windowStart,
+                                                 @Param("windowEnd") Instant windowEnd,
+                                                 Pageable pageable);
 }

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Gia hạn sách tự động thành công</title>
+</head>
+<body>
+<p>Chào <span th:text="${fullName}">Bạn đọc</span>,</p>
+
+<p>Hệ thống đã tự động gia hạn lượt mượn sau:</p>
+
+<ul>
+    <li><strong>Sách:</strong> <span th:text="${bookTitle}">Tên sách</span></li>
+    <li><strong>Barcode:</strong> <span th:text="${barcode}">BARCODE</span></li>
+    <li><strong>Hạn cũ:</strong> <span th:text="${oldDueDate}">old due date</span></li>
+    <li><strong>Hạn mới:</strong> <span th:text="${newDueDate}">new due date</span></li>
+    <li><strong>Số lần gia hạn:</strong> <span th:text="${renewCount}">1</span>/<span th:text="${maxRenewals}">2</span></li>
+</ul>
+
+<p>Nếu bạn không còn nhu cầu sử dụng, vui lòng hoàn trả sách để bạn đọc khác có thể mượn.</p>
+</body>
+</html>

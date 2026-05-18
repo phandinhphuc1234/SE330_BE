@@ -10,8 +10,13 @@ public class CirculationSettingService {
 
     private static final int DEFAULT_BORROW_DAYS = 14;
     private static final int DEFAULT_RENEWAL_DAYS = 7;
-    private static final int DEFAULT_MAX_RENEWALS = 1;
+    private static final int DEFAULT_MAX_RENEWALS = 2;
     private static final int DEFAULT_HOLD_PICKUP_DAYS = 3;
+    private static final boolean DEFAULT_AUTO_RENEW_ENABLED = false;
+    private static final int DEFAULT_AUTO_RENEW_DAYS_BEFORE_DUE = 1;
+    private static final boolean DEFAULT_AUTO_RENEW_NOTIFY_SUCCESS = true;
+    private static final boolean DEFAULT_AUTO_RENEW_NOTIFY_FAILURE = true;
+    private static final int DEFAULT_AUTO_RENEW_MAX_ITEMS_PER_RUN = 500;
 
     private final SystemSettingRepository systemSettingRepository;
 
@@ -40,6 +45,31 @@ public class CirculationSettingService {
         return getIntSetting("HOLD_PICKUP_DAYS_DEFAULT", DEFAULT_HOLD_PICKUP_DAYS);
     }
 
+    // Chức năng: kiểm tra job auto-renewal có đang được bật trong system_settings không.
+    public boolean isAutoRenewEnabled() {
+        return getBooleanSetting("AUTO_RENEW_ENABLED", DEFAULT_AUTO_RENEW_ENABLED);
+    }
+
+    // Chức năng: lấy số ngày trước dueDate mà job sẽ quét để tự động gia hạn.
+    public int getAutoRenewDaysBeforeDue() {
+        return clamp(getIntSetting("AUTO_RENEW_DAYS_BEFORE_DUE", DEFAULT_AUTO_RENEW_DAYS_BEFORE_DUE), 0, 7);
+    }
+
+    // Chức năng: xác định có gửi mail khi auto-renew thành công hay không.
+    public boolean isAutoRenewNotifySuccessEnabled() {
+        return getBooleanSetting("AUTO_RENEW_NOTIFY_SUCCESS", DEFAULT_AUTO_RENEW_NOTIFY_SUCCESS);
+    }
+
+    // Chức năng: xác định có gửi mail khi auto-renew bị chặn hay không.
+    public boolean isAutoRenewNotifyFailureEnabled() {
+        return getBooleanSetting("AUTO_RENEW_NOTIFY_FAILURE", DEFAULT_AUTO_RENEW_NOTIFY_FAILURE);
+    }
+
+    // Chức năng: giới hạn số lượt mượn job xử lý trong một lần chạy để tránh batch quá lớn.
+    public int getAutoRenewMaxItemsPerRun() {
+        return clamp(getIntSetting("AUTO_RENEW_MAX_ITEMS_PER_RUN", DEFAULT_AUTO_RENEW_MAX_ITEMS_PER_RUN), 1, 5000);
+    }
+
     // Chức năng: đọc cấu hình dạng số nguyên từ system_settings, dùng default nếu chưa cấu hình.
     private int getIntSetting(String key, int defaultValue) {
         return systemSettingRepository.findById(key)
@@ -61,5 +91,9 @@ public class CirculationSettingService {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    private int clamp(int value, int min, int max) {
+        return Math.min(Math.max(value, min), max);
     }
 }

@@ -24,6 +24,7 @@ import com.vn.service.IdempotencyService;
 import com.vn.service.impl.HoldServiceImpl;
 import com.vn.service.impl.circulation.CirculationPolicyService;
 import com.vn.service.impl.circulation.CirculationSettingService;
+import com.vn.service.impl.circulation.FineStatusResolver;
 import com.vn.service.impl.circulation.HoldQueueService;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +86,7 @@ class HoldServiceImplTest {
                 circulationPolicyService,
                 circulationSettingService,
                 holdQueueService,
-                new CirculationMapper(),
+                new CirculationMapper(new FineStatusResolver()),
                 idempotencyService
         );
     }

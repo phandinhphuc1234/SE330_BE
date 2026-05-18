@@ -21,6 +21,7 @@ import com.vn.repository.BorrowRecordRepository;
 import com.vn.service.impl.circulation.CheckinUseCase;
 import com.vn.service.impl.circulation.CirculationFineService;
 import com.vn.service.impl.circulation.CirculationLookupService;
+import com.vn.service.impl.circulation.FineStatusResolver;
 import com.vn.service.impl.circulation.HoldQueueService;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +73,7 @@ class CheckinUseCaseTest {
                 borrowRecordRepository,
                 bookCopyRepository,
                 bookRepository,
-                new CirculationMapper(),
+                new CirculationMapper(new FineStatusResolver()),
                 holdQueueService
         );
     }

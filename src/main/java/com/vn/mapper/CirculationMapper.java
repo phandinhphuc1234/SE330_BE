@@ -2,17 +2,23 @@ package com.vn.mapper;
 
 import com.vn.dto.circulation.response.BorrowResponse;
 import com.vn.dto.circulation.response.CheckinResponse;
+import com.vn.dto.circulation.response.FineResponse;
 import com.vn.dto.circulation.response.HoldResponse;
 import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
 import com.vn.entity.Reservation;
+import com.vn.service.impl.circulation.FineStatusResolver;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
+@RequiredArgsConstructor
 public class CirculationMapper {
+
+    private final FineStatusResolver fineStatusResolver;
 
     public BorrowResponse toBorrowResponse(BorrowRecord borrow) {
         BookCopy copy = borrow.getBookCopy();
@@ -72,6 +78,28 @@ public class CirculationMapper {
                 reservation.getReservedAt(),
                 reservation.getNotifiedAt(),
                 reservation.getExpiresAt()
+        );
+    }
+
+    public FineResponse toFineResponse(BorrowRecord borrow) {
+        BookCopy copy = borrow.getBookCopy();
+        Book book = copy.getBook();
+        return new FineResponse(
+                borrow.getId(),
+                borrow.getMember().getId(),
+                book.getId(),
+                book.getTitle(),
+                copy.getId(),
+                copy.getBarcode(),
+                borrow.getBorrowedAt(),
+                borrow.getDueDate(),
+                borrow.getReturnedAt(),
+                safeFineAmount(borrow),
+                borrow.getFineCalculatedAt(),
+                borrow.getFinePaidAt(),
+                borrow.getFineWaivedBy(),
+                borrow.getFineWaivedReason(),
+                fineStatusResolver.resolve(borrow).name()
         );
     }
 

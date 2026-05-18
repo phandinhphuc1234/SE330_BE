@@ -34,6 +34,11 @@ public class RenewalUseCase {
         int requestedDays = request.requestedDays() == null
                 ? circulationSettingService.getRenewalDaysDefault()
                 : request.requestedDays();
+        return applyRenewal(borrow, requestedDays);
+    }
+
+    // Chức năng: áp dụng thay đổi dueDate/renewCount sau khi caller đã validate policy.
+    public RenewBorrowResponse applyRenewal(BorrowRecord borrow, int requestedDays) {
         Instant oldDueDate = borrow.getDueDate();
         Instant newDueDate = oldDueDate.plus(requestedDays, ChronoUnit.DAYS);
         borrow.setDueDate(newDueDate);

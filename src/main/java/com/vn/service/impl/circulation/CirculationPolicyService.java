@@ -5,6 +5,7 @@ import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
 import com.vn.entity.Member;
+import com.vn.enums.AutoRenewalResultCode;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.BorrowStatus;
 import com.vn.enums.MemberRole;
@@ -83,6 +84,40 @@ public class CirculationPolicyService {
         }
     }
 
+    // Chức năng: validate auto-renewal ở dạng result code để job ghi rõ lý do success/failure từng borrow.
+    public AutoRenewalResultCode validateAutoRenewal(BorrowRecord borrow) {
+        if (borrow == null) {
+            return AutoRenewalResultCode.BORROW_NOT_FOUND;
+        }
+        PolicyBlock borrowerBlock = validateBorrowerAccount(borrow.getMember());
+        if (borrowerBlock != null) {
+            return mapAutoRenewalBorrowerBlock(borrowerBlock.errorCode());
+        }
+        if (!borrow.getStatus().isRenewable()) {
+            return AutoRenewalResultCode.BORROW_NOT_RENEWABLE_STATUS;
+        }
+        if (borrow.getDueDate().isBefore(Instant.now()) && !circulationSettingService.isRenewOverdueAllowed()) {
+            return AutoRenewalResultCode.BORROW_OVERDUE;
+        }
+        if (borrow.getRenewCount() >= borrow.getMaxRenewalsAtCheckout()) {
+            return AutoRenewalResultCode.MAX_RENEWALS_REACHED;
+        }
+
+        BookCopy copy = borrow.getBookCopy();
+        if (copy == null || copy.getStatus() != BookCopyStatus.BORROWED) {
+            return AutoRenewalResultCode.BOOK_COPY_NOT_BORROWED;
+        }
+
+        Book book = copy.getBook();
+        if (book == null || book.getDeletedAt() != null) {
+            return AutoRenewalResultCode.BOOK_DELETED;
+        }
+        if (reservationRepository.existsByBookIdAndStatusIn(book.getId(), ReservationStatus.activeStatuses())) {
+            return AutoRenewalResultCode.BLOCKED_BY_HOLD;
+        }
+        return AutoRenewalResultCode.SUCCESS;
+    }
+
     // Chức năng: gom rule checkout của member và copy vào một chỗ để preview và checkout thật không bị lệch logic.
     private List<PolicyBlock> buildCheckoutBlocks(Member member, BookCopy copy) {
         List<PolicyBlock> blocks = new ArrayList<>();
@@ -142,6 +177,19 @@ public class CirculationPolicyService {
         if (block != null) {
             blocks.add(block);
         }
+    }
+
+    private AutoRenewalResultCode mapAutoRenewalBorrowerBlock(ErrorCode errorCode) {
+        if (errorCode == ErrorCode.BORROWER_MUST_BE_MEMBER) {
+            return AutoRenewalResultCode.BORROWER_MUST_BE_MEMBER;
+        }
+        if (errorCode == ErrorCode.MEMBER_NOT_ACTIVE) {
+            return AutoRenewalResultCode.MEMBER_NOT_ACTIVE;
+        }
+        if (errorCode == ErrorCode.MEMBERSHIP_EXPIRED) {
+            return AutoRenewalResultCode.MEMBERSHIP_EXPIRED;
+        }
+        return AutoRenewalResultCode.SYSTEM_ERROR;
     }
 
     private record PolicyBlock(ErrorCode errorCode, String message) {

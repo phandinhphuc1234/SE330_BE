@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -64,5 +66,94 @@ public class EmailServiceImpl implements EmailService {
                     LogEvent.SEND_VERIFICATION_EMAIL, LogResult.FAILED, memberId, e.getClass().getSimpleName(), e);
         }
     }
-}
+    // Gửi email khi cronjob tự động gia hạn thành công
+    @Override
+    @Async
+    public void sendAutoRenewalSuccessEmail(Long memberId,
+                                            String toEmail,
+                                            String fullName,
+                                            String bookTitle,
+                                            String barcode,
+                                            Instant oldDueDate,
+                                            Instant newDueDate,
+                                            Integer renewCount,
+                                            Integer maxRenewals) {
+        Context context = new Context();
+        context.setVariable("fullName", fullName);
+        context.setVariable("bookTitle", bookTitle);
+        context.setVariable("barcode", barcode);
+        context.setVariable("oldDueDate", oldDueDate);
+        context.setVariable("newDueDate", newDueDate);
+        context.setVariable("renewCount", renewCount);
+        context.setVariable("maxRenewals", maxRenewals);
 
+        sendAutoRenewalEmail(
+                memberId,
+                toEmail,
+                "SUCCESS",
+                "Gia hạn sách tự động thành công - Hệ thống Quản lý Thư viện",
+                "auto-renewal-success",
+                context
+        );
+    }
+    // Gửi mail thông báo renew thật bại
+    @Override
+    @Async
+    public void sendAutoRenewalFailureEmail(Long memberId,
+                                            String toEmail,
+                                            String fullName,
+                                            String bookTitle,
+                                            String barcode,
+                                            Instant dueDate,
+                                            String reasonCode,
+                                            String reasonMessage) {
+        Context context = new Context();
+        context.setVariable("fullName", fullName);
+        context.setVariable("bookTitle", bookTitle);
+        context.setVariable("barcode", barcode);
+        context.setVariable("dueDate", dueDate);
+        context.setVariable("reasonCode", reasonCode);
+        context.setVariable("reasonMessage", reasonMessage);
+
+        sendAutoRenewalEmail(
+                memberId,
+                toEmail,
+                "FAILURE",
+                "Không thể tự động gia hạn sách - Hệ thống Quản lý Thư viện",
+                "auto-renewal-failure",
+                context
+        );
+    }
+
+    // Chức năng: render và gửi email auto-renewal theo template success/failure.
+    private void sendAutoRenewalEmail(Long memberId,
+                                      String toEmail,
+                                      String notificationType,
+                                      String subject,
+                                      String template,
+                                      Context context) {
+        try {
+        //
+            String htmlContent = templateEngine.process(template, context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("eventType={} result={} memberId={} notificationType={}",
+                    LogEvent.SEND_AUTO_RENEWAL_EMAIL, LogResult.SUCCESS, memberId, notificationType);
+        } catch (MessagingException e) {
+            log.error("eventType={} result={} memberId={} notificationType={} reason={}",
+                    LogEvent.SEND_AUTO_RENEWAL_EMAIL,
+                    LogResult.FAILED,
+                    memberId,
+                    notificationType,
+                    e.getClass().getSimpleName(),
+                    e);
+        }
+    }
+}
