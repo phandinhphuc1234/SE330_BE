@@ -1,4 +1,4 @@
-package com.vn.service.impl.circulation;
+package com.vn.service.impl.circulation.usecase;
 
 import com.vn.dto.circulation.request.RenewBorrowRequest;
 import com.vn.dto.circulation.response.RenewBorrowResponse;
@@ -8,6 +8,8 @@ import com.vn.exception.ErrorCode;
 import com.vn.logging.LogEvent;
 import com.vn.logging.LogResult;
 import com.vn.repository.BorrowRecordRepository;
+import com.vn.service.impl.circulation.policy.CirculationPolicyService;
+import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

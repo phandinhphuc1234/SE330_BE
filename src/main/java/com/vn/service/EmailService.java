@@ -27,4 +27,12 @@ public interface EmailService {
                                      Instant dueDate,
                                      String reasonCode,
                                      String reasonMessage);
+
+    // Gửi email nhắc bạn đọc sách sắp đến hạn trả.
+    void sendDueSoonReminderEmail(Long memberId,
+                                  String toEmail,
+                                  String fullName,
+                                  String bookTitle,
+                                  String barcode,
+                                  Instant dueDate);
 }

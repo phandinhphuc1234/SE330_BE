@@ -100,4 +100,19 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
                                                  @Param("windowStart") Instant windowStart,
                                                  @Param("windowEnd") Instant windowEnd,
                                                  Pageable pageable);
+
+    // Lấy các lượt mượn sắp đến hạn trong một ngày nghiệp vụ để job gửi email nhắc trả.
+    @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
+    @Query("""
+            select borrow
+            from BorrowRecord borrow
+            where borrow.status = :status
+              and borrow.dueDate >= :windowStart
+              and borrow.dueDate < :windowEnd
+            order by borrow.dueDate asc
+            """)
+    Page<BorrowRecord> findDueSoonReminderCandidates(@Param("status") BorrowStatus status,
+                                                     @Param("windowStart") Instant windowStart,
+                                                     @Param("windowEnd") Instant windowEnd,
+                                                     Pageable pageable);
 }

@@ -6,9 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.LockModeType;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -55,4 +58,27 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findQueueHead(@Param("bookId") Long bookId,
                                     @Param("status") ReservationStatus status,
                                     Pageable pageable);
+
+    // Lấy các hold đã được báo sẵn sàng nhưng quá hạn lấy sách để scheduled job expire.
+    @EntityGraph(attributePaths = {"member", "book", "assignedCopy", "assignedCopy.book"})
+    @Query("""
+            select reservation
+            from Reservation reservation
+            where reservation.status in :statuses
+              and reservation.expiresAt < :now
+            order by reservation.expiresAt asc
+            """)
+    Page<Reservation> findExpiredReadyHoldCandidates(@Param("statuses") Collection<ReservationStatus> statuses,
+                                                     @Param("now") Instant now,
+                                                     Pageable pageable);
+
+    // Lock một hold trước khi expire để không đụng với staff checkout/cancel cùng thời điểm.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"member", "book", "assignedCopy", "assignedCopy.book"})
+    @Query("""
+            select reservation
+            from Reservation reservation
+            where reservation.id = :id
+            """)
+    Optional<Reservation> findLockedForExpiryById(@Param("id") Long id);
 }

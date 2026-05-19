@@ -125,6 +125,47 @@ public class EmailServiceImpl implements EmailService {
         );
     }
 
+    // Gửi email nhắc bạn đọc chuẩn bị trả sách trước hạn cấu hình của thư viện.
+    @Override
+    @Async
+    public void sendDueSoonReminderEmail(Long memberId,
+                                         String toEmail,
+                                         String fullName,
+                                         String bookTitle,
+                                         String barcode,
+                                         Instant dueDate) {
+        try {
+            Context context = new Context();
+            context.setVariable("fullName", fullName);
+            context.setVariable("bookTitle", bookTitle);
+            context.setVariable("barcode", barcode);
+            context.setVariable("dueDate", dueDate);
+
+            String htmlContent = templateEngine.process("due-soon-reminder", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Nhắc trả sách sắp đến hạn - Hệ thống Quản lý Thư viện");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("eventType={} result={} memberId={} entityType=BORROW_RECORD bookTitle=\"{}\"",
+                    LogEvent.SEND_DUE_SOON_REMINDER_EMAIL,
+                    LogResult.SUCCESS,
+                    memberId,
+                    bookTitle);
+        } catch (MessagingException e) {
+            log.error("eventType={} result={} memberId={} reason={}",
+                    LogEvent.SEND_DUE_SOON_REMINDER_EMAIL,
+                    LogResult.FAILED,
+                    memberId,
+                    e.getClass().getSimpleName(),
+                    e);
+        }
+    }
+
     // Chức năng: render và gửi email auto-renewal theo template success/failure.
     private void sendAutoRenewalEmail(Long memberId,
                                       String toEmail,

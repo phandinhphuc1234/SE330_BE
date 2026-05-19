@@ -1,4 +1,4 @@
-package com.vn.service.impl.circulation;
+package com.vn.service.impl.circulation.usecase;
 
 import com.vn.dto.circulation.request.CheckoutRequest;
 import com.vn.dto.circulation.response.BorrowResponse;
@@ -15,6 +15,9 @@ import com.vn.mapper.CirculationMapper;
 import com.vn.repository.BookCopyRepository;
 import com.vn.repository.BookRepository;
 import com.vn.repository.BorrowRecordRepository;
+import com.vn.service.impl.circulation.policy.CirculationPolicyService;
+import com.vn.service.impl.circulation.policy.CirculationSettingService;
+import com.vn.service.impl.circulation.support.CirculationLookupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -4,7 +4,7 @@ import com.vn.entity.BorrowRecord;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.BorrowStatus;
 import com.vn.enums.FineStatus;
-import com.vn.service.impl.circulation.FineStatusResolver;
+import com.vn.service.impl.circulation.support.FineStatusResolver;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.Test;
 

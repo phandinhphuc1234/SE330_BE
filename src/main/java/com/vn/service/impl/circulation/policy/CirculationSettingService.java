@@ -1,4 +1,4 @@
-package com.vn.service.impl.circulation;
+package com.vn.service.impl.circulation.policy;
 
 import com.vn.repository.SystemSettingRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +17,9 @@ public class CirculationSettingService {
     private static final boolean DEFAULT_AUTO_RENEW_NOTIFY_SUCCESS = true;
     private static final boolean DEFAULT_AUTO_RENEW_NOTIFY_FAILURE = true;
     private static final int DEFAULT_AUTO_RENEW_MAX_ITEMS_PER_RUN = 500;
+    private static final boolean DEFAULT_DUE_SOON_REMINDER_ENABLED = false;
+    private static final int DEFAULT_DUE_SOON_REMINDER_DAYS_BEFORE_DUE = 2;
+    private static final int DEFAULT_DUE_SOON_REMINDER_MAX_ITEMS_PER_RUN = 500;
 
     private final SystemSettingRepository systemSettingRepository;
 
@@ -68,6 +71,29 @@ public class CirculationSettingService {
     // Chức năng: giới hạn số lượt mượn job xử lý trong một lần chạy để tránh batch quá lớn.
     public int getAutoRenewMaxItemsPerRun() {
         return clamp(getIntSetting("AUTO_RENEW_MAX_ITEMS_PER_RUN", DEFAULT_AUTO_RENEW_MAX_ITEMS_PER_RUN), 1, 5000);
+    }
+
+    // Chức năng: kiểm tra job nhắc sắp đến hạn có được bật hay không.
+    public boolean isDueSoonReminderEnabled() {
+        return getBooleanSetting("DUE_SOON_REMINDER_ENABLED", DEFAULT_DUE_SOON_REMINDER_ENABLED);
+    }
+
+    // Chức năng: lấy số ngày trước hạn trả mà hệ thống sẽ gửi reminder.
+    public int getDueSoonReminderDaysBeforeDue() {
+        return clamp(
+                getIntSetting("DUE_SOON_REMINDER_DAYS_BEFORE_DUE", DEFAULT_DUE_SOON_REMINDER_DAYS_BEFORE_DUE),
+                0,
+                14
+        );
+    }
+
+    // Chức năng: giới hạn số reminder được xử lý trong một lần chạy job.
+    public int getDueSoonReminderMaxItemsPerRun() {
+        return clamp(
+                getIntSetting("DUE_SOON_REMINDER_MAX_ITEMS_PER_RUN", DEFAULT_DUE_SOON_REMINDER_MAX_ITEMS_PER_RUN),
+                1,
+                5000
+        );
     }
 
     // Chức năng: đọc cấu hình dạng số nguyên từ system_settings, dùng default nếu chưa cấu hình.

@@ -10,7 +10,7 @@ import com.vn.enums.BorrowStatus;
 import com.vn.mapper.CirculationMapper;
 import com.vn.repository.BorrowRecordRepository;
 import com.vn.service.impl.FineServiceImpl;
-import com.vn.service.impl.circulation.FineStatusResolver;
+import com.vn.service.impl.circulation.support.FineStatusResolver;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

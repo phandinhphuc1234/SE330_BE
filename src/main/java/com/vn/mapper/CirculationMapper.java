@@ -8,7 +8,7 @@ import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
 import com.vn.entity.Reservation;
-import com.vn.service.impl.circulation.FineStatusResolver;
+import com.vn.service.impl.circulation.support.FineStatusResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -3,7 +3,7 @@ package com.vn.service.impl.circulation.autorenewal;
 import com.vn.entity.BorrowRecord;
 import com.vn.enums.BorrowStatus;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.service.impl.circulation.CirculationSettingService;
+import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
