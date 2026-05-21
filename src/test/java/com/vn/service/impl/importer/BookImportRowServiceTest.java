@@ -1,14 +1,15 @@
-package com.vn.service.impl.importer;
+package com.vn.service.impl.importer.chunk;
 
 import com.vn.entity.Author;
 import com.vn.entity.Book;
-import com.vn.entity.BookCopy;
 import com.vn.entity.Category;
 import com.vn.enums.BookCopyStatus;
 import com.vn.repository.AuthorRepository;
-import com.vn.repository.BookCopyRepository;
 import com.vn.repository.BookRepository;
 import com.vn.repository.CategoryRepository;
+import com.vn.service.impl.importer.model.BookImportCache;
+import com.vn.service.impl.importer.model.BookImportCsvRow;
+import com.vn.service.impl.importer.model.PreparedBookCopyImport;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +35,6 @@ class BookImportRowServiceTest {
     private BookRepository bookRepository;
 
     @Mock
-    private BookCopyRepository bookCopyRepository;
-
-    @Mock
     private AuthorRepository authorRepository;
 
     @Mock
@@ -51,7 +49,6 @@ class BookImportRowServiceTest {
     void setUp() {
         rowService = new BookImportRowService(
                 bookRepository,
-                bookCopyRepository,
                 authorRepository,
                 categoryRepository,
                 entityManager
@@ -59,7 +56,7 @@ class BookImportRowServiceTest {
     }
 
     @Test
-    void importRow_shouldCreateBookAuthorCategoryAndCopy_whenBookDoesNotExist() {
+    void prepareRow_shouldCreateBookAuthorCategoryAndPrepareCopy_whenBookDoesNotExist() {
         BookImportCsvRow row = new BookImportCsvRow(
                 2,
                 "Clean Code",
@@ -95,17 +92,10 @@ class BookImportRowServiceTest {
             }
             return book;
         });
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> {
-            BookCopy copy = invocation.getArgument(0);
-            copy.setId(10L);
-            return copy;
-        });
-
-        BookImportRowResult result = rowService.importRow(row, new BookImportCache());
+        PreparedBookCopyImport result = rowService.prepareRow(row, new BookImportCache());
 
         assertThat(result.createdBook()).isTrue();
         assertThat(result.bookId()).isEqualTo(1L);
-        assertThat(result.copyId()).isEqualTo(10L);
 
         ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
         verify(bookRepository).save(bookCaptor.capture());
@@ -114,20 +104,16 @@ class BookImportRowServiceTest {
         assertThat(createdBook.getIsbn()).isEqualTo("9780132350884");
         assertThat(createdBook.getCategory().getName()).isEqualTo("Tech");
         assertThat(createdBook.getAuthors()).extracting(Author::getName).containsExactly("Robert C. Martin");
-        verify(bookRepository).adjustCopyCounters(1L, 1, 1);
 
-        ArgumentCaptor<BookCopy> copyCaptor = ArgumentCaptor.forClass(BookCopy.class);
-        verify(bookCopyRepository).save(copyCaptor.capture());
-        BookCopy savedCopy = copyCaptor.getValue();
-        assertThat(savedCopy.getBook()).isSameAs(createdBook);
-        assertThat(savedCopy.getBarcode()).isEqualTo("LIB-000001");
-        assertThat(savedCopy.getStatus()).isEqualTo(BookCopyStatus.AVAILABLE);
-        assertThat(savedCopy.getCondition()).isEqualTo("GOOD");
-        assertThat(savedCopy.getLocation()).isEqualTo("Shelf A1");
+        assertThat(result.copy().bookId()).isEqualTo(1L);
+        assertThat(result.copy().barcode()).isEqualTo("LIB-000001");
+        assertThat(result.copy().status()).isEqualTo(BookCopyStatus.AVAILABLE.name());
+        assertThat(result.copy().condition()).isEqualTo("GOOD");
+        assertThat(result.copy().location()).isEqualTo("Shelf A1");
     }
 
     @Test
-    void importRow_shouldUseExistingBookAndCreateOnlyCopy_whenActiveBookExists() {
+    void prepareRow_shouldUseExistingBookAndPrepareOnlyCopy_whenActiveBookExists() {
         Book existingBook = Book.builder()
                 .id(1L)
                 .title("Clean Code")
@@ -151,19 +137,13 @@ class BookImportRowServiceTest {
         );
 
         when(bookRepository.findByIsbnIgnoreCaseAndDeletedAtIsNull("9780132350884")).thenReturn(Optional.of(existingBook));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> {
-            BookCopy copy = invocation.getArgument(0);
-            copy.setId(11L);
-            return copy;
-        });
-
-        BookImportRowResult result = rowService.importRow(row, new BookImportCache());
+        PreparedBookCopyImport result = rowService.prepareRow(row, new BookImportCache());
 
         assertThat(result.createdBook()).isFalse();
         assertThat(result.bookId()).isEqualTo(1L);
-        assertThat(result.copyId()).isEqualTo(11L);
+        assertThat(result.copy().bookId()).isEqualTo(1L);
+        assertThat(result.copy().barcode()).isEqualTo("LIB-000002");
 
-        verify(bookRepository).adjustCopyCounters(1L, 1, 1);
         verify(bookRepository, never()).save(any());
         verify(authorRepository, never()).findByNameIgnoreCase(any());
         verify(categoryRepository, never()).findByNameIgnoreCase(any());
@@ -171,7 +151,7 @@ class BookImportRowServiceTest {
     }
 
     @Test
-    void importRow_shouldUseCacheAndSkipRepeatedBookAuthorCategoryQueries_whenValuesAlreadyResolved() {
+    void prepareRow_shouldUseCacheAndSkipRepeatedBookAuthorCategoryQueries_whenValuesAlreadyResolved() {
         Book existingBook = Book.builder()
                 .id(1L)
                 .title("Clean Code")
@@ -199,22 +179,16 @@ class BookImportRowServiceTest {
         );
 
         when(entityManager.getReference(Book.class, 1L)).thenReturn(existingBook);
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> {
-            BookCopy copy = invocation.getArgument(0);
-            copy.setId(10L);
-            return copy;
-        });
-
-        BookImportRowResult result = rowService.importRow(row, cache);
+        PreparedBookCopyImport result = rowService.prepareRow(row, cache);
 
         assertThat(result.createdBook()).isFalse();
         assertThat(result.bookId()).isEqualTo(1L);
-        assertThat(result.copyId()).isEqualTo(10L);
+        assertThat(result.copy().bookId()).isEqualTo(1L);
+        assertThat(result.copy().barcode()).isEqualTo("LIB-000001");
         verify(bookRepository, never()).findByIsbnIgnoreCaseAndDeletedAtIsNull(any());
         verify(bookRepository, never()).save(any());
         verify(authorRepository, never()).findByNameIgnoreCase(any());
         verify(categoryRepository, never()).findByNameIgnoreCase(any());
-        verify(bookRepository).adjustCopyCounters(1L, 1, 1);
     }
 }
 

@@ -1,22 +1,25 @@
-package com.vn.service.impl.importer;
+package com.vn.service.impl.importer.chunk;
+
+import com.vn.service.impl.importer.model.BookCopyInsertRow;
+import com.vn.service.impl.importer.model.BookImportCache;
+import com.vn.service.impl.importer.model.BookImportCsvRow;
+import com.vn.service.impl.importer.model.PreparedBookCopyImport;
+import com.vn.service.impl.importer.model.ResolvedImportBook;
 
 import com.vn.entity.Author;
 import com.vn.entity.Book;
-import com.vn.entity.BookCopy;
 import com.vn.entity.Category;
 import com.vn.enums.BookCopyStatus;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.repository.AuthorRepository;
-import com.vn.repository.BookCopyRepository;
 import com.vn.repository.BookRepository;
 import com.vn.repository.CategoryRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -25,15 +28,12 @@ import java.util.Set;
 class BookImportRowService {
 
     private final BookRepository bookRepository;
-    private final BookCopyRepository bookCopyRepository;
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final EntityManager entityManager;
 
-    // Import một dòng CSV trong một transaction riêng.
-    // Nếu dòng này lỗi thì chỉ rollback dòng hiện tại, các dòng import thành công trước đó vẫn được giữ.
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public BookImportRowResult importRow(BookImportCsvRow row, BookImportCache cache) {
+    // Chức năng: resolve dữ liệu nghiệp vụ cho một dòng CSV trước khi batch insert BookCopy.
+    PreparedBookCopyImport prepareRow(BookImportCsvRow row, BookImportCache cache) {
         String isbn = normalizeRequired(row.isbn());
         String barcode = normalizeRequired(row.barcode());
 
@@ -41,22 +41,19 @@ class BookImportRowService {
         // Nhiều dòng có cùng ISBN sẽ dùng chung một Book, nhưng mỗi dòng tạo một BookCopy khác nhau.
         ResolvedImportBook resolvedBook = resolveOrCreateBook(row, isbn, cache);
         Book book = resolvedBook.book();
+        Instant now = Instant.now();
 
-        // Tạo bản copy vật lý cho đầu sách hiện tại
-        BookCopy copy = BookCopy.builder()
-                .book(book)
-                .barcode(barcode)
-                .status(BookCopyStatus.AVAILABLE)
-                .condition(normalizeOptional(row.condition(), null))
-                .location(normalizeOptional(row.location(), null))
-                .build();
+        BookCopyInsertRow copy = new BookCopyInsertRow(
+                book.getId(),
+                barcode,
+                BookCopyStatus.AVAILABLE.name(),
+                normalizeOptional(row.condition(), null),
+                normalizeOptional(row.location(), null),
+                now,
+                now
+        );
 
-        BookCopy savedCopy = bookCopyRepository.save(copy);
-
-        // Sau khi tạo copy thành công, tăng totalCopies và availableCopies của Book
-        incrementBookCopyCounters(book);
-
-        return new BookImportRowResult(resolvedBook.created(), book.getId(), savedCopy.getId());
+        return new PreparedBookCopyImport(resolvedBook.created(), book.getId(), copy);
     }
 
     // Tìm hoặc tạo Book theo ISBN.
@@ -159,11 +156,6 @@ class BookImportRowService {
 
         cache.putCategoryId(cacheKey, category.getId());
         return category;
-    }
-
-    // Tăng bộ đếm copy của Book sau khi import thành công một BookCopy
-    private void incrementBookCopyCounters(Book book) {
-        bookRepository.adjustCopyCounters(book.getId(), 1, 1);
     }
 
     // Chuẩn hóa field bắt buộc: trim và không cho phép null/rỗng

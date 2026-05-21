@@ -1,16 +1,27 @@
 package com.vn.service.impl.importer;
 
-import com.vn.dto.catalog.response.BookImportResultResponse;
-import com.vn.exception.AppException;
+import com.vn.dto.catalog.response.BookImportRowErrorResponse;
 import com.vn.exception.ErrorCode;
 import com.vn.repository.BookCopyRepository;
+import com.vn.service.impl.importer.chunk.BookImportChunkProcessor;
+import com.vn.service.impl.importer.csv.BookImportProcessor;
+import com.vn.service.impl.importer.model.BookImportCache;
+import com.vn.service.impl.importer.model.BookImportChunkResult;
+import com.vn.service.impl.importer.model.BookImportCsvRow;
+import com.vn.service.impl.importer.model.BookImportProgress;
+import com.vn.service.impl.importer.model.BookImportProgressListener;
+import com.vn.service.impl.importer.model.BookImportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,30 +32,33 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BookImportServiceImplTest {
+class BookImportProcessorTest {
+
+    @TempDir
+    private Path tempDir;
 
     @Mock
-    private BookImportRowService bookImportRowService;
+    private BookImportChunkProcessor chunkProcessor;
 
     @Mock
     private BookCopyRepository bookCopyRepository;
 
-    private BookImportServiceImpl bookImportService;
+    private BookImportProcessor processor;
 
     @BeforeEach
     void setUp() {
-        bookImportService = new BookImportServiceImpl(bookImportRowService, bookCopyRepository);
+        processor = new BookImportProcessor(chunkProcessor, bookCopyRepository);
     }
 
     @Test
-    void importBooksFromCsv_shouldRejectRowsAndNotImport_whenBarcodeDuplicatedInSameFile() {
-        MockMultipartFile file = csvFile("""
+    void importFromCsv_shouldRejectRowsAndNotImport_whenBarcodeDuplicatedInSameFile() throws Exception {
+        Path file = csvFile("""
                 title,isbn,authors,category,barcode,condition,location,language,published_date,edition
                 Clean Code,9780132350884,Robert C. Martin,Tech,LIB-000001,GOOD,Shelf A1,en,2008-08-01,1st
                 Nhà Giả Kim,9786041017528,Paulo Coelho,Fiction,LIB-000001,GOOD,Shelf B2,vi,1988-01-01,
                 """);
 
-        BookImportResultResponse result = bookImportService.importBooksFromCsv(file);
+        BookImportSummary result = processor.importFromCsv(file, noopListener());
 
         assertThat(result.totalRows()).isEqualTo(2);
         assertThat(result.successRows()).isZero();
@@ -59,24 +73,35 @@ class BookImportServiceImplTest {
                     assertThat(error.barcode()).isEqualTo("LIB-000001");
                 });
 
-        verify(bookImportRowService, never()).importRow(any(), any());
+        verify(chunkProcessor, never()).importChunk(any(), any());
         verify(bookCopyRepository, never()).findExistingLowerBarcodes(any());
     }
 
     @Test
-    void importBooksFromCsv_shouldContinueImporting_whenOneRowFails() {
-        MockMultipartFile file = csvFile("""
+    void importFromCsv_shouldContinueImporting_whenChunkReturnsRowError() throws Exception {
+        Path file = csvFile("""
                 title,isbn,authors,category,barcode
                 Clean Code,9780132350884,Robert C. Martin,Tech,LIB-000001
                 Clean Architecture,9780134494166,Robert C. Martin,Tech,LIB-000002
                 """);
 
         when(bookCopyRepository.findExistingLowerBarcodes(any())).thenReturn(Set.of());
-        when(bookImportRowService.importRow(any(BookImportCsvRow.class), any(BookImportCache.class)))
-                .thenReturn(new BookImportRowResult(true, 1L, 10L))
-                .thenThrow(new AppException(ErrorCode.DUPLICATE_RESOURCE));
+        when(chunkProcessor.importChunk(any(), any()))
+                .thenReturn(new BookImportChunkResult(
+                        1,
+                        1,
+                        1,
+                        1,
+                        List.of(new BookImportRowErrorResponse(
+                                3,
+                                "9780134494166",
+                                "LIB-000002",
+                                ErrorCode.DUPLICATE_RESOURCE.getCode(),
+                                ErrorCode.DUPLICATE_RESOURCE.getMessage()
+                        ))
+                ));
 
-        BookImportResultResponse result = bookImportService.importBooksFromCsv(file);
+        BookImportSummary result = processor.importFromCsv(file, noopListener());
 
         assertThat(result.totalRows()).isEqualTo(2);
         assertThat(result.successRows()).isEqualTo(1);
@@ -93,15 +118,15 @@ class BookImportServiceImplTest {
     }
 
     @Test
-    void importBooksFromCsv_shouldRejectRowBeforeImport_whenBarcodeAlreadyExistsInDatabase() {
-        MockMultipartFile file = csvFile("""
+    void importFromCsv_shouldRejectRowBeforeImport_whenBarcodeAlreadyExistsInDatabase() throws Exception {
+        Path file = csvFile("""
                 title,isbn,authors,category,barcode
                 Clean Code,9780132350884,Robert C. Martin,Tech,LIB-000001
                 """);
 
         when(bookCopyRepository.findExistingLowerBarcodes(any())).thenReturn(Set.of("lib-000001"));
 
-        BookImportResultResponse result = bookImportService.importBooksFromCsv(file);
+        BookImportSummary result = processor.importFromCsv(file, noopListener());
 
         assertThat(result.totalRows()).isEqualTo(1);
         assertThat(result.successRows()).isZero();
@@ -114,17 +139,17 @@ class BookImportServiceImplTest {
                     assertThat(error.barcode()).isEqualTo("LIB-000001");
                 });
 
-        verify(bookImportRowService, never()).importRow(any(), any());
+        verify(chunkProcessor, never()).importChunk(any(), any());
     }
 
     @Test
-    void importBooksFromCsv_shouldReturnParseErrorAndSkipInvalidRow_whenRequiredAuthorMissing() {
-        MockMultipartFile file = csvFile("""
+    void importFromCsv_shouldReturnParseErrorAndSkipInvalidRow_whenRequiredAuthorMissing() throws Exception {
+        Path file = csvFile("""
                 title,isbn,authors,category,barcode
                 Clean Code,9780132350884,,Tech,LIB-000001
                 """);
 
-        BookImportResultResponse result = bookImportService.importBooksFromCsv(file);
+        BookImportSummary result = processor.importFromCsv(file, noopListener());
 
         assertThat(result.totalRows()).isEqualTo(1);
         assertThat(result.successRows()).isZero();
@@ -133,40 +158,49 @@ class BookImportServiceImplTest {
                 .singleElement()
                 .satisfies(error -> assertThat(error.code()).isEqualTo(ErrorCode.BAD_REQUEST.getCode()));
 
-        verify(bookImportRowService, never()).importRow(any(), any());
+        verify(chunkProcessor, never()).importChunk(any(), any());
     }
 
     @Test
-    void importBooksFromCsv_shouldParseQuotedCommaAndEscapedQuote() {
-        MockMultipartFile file = csvFile("""
+    void importFromCsv_shouldParseQuotedCommaAndEscapedQuote() throws Exception {
+        Path file = csvFile("""
                 title,isbn,authors,category,barcode
                 "Clean Code, Revised",9780132350884,"Robert ""Uncle Bob"" Martin;Another Author","Tech, Programming",LIB-000001
                 """);
 
         when(bookCopyRepository.findExistingLowerBarcodes(any())).thenReturn(Set.of());
-        when(bookImportRowService.importRow(any(BookImportCsvRow.class), any(BookImportCache.class)))
-                .thenReturn(new BookImportRowResult(true, 1L, 10L));
+        when(chunkProcessor.importChunk(any(), any()))
+                .thenReturn(new BookImportChunkResult(1, 0, 1, 1, List.of()));
 
-        BookImportResultResponse result = bookImportService.importBooksFromCsv(file);
+        BookImportSummary result = processor.importFromCsv(file, noopListener());
 
         assertThat(result.successRows()).isEqualTo(1);
         assertThat(result.failedRows()).isZero();
 
-        verify(bookImportRowService).importRow(argThat(row ->
-                "Clean Code, Revised".equals(row.title())
-                        && "Tech, Programming".equals(row.category())
-                        && row.authors().contains("Robert \"Uncle Bob\" Martin")
-                        && row.authors().contains("Another Author")
-        ), any(BookImportCache.class));
+        verify(chunkProcessor).importChunk(argThat(rows -> {
+            BookImportCsvRow row = rows.getFirst();
+            return "Clean Code, Revised".equals(row.title())
+                    && "Tech, Programming".equals(row.category())
+                    && row.authors().contains("Robert \"Uncle Bob\" Martin")
+                    && row.authors().contains("Another Author");
+        }), any(BookImportCache.class));
     }
 
-    private MockMultipartFile csvFile(String content) {
-        return new MockMultipartFile(
-                "file",
-                "books.csv",
-                "text/csv",
-                content.getBytes()
-        );
+    private Path csvFile(String content) throws Exception {
+        Path file = tempDir.resolve("books.csv");
+        Files.writeString(file, content, StandardCharsets.UTF_8);
+        return file;
+    }
+
+    private BookImportProgressListener noopListener() {
+        return new BookImportProgressListener() {
+            @Override
+            public void onTotalRowsKnown(int totalRows) {
+            }
+
+            @Override
+            public void onProgress(BookImportProgress progress) {
+            }
+        };
     }
 }
-

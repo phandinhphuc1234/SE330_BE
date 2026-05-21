@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CirculationServiceImpl implements CirculationService {
 
-    private static final int MAX_PAGE_SIZE = 100;
+    private static final int MAX_PAGE_SIZE = 10;
 
     private final CheckoutUseCase checkoutUseCase;
     private final CheckinUseCase checkinUseCase;
@@ -44,7 +44,6 @@ public class CirculationServiceImpl implements CirculationService {
 
     // Chức năng: tạo lượt mượn sách cho staff, có idempotency để tránh tạo trùng khi retry request.
     @Override
-    @Transactional
     public BorrowResponse checkout(Long actorId, String idempotencyKey, CheckoutRequest request) {
         return idempotencyService.execute(
                 actorId,
@@ -59,7 +58,6 @@ public class CirculationServiceImpl implements CirculationService {
 
     // Chức năng: xử lý trả sách, cập nhật trạng thái bản sách và tính tiền phạt quá hạn nếu có.
     @Override
-    @Transactional
     public CheckinResponse checkin(Long actorId, String idempotencyKey, CheckinRequest request) {
         return idempotencyService.execute(
                 actorId,
@@ -74,7 +72,6 @@ public class CirculationServiceImpl implements CirculationService {
 
     // Chức năng: cho member tự gia hạn lượt mượn của chính mình.
     @Override
-    @Transactional
     public RenewBorrowResponse renewMyBorrow(Long actorId, String idempotencyKey, Long borrowId, RenewBorrowRequest request) {
         return idempotencyService.execute(
                 actorId,
@@ -89,7 +86,6 @@ public class CirculationServiceImpl implements CirculationService {
 
     // Chức năng: cho staff gia hạn lượt mượn thay cho member.
     @Override
-    @Transactional
     public RenewBorrowResponse staffRenewBorrow(Long actorId, String idempotencyKey, Long borrowId, RenewBorrowRequest request) {
         return idempotencyService.execute(
                 actorId,

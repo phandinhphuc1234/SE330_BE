@@ -8,7 +8,7 @@ import com.vn.dto.catalog.request.UpdateBookRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.catalog.response.BookCopyResponse;
 import com.vn.dto.catalog.response.BookDetailResponse;
-import com.vn.dto.catalog.response.BookImportResultResponse;
+import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
 import com.vn.security.MemberUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @Tag(name = "Books", description = "APIs for searching, viewing and managing book catalog")
 public interface BookApiDocs {
@@ -144,18 +145,31 @@ public interface BookApiDocs {
     @Operation(
             summary = "Import books from CSV",
             description = """
-                    Import books and physical copies from a CSV file.
+                    Start an asynchronous CSV import job for books and physical copies.
                     Required headers: title,isbn,authors,category,barcode.
                     Optional headers: condition,location,language,published_date,edition.
                     Each row creates one physical copy. Existing books are matched by active ISBN;
                     missing authors and categories are created automatically.
-                    Rows with errors are returned in the response while valid rows continue importing.
+                    The response returns a jobId. Poll GET /api/books/import-csv/{jobId} for progress and row errors.
                     Librarian and Admin can access this API.
                     """
     )
-    ResponseEntity<ApiResponse<BookImportResultResponse>> importBooksFromCsv(
+    ResponseEntity<ApiResponse<BookImportJobResponse>> importBooksFromCsv(
             @Parameter(description = "CSV file to import", required = true)
             MultipartFile file
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Get CSV import job status",
+            description = """
+                    Get current status, progress counters and row-level errors of a CSV import job.
+                    Status values: PENDING, PROCESSING, COMPLETED, FAILED.
+                    Librarian and Admin can access this API.
+                    """
+    )
+    ResponseEntity<ApiResponse<BookImportJobResponse>> getBookImportJob(
+            @Parameter(description = "CSV import job ID", required = true) UUID jobId
     );
 
     @SecurityRequirement(name = "Bearer Authentication")

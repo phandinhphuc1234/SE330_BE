@@ -9,7 +9,7 @@ import com.vn.dto.catalog.request.UpdateBookRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.catalog.response.BookCopyResponse;
 import com.vn.dto.catalog.response.BookDetailResponse;
-import com.vn.dto.catalog.response.BookImportResultResponse;
+import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
 import com.vn.dto.common.PageMeta;
 import com.vn.exception.AppException;
@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/books")
@@ -150,11 +151,21 @@ public class BookController implements BookApiDocs {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PostMapping(value = "/import-csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public ResponseEntity<ApiResponse<BookImportResultResponse>> importBooksFromCsv(
+    public ResponseEntity<ApiResponse<BookImportJobResponse>> importBooksFromCsv(
             @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(
+                "Đã nhận file CSV và bắt đầu xử lý import",
+                bookImportService.startImportBooksFromCsv(file)
+        ));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping("/import-csv/{jobId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookImportJobResponse>> getBookImportJob(@PathVariable UUID jobId) {
         return ResponseEntity.ok(ApiResponse.success(
-                "Import sách từ CSV hoàn tất",
-                bookImportService.importBooksFromCsv(file)
+                "Lấy trạng thái import CSV thành công",
+                bookImportService.getImportJob(jobId)
         ));
     }
     // Cập nhật tác giả cho sách

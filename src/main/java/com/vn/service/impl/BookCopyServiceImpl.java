@@ -71,7 +71,7 @@ public class BookCopyServiceImpl implements BookCopyService {
         List<BookCopy> savedCopies = request.copies().stream()
                 .map(copyRequest -> createBookCopyEntity(book, copyRequest))
                 .toList();
-
+        //
         bookRepository.adjustCopyCounters(book.getId(), savedCopies.size(), savedCopies.size());
 
         log.info("eventType={} result={} entityType=BOOK entityId={} copyCount={}",

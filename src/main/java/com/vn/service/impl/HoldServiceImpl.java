@@ -71,7 +71,7 @@ public class HoldServiceImpl implements HoldService {
         if (reservationRepository.existsByMemberIdAndBookIdAndStatusIn(member.getId(), book.getId(), ReservationStatus.activeStatuses())) {
             throw new AppException(ErrorCode.HOLD_ALREADY_EXISTS);
         }
-
+        // Tìm ra sách đầu của queue và cho người đó mượn sách
         int queuePosition = reservationRepository.findMaxQueuePositionByBookId(book.getId()) + 1;
         Instant now = Instant.now();
         Reservation reservation = Reservation.builder()
@@ -130,7 +130,6 @@ public class HoldServiceImpl implements HoldService {
 
     // Chức năng: staff checkout bản sách đang ON_HOLD_SHELF cho đúng member của hold.
     @Override
-    @Transactional
     public BorrowResponse checkoutHold(Long actorId, String idempotencyKey, Long holdId) {
         return idempotencyService.execute(
                 actorId,

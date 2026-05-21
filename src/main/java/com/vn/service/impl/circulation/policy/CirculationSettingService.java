@@ -17,7 +17,7 @@ public class CirculationSettingService {
     private static final boolean DEFAULT_AUTO_RENEW_NOTIFY_SUCCESS = true;
     private static final boolean DEFAULT_AUTO_RENEW_NOTIFY_FAILURE = true;
     private static final int DEFAULT_AUTO_RENEW_MAX_ITEMS_PER_RUN = 500;
-    private static final boolean DEFAULT_DUE_SOON_REMINDER_ENABLED = false;
+    private static final boolean DEFAULT_DUE_SOON_REMINDER_ENABLED = true;
     private static final int DEFAULT_DUE_SOON_REMINDER_DAYS_BEFORE_DUE = 2;
     private static final int DEFAULT_DUE_SOON_REMINDER_MAX_ITEMS_PER_RUN = 500;
 

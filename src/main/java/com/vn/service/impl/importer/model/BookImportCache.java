@@ -1,4 +1,4 @@
-package com.vn.service.impl.importer;
+package com.vn.service.impl.importer.model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,36 +19,36 @@ import java.util.Map;
 // - Mỗi dòng import có thể chạy trong transaction riêng.
 // - Nếu cache Entity, entity có thể bị detached khi sang transaction khác.
 // - Cache ID giúp service lấy lại entity active từ DB khi cần, tránh lỗi persistence context.
-class BookImportCache {
+public class BookImportCache {
     // Key nên được chuẩn hóa trước khi put/get, ví dụ ISBN lowercase/trim hoặc author/category name lowercase/trim.
     private final Map<String, Long> bookIdsByIsbn = new HashMap<>();
     private final Map<String, Long> authorIdsByName = new HashMap<>();
     private final Map<String, Long> categoryIdsByName = new HashMap<>();
 
     // Cache book theo ISBN để nhiều dòng copy của cùng một đầu sách không phải findByIsbn lặp lại.
-    Long getBookId(String isbn) {
+    public Long getBookId(String isbn) {
         return bookIdsByIsbn.get(isbn);
     }
 
-    void putBookId(String isbn, Long bookId) {
+    public void putBookId(String isbn, Long bookId) {
         bookIdsByIsbn.put(isbn, bookId);
     }
 
     // Cache author theo tên đã normalize để nhiều sách cùng tác giả không phải find/create lặp lại.
-    Long getAuthorId(String authorName) {
+    public Long getAuthorId(String authorName) {
         return authorIdsByName.get(authorName);
     }
 
-    void putAuthorId(String authorName, Long authorId) {
+    public void putAuthorId(String authorName, Long authorId) {
         authorIdsByName.put(authorName, authorId);
     }
 
     // Cache category theo tên đã normalize để tránh query lặp khi nhiều sách cùng thể loại.
-    Long getCategoryId(String categoryName) {
+    public Long getCategoryId(String categoryName) {
         return categoryIdsByName.get(categoryName);
     }
 
-    void putCategoryId(String categoryName, Long categoryId) {
+    public void putCategoryId(String categoryName, Long categoryId) {
         categoryIdsByName.put(categoryName, categoryId);
     }
 }
