@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -30,10 +31,12 @@ public class AuthorController implements AuthorApiDocs {
     // Trả về danh sách tác giả
     @GetMapping
     @Override
-    public ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthors() {
+    public ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthors(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String name) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Lấy danh sách tác giả thành công",
-                authorService.getAuthors()
+                authorService.getAuthors(q, name)
         ));
     }
     // Tạo thông tin tác giả mới trong hệ thống

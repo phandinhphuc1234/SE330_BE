@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Service
@@ -37,9 +38,16 @@ public class BookCopyServiceImpl implements BookCopyService {
     // Lấy danh sách bản copy của một sách, sắp xếp theo ID tăng dần
     @Override
     @Transactional(readOnly = true)
-    public List<BookCopyResponse> getBookCopies(Long bookId) {
+    public List<BookCopyResponse> getBookCopies(Long bookId, String status, String barcode, String condition, String location) {
         getActiveBook(bookId);
-        return bookCopyRepository.findByBookIdAndDeletedAtIsNullOrderByIdAsc(bookId).stream()
+        return bookCopyRepository.searchActiveCopiesByBookId(
+                        bookId,
+                        parseStatus(status),
+                        toLikePattern(barcode),
+                        toLikePattern(condition),
+                        toLikePattern(location)
+                )
+                .stream()
                 .map(bookCopyMapper::toBookCopyResponse)
                 .toList();
     }
@@ -191,6 +199,33 @@ public class BookCopyServiceImpl implements BookCopyService {
 
         String normalized = value.trim();
         return normalized.isBlank() ? defaultValue : normalized;
+    }
+
+    // Chuẩn hóa status filter và báo BAD_REQUEST nếu client truyền trạng thái không hợp lệ.
+    private BookCopyStatus parseStatus(String status) {
+        String normalized = normalizeFilter(status);
+        if (normalized == null) {
+            return null;
+        }
+        try {
+            return BookCopyStatus.valueOf(normalized.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+    }
+
+    // Tạo pattern LIKE không phân biệt hoa/thường cho các filter text.
+    private String toLikePattern(String value) {
+        String normalized = normalizeFilter(value);
+        return normalized == null ? null : "%" + normalized.toLowerCase(Locale.ROOT) + "%";
+    }
+
+    private String normalizeFilter(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim();
+        return normalized.isBlank() ? null : normalized;
     }
 }
 

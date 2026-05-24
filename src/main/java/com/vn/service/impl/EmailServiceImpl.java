@@ -29,7 +29,8 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.verification.base-url}")
     private String baseUrl;
 
-    @Value("${spring.mail.username}")
+    // Resend SMTP username is the credential value "resend"; the email From address is configured separately.
+    @Value("${app.mail.from}")
     private String fromEmail;
 
     @Override

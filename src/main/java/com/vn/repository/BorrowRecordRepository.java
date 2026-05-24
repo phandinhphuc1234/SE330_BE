@@ -24,6 +24,18 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     // Kiểm tra member có lượt mượn quá hạn không, dùng để chặn checkout/renewal.
     boolean existsByMemberIdAndStatus(Long memberId, BorrowStatus status);
 
+    // Kiểm tra member đã có lượt mượn đang mở cho cùng một đầu sách hay chưa.
+    @Query("""
+            select count(borrow) > 0
+            from BorrowRecord borrow
+            where borrow.member.id = :memberId
+              and borrow.bookCopy.book.id = :bookId
+              and borrow.status in :statuses
+            """)
+    boolean existsOpenBorrowForMemberAndBook(@Param("memberId") Long memberId,
+                                             @Param("bookId") Long bookId,
+                                             @Param("statuses") Collection<BorrowStatus> statuses);
+
     // Lấy danh sách lượt mượn đang mở của member, kèm thông tin sách để hiển thị cho user.
     @EntityGraph(attributePaths = {"bookCopy", "bookCopy.book", "bookCopy.book.authors", "bookCopy.book.category"})
     Page<BorrowRecord> findByMemberIdAndStatusInOrderByBorrowedAtDesc(

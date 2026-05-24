@@ -17,7 +17,7 @@ IdempotencyRecord JPA entity đã bị xóa khỏi Java runtime.
 IdempotencyRecordRepository đã bị xóa khỏi Java runtime.
 Business action vẫn chạy trong SQL transaction riêng bằng TransactionTemplate.
 Retry COMPLETED/FAILED/PROCESSING/hash mismatch đã có unit test.
-Không drop bảng idempotency_records trong database ở phase này.
+V20 migration đã drop bảng legacy idempotency_records khỏi database.
 ```
 
 Các file chính:
@@ -453,14 +453,13 @@ Không cần sửa migration cũ V13.
 Không tạo destructive migration ngay khi đang refactor logic.
 ```
 
-Optional sau khi chạy ổn:
+Đã triển khai bằng migration:
 
 ```text
-V20__drop_idempotency_records.sql
-DROP TABLE IF EXISTS idempotency_records;
+src/main/resources/db/migration/V20__drop_idempotency_records.sql
 ```
 
-Nếu muốn final schema sạch cho đồ án thì có thể thêm migration drop ở bước sau, nhưng không nên sửa trực tiếp `V13__circulation_core_upgrade.sql` vì migration đã chạy rồi.
+Không sửa trực tiếp `V13__circulation_core_upgrade.sql` vì migration đó có thể đã chạy và được ghi trong `flyway_schema_history`.
 
 ### Phase 4: Update tests
 
@@ -639,7 +638,7 @@ Các read-only flow.
 [x] Update IdempotencyServiceImplTest sang Redis behavior.
 [x] Chạy toàn bộ test.
 [ ] Manual test retry COMPLETED/FAILED/PROCESSING/hash mismatch.
-[ ] Sau khi ổn mới cân nhắc migration drop idempotency_records.
+[x] Sau khi ổn mới cân nhắc migration drop idempotency_records.
 ```
 
 ## 13. Kết luận

@@ -36,6 +36,7 @@ public enum ErrorCode {
     MEMBER_NOT_ACTIVE(HttpStatus.FORBIDDEN, "MEMBER_NOT_ACTIVE", "Tài khoản bạn đọc chưa hoạt động hoặc đã bị khóa"),
     MEMBERSHIP_EXPIRED(HttpStatus.FORBIDDEN, "MEMBERSHIP_EXPIRED", "Thẻ thư viện đã hết hạn"),
     BORROW_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "BORROW_LIMIT_EXCEEDED", "Bạn đọc đã đạt giới hạn số sách đang mượn"),
+    MEMBER_ALREADY_BORROWED_BOOK(HttpStatus.CONFLICT, "MEMBER_ALREADY_BORROWED_BOOK", "Bạn đọc đang mượn một bản khác của đầu sách này"),
     MEMBER_HAS_OVERDUE_ITEMS(HttpStatus.CONFLICT, "MEMBER_HAS_OVERDUE_ITEMS", "Bạn đọc đang có sách quá hạn"),
     BOOK_COPY_NOT_AVAILABLE(HttpStatus.CONFLICT, "BOOK_COPY_NOT_AVAILABLE", "Bản sách này hiện không khả dụng để mượn"),
     BOOK_AVAILABLE_ON_SHELF(HttpStatus.CONFLICT, "BOOK_AVAILABLE_ON_SHELF", "Sách hiện vẫn còn bản trên kệ, chỉ được đặt giữ chỗ khi đã hết bản khả dụng"),

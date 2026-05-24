@@ -25,6 +25,25 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
     // Lấy toàn bộ bản sách vật lý của một đầu sách, dùng cho màn quản lý copy.
     List<BookCopy> findByBookIdAndDeletedAtIsNullOrderByIdAsc(Long bookId);
 
+    // Lọc bản sách vật lý của một đầu sách theo trạng thái, barcode, tình trạng và vị trí.
+    @EntityGraph(attributePaths = {"book"})
+    @Query("""
+            select copy
+            from BookCopy copy
+            where copy.book.id = :bookId
+              and copy.deletedAt is null
+              and (:status is null or copy.status = :status)
+              and (:barcode is null or lower(copy.barcode) like :barcode)
+              and (:conditionLike is null or lower(copy.condition) like :conditionLike)
+              and (:locationLike is null or lower(copy.location) like :locationLike)
+            order by copy.id asc
+            """)
+    List<BookCopy> searchActiveCopiesByBookId(@Param("bookId") Long bookId,
+                                              @Param("status") BookCopyStatus status,
+                                              @Param("barcode") String barcode,
+                                              @Param("conditionLike") String condition,
+                                              @Param("locationLike") String location);
+
     // Kiểm tra barcode đã tồn tại chưa khi tạo/cập nhật/import book copy.
     boolean existsByBarcodeIgnoreCase(String barcode);
 

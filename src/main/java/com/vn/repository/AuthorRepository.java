@@ -3,6 +3,7 @@ package com.vn.repository;
 import com.vn.entity.Author;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AuthorRepository extends JpaRepository<Author, Long> {
@@ -12,5 +13,8 @@ public interface AuthorRepository extends JpaRepository<Author, Long> {
 
     // Kiểm tra trùng tên tác giả trước khi tạo mới.
     boolean existsByNameIgnoreCase(String name);
+
+    // Tìm gần đúng theo tên tác giả, không phân biệt hoa/thường, sắp xếp theo tên.
+    List<Author> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
 }
 

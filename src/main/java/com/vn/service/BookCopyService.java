@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BookCopyService {
 
-    List<BookCopyResponse> getBookCopies(Long bookId);
+    List<BookCopyResponse> getBookCopies(Long bookId, String status, String barcode, String condition, String location);
 
     BookCopyResponse createBookCopy(Long bookId, CreateBookCopyRequest request);
 

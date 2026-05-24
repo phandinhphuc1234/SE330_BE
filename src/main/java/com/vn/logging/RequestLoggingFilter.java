@@ -79,7 +79,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 || path.startsWith("/api-docs")
                 || path.startsWith("/v3/api-docs")
                 || path.equals("/favicon.ico")
-                || path.startsWith("/actuator/health");
+                || path.startsWith("/actuator/health")
+                || path.startsWith("/actuator/info")
+                || path.startsWith("/actuator/prometheus")
+                || path.startsWith("/actuator/metrics");
     }
 
     private String resolveTraceId(HttpServletRequest request) {

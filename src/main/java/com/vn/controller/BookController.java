@@ -119,10 +119,15 @@ public class BookController implements BookApiDocs {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @GetMapping("/{bookId}/copies")
     @Override
-    public ResponseEntity<ApiResponse<List<BookCopyResponse>>> getBookCopies(@PathVariable Long bookId) {
+    public ResponseEntity<ApiResponse<List<BookCopyResponse>>> getBookCopies(
+            @PathVariable Long bookId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String barcode,
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false) String location) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Lấy danh sách bản sao sách thành công",
-                bookCopyService.getBookCopies(bookId)
+                bookCopyService.getBookCopies(bookId, status, barcode, condition, location)
         ));
     }
     // Tạo 1 bản copy mới cho sách đó

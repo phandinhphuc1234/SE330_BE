@@ -104,11 +104,17 @@ public interface BookApiDocs {
             summary = "Get book copies",
             description = """
                     Get active physical copies of a book.
+                    Optional filters: status, barcode, condition and location.
+                    Status values: AVAILABLE, BORROWED, RESERVED, OVERDUE, ON_HOLD_SHELF, LOST, DAMAGED, REMOVED.
                     Intended for Librarian/Admin because it exposes barcode, status, condition and location.
                     """
     )
     ResponseEntity<ApiResponse<List<BookCopyResponse>>> getBookCopies(
-            @Parameter(description = "Book ID", required = true) Long bookId
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "Filter by copy status, for example AVAILABLE") String status,
+            @Parameter(description = "Case-insensitive partial barcode search") String barcode,
+            @Parameter(description = "Case-insensitive partial condition search") String condition,
+            @Parameter(description = "Case-insensitive partial location search") String location
     );
 
     @SecurityRequirement(name = "Bearer Authentication")

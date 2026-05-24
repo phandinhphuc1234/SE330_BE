@@ -4,6 +4,7 @@ import com.vn.dto.circulation.request.CheckoutRequest;
 import com.vn.dto.circulation.response.BorrowResponse;
 import com.vn.dto.circulation.response.CheckoutPreviewResponse;
 import com.vn.dto.circulation.response.CirculationBlockResponse;
+import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
 import com.vn.entity.Member;
@@ -47,15 +48,24 @@ public class CheckoutUseCase {
         List<CirculationBlockResponse> reasons = circulationPolicyService.validateCheckout(member, copy);
 
         int borrowDays = circulationSettingService.getBorrowDaysDefault();
+        int maxRenewals = circulationSettingService.getMaxRenewalsDefault();
         Instant dueDate = reasons.isEmpty()
                 ? Instant.now().plus(borrowDays, ChronoUnit.DAYS)
                 : null;
+        Book book = copy == null ? null : copy.getBook();
 
         return new CheckoutPreviewResponse(
                 reasons.isEmpty(),
                 member == null ? request.memberId() : member.getId(),
+                member == null ? null : member.getFullName(),
+                member == null ? null : member.getEmail(),
+                book == null ? null : book.getId(),
+                book == null ? null : book.getTitle(),
                 copy == null ? null : copy.getId(),
+                copy == null ? request.itemBarcode() : copy.getBarcode(),
+                copy == null ? null : copy.getStatus().name(),
                 borrowDays,
+                maxRenewals,
                 dueDate,
                 reasons
         );

@@ -85,8 +85,15 @@ class CirculationControllerTest {
         CheckoutPreviewResponse response = new CheckoutPreviewResponse(
                 true,
                 5L,
+                "Nguyen Van A",
+                "member@example.com",
+                2L,
+                "Clean Code",
                 10L,
+                "BC001",
+                "AVAILABLE",
                 14,
+                1,
                 Instant.parse("2026-05-31T10:00:00Z"),
                 List.of()
         );
@@ -100,8 +107,14 @@ class CirculationControllerTest {
                 .andExpect(jsonPath("$.message").value("Kiểm tra điều kiện mượn sách thành công"))
                 .andExpect(jsonPath("$.data.allowed").value(true))
                 .andExpect(jsonPath("$.data.memberId").value(5))
+                .andExpect(jsonPath("$.data.memberName").value("Nguyen Van A"))
+                .andExpect(jsonPath("$.data.bookId").value(2))
+                .andExpect(jsonPath("$.data.bookTitle").value("Clean Code"))
                 .andExpect(jsonPath("$.data.bookCopyId").value(10))
+                .andExpect(jsonPath("$.data.itemBarcode").value("BC001"))
+                .andExpect(jsonPath("$.data.itemStatus").value("AVAILABLE"))
                 .andExpect(jsonPath("$.data.loanPeriodDays").value(14))
+                .andExpect(jsonPath("$.data.maxRenewals").value(1))
                 .andExpect(jsonPath("$.data.reasons").isArray());
 
         verify(circulationService).previewCheckout(request);
@@ -113,8 +126,15 @@ class CirculationControllerTest {
         CheckoutPreviewResponse response = new CheckoutPreviewResponse(
                 false,
                 5L,
+                "Nguyen Van A",
+                "member@example.com",
+                2L,
+                "Clean Code",
                 10L,
+                "BC001",
+                "AVAILABLE",
                 14,
+                1,
                 null,
                 List.of(new CirculationBlockResponse(
                         ErrorCode.MEMBER_HAS_OVERDUE_ITEMS.getCode(),

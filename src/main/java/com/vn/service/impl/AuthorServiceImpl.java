@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +30,13 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AuthorResponse> getAuthors() {
-        return authorRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
+    public List<AuthorResponse> getAuthors(String q, String name) {
+        String searchName = resolveSearchName(q, name);
+        List<Author> authors = searchName == null
+                ? authorRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
+                : authorRepository.findByNameContainingIgnoreCaseOrderByNameAsc(searchName);
+
+        return authors.stream()
                 .map(authorMapper::toAuthorResponse)
                 .toList();
     }
@@ -103,6 +109,21 @@ public class AuthorServiceImpl implements AuthorService {
 
         String normalized = value.trim();
         return normalized.isBlank() ? defaultValue : normalized;
+    }
+
+    // Chức năng: chọn keyword search cho API danh sách tác giả; name ưu tiên hơn q.
+    private String resolveSearchName(String q, String name) {
+        String normalizedName = normalizeSearch(name);
+        return normalizedName != null ? normalizedName : normalizeSearch(q);
+    }
+
+    // Chuẩn hóa keyword search: trim, lowercase, rỗng thì bỏ qua filter.
+    private String normalizeSearch(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().toLowerCase(Locale.ROOT);
+        return normalized.isBlank() ? null : normalized;
     }
 }
 

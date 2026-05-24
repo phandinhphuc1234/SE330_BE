@@ -56,6 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify-email").permitAll()
                         // Catalog public read endpoints
                         .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/authors", "/api/categories").permitAll()
+                        // Monitoring endpoints used by local Prometheus/Grafana setup.
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         // Cho phép truy cập swagger-ui và api-docs không cần đăng nhập
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
                         // Tất cả request còn lại phải authenticated

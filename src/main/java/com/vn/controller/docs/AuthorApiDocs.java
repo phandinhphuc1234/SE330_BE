@@ -19,9 +19,15 @@ public interface AuthorApiDocs {
     @SecurityRequirements
     @Operation(
             summary = "Get authors",
-            description = "Public API for getting authors sorted by name. Used for filters and selection lists."
+            description = """
+                    Public API for getting authors sorted by name. Used for filters and selection lists.
+                    Optional filters q/name search by author name case-insensitively.
+                    """
     )
-    ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthors();
+    ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthors(
+            @Parameter(description = "Quick author name search") String q,
+            @Parameter(description = "Author name search. Takes precedence over q when both are provided") String name
+    );
 
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(

@@ -21,7 +21,14 @@ import java.util.List;
 @SecurityRequirement(name = "Bearer Authentication")
 public interface CirculationApiDocs {
 
-    @Operation(summary = "Preview staff checkout", description = "Validate whether a MEMBER can borrow a copy before committing checkout.")
+    @Operation(
+            summary = "Preview staff checkout",
+            description = """
+                    Validate whether a MEMBER can borrow a physical copy before committing checkout.
+                    The response includes display data for the staff UI such as member name, book title,
+                    item barcode, item status, loan period, due date and max renewals.
+                    """
+    )
     ResponseEntity<ApiResponse<CheckoutPreviewResponse>> previewCheckout(CheckoutRequest request);
 
     @Operation(summary = "Staff checkout", description = "Librarian/Admin checks out an AVAILABLE copy for a MEMBER. Requires Idempotency-Key.")

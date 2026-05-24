@@ -1,0 +1,33 @@
+# Grafana datasource provisioning.
+#
+# Vai trò file này:
+# - Tự động tạo datasource Prometheus khi Grafana container start.
+# - Không cần vào UI Grafana để Add data source thủ công.
+# - Giúp project dễ chạy lại trên máy khác.
+
+# Version schema provisioning của Grafana.
+apiVersion: 1
+
+datasources:
+  # Tên datasource hiển thị trong Grafana UI.
+  - name: Prometheus
+
+    # UID cố định để dashboard JSON có thể reference chính xác datasource này.
+    uid: prometheus
+
+    # Kiểu datasource. Grafana hỗ trợ nhiều loại như Prometheus, Loki, MySQL...
+    type: prometheus
+
+    # proxy nghĩa là browser gọi Grafana, Grafana server gọi Prometheus.
+    # Cách này tránh lỗi CORS và phù hợp Docker network.
+    access: proxy
+
+    # URL nội bộ trong Docker Compose network.
+    # Tên service trong compose.yaml là prometheus, nên dùng http://prometheus:9090.
+    url: http://prometheus:9090
+
+    # Đặt Prometheus làm datasource mặc định.
+    isDefault: true
+
+    # Cho phép chỉnh datasource trong Grafana UI nếu cần demo/thử nghiệm.
+    editable: true

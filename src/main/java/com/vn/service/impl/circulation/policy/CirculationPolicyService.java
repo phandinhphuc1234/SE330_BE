@@ -125,6 +125,9 @@ public class CirculationPolicyService {
         if (member != null) {
             validateBorrowingCapacity(member, blocks);
         }
+        if (member != null && copy != null && copy.getBook() != null) {
+            validateNoOpenBorrowForSameBook(member, copy, blocks);
+        }
         validateCopyAvailability(copy, blocks);
         return blocks;
     }
@@ -153,6 +156,17 @@ public class CirculationPolicyService {
         }
         if (borrowRecordRepository.existsByMemberIdAndStatus(member.getId(), BorrowStatus.OVERDUE)) {
             blocks.add(new PolicyBlock(ErrorCode.MEMBER_HAS_OVERDUE_ITEMS, ErrorCode.MEMBER_HAS_OVERDUE_ITEMS.getMessage()));
+        }
+    }
+
+    // Chức năng: chặn member mượn nhiều bản copy khác nhau của cùng một đầu sách.
+    private void validateNoOpenBorrowForSameBook(Member member, BookCopy copy, List<PolicyBlock> blocks) {
+        if (borrowRecordRepository.existsOpenBorrowForMemberAndBook(
+                member.getId(),
+                copy.getBook().getId(),
+                BorrowStatus.openStatuses()
+        )) {
+            blocks.add(new PolicyBlock(ErrorCode.MEMBER_ALREADY_BORROWED_BOOK, ErrorCode.MEMBER_ALREADY_BORROWED_BOOK.getMessage()));
         }
     }
 
