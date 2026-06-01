@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Instant;
 
@@ -40,7 +41,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendVerificationEmail(Long memberId, String toEmail, String fullName, String token) {
         try {
             // 1. Tạo link xác nhận
-            String verifyLink = baseUrl + "/api/auth/verify-email?token=" + token;
+            String verifyLink = buildVerificationLink(token);
 
             // 2. Chuẩn bị dữ liệu cho template
             Context context = new Context();
@@ -67,6 +68,20 @@ public class EmailServiceImpl implements EmailService {
                     LogEvent.SEND_VERIFICATION_EMAIL, LogResult.FAILED, memberId, e.getClass().getSimpleName(), e);
         }
     }
+    // Tạo URL + endpoint verify + token
+    private String buildVerificationLink(String token) {
+        String normalizedBaseUrl = baseUrl.strip();
+        if (normalizedBaseUrl.endsWith("/")) {
+            normalizedBaseUrl = normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1);
+        }
+
+        return UriComponentsBuilder.fromUriString(normalizedBaseUrl)
+                .path("/api/auth/verify-email")
+                .queryParam("token", token)
+                .build()
+                .toUriString();
+    }
+
     // Gửi email khi cronjob tự động gia hạn thành công
     @Override
     @Async

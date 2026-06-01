@@ -1,6 +1,5 @@
 package com.vn.controller.fine;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vn.controller.FineController;
 import com.vn.dto.circulation.response.FineResponse;
 import com.vn.entity.Member;
@@ -19,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
@@ -46,12 +45,11 @@ class FineControllerTest {
 
     @BeforeEach
     void setUp() {
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new FineController(fineService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
-                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .setMessageConverters(new JacksonJsonHttpMessageConverter())
                 .build();
     }
 

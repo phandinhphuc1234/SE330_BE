@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
@@ -66,7 +66,7 @@ class HoldControllerTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setValidator(new SpringValidatorAdapter(validator))
-                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .setMessageConverters(new JacksonJsonHttpMessageConverter())
                 .build();
     }
 

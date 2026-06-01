@@ -37,6 +37,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @EntityGraph(attributePaths = {"book", "assignedCopy"})
     Page<Reservation> findByMemberIdAndStatusOrderByReservedAtDesc(Long memberId, ReservationStatus status, Pageable pageable);
 
+    // Staff/Admin xem toàn bộ holds trong hệ thống, kèm thông tin member/book/copy để xử lý nghiệp vụ.
+    @EntityGraph(attributePaths = {"member", "book", "assignedCopy"})
+    Page<Reservation> findAllByOrderByReservedAtDesc(Pageable pageable);
+
+    // Staff/Admin lọc holds toàn hệ thống theo trạng thái, ví dụ READY_FOR_PICKUP cho quầy lưu thông.
+    @EntityGraph(attributePaths = {"member", "book", "assignedCopy"})
+    Page<Reservation> findByStatusOrderByReservedAtDesc(ReservationStatus status, Pageable pageable);
+
+    // Dashboard staff: đếm số hold đang sẵn sàng để member đến lấy.
+    long countByStatus(ReservationStatus status);
+
     // Lấy queuePosition lớn nhất từng được dùng của một đầu sách để sinh vị trí queue tiếp theo.
     @Query("""
             select coalesce(max(reservation.queuePosition), 0)
@@ -81,4 +92,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             where reservation.id = :id
             """)
     Optional<Reservation> findLockedForExpiryById(@Param("id") Long id);
+
+    // Đếm hold/reservation đang hoạt động theo member để hiển thị summary trong màn staff borrowers.
+    @Query("""
+            select reservation.member.id,
+                   count(reservation.id)
+            from Reservation reservation
+            where reservation.member.id in :memberIds
+              and reservation.status in :statuses
+            group by reservation.member.id
+            """)
+    List<Object[]> summarizeActiveHoldCountsByMemberIds(@Param("memberIds") Collection<Long> memberIds,
+                                                        @Param("statuses") Collection<ReservationStatus> statuses);
 }

@@ -28,11 +28,22 @@
                     <tr>
                         <td align="center" style="padding-bottom:24px;">
                             <a th:href="${verifyLink}"
-                               style="display:inline-block; background-color:#2563eb; color:#ffffff;
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               style="color:#ffffff !important; display:inline-block; background-color:#2563eb;
                                       padding:14px 32px; border-radius:6px; text-decoration:none;
-                                      font-size:16px; font-weight:bold;">
+                                      font-size:16px; font-weight:bold; line-height:100%;">
                                 Xác nhận email
                             </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom:16px; font-size:13px; color:#999; line-height:1.5;">
+                            Nếu nút không mở được, hãy copy link này và dán vào trình duyệt:<br/>
+                            <a th:href="${verifyLink}" th:text="${verifyLink}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               style="color:#2563eb; word-break:break-all;">http://localhost:8080/api/auth/verify-email?token=...</a>
                         </td>
                     </tr>
                     <tr>

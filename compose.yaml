@@ -45,6 +45,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-onboarding@resend.dev}
+      APP_VERIFICATION_BASE_URL: ${APP_VERIFICATION_BASE_URL:-http://localhost:8080}
       APP_ENV: local
     ports:
       - "8080:8080"
