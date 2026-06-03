@@ -93,6 +93,7 @@ public class BookServiceImpl implements BookService {
                 .publishedDate(request.publishedDate())
                 .language(normalizeOptional(request.language(), "vi"))
                 .edition(normalizeOptional(request.edition(), null))
+                .imageUrl(normalizeOptional(request.imageUrl(), null))
                 .category(getOptionalCategory(request.categoryId()))
                 .authors(resolveAuthors(request.authorIds()))
                 .totalCopies(0)
@@ -129,6 +130,10 @@ public class BookServiceImpl implements BookService {
 
         if (request.edition() != null) {
             book.setEdition(normalizeOptional(request.edition(), null));
+        }
+
+        if (request.imageUrl() != null) {
+            book.setImageUrl(normalizeOptional(request.imageUrl(), null));
         }
 
         // Cập nhật danh mục nếu categoryId hợp lệ
