@@ -7,8 +7,11 @@ import com.vn.dto.catalog.response.BookDetailResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
 import com.vn.entity.Author;
 import com.vn.entity.Book;
+import com.vn.entity.BookImage;
 import com.vn.entity.Category;
+import com.vn.enums.BookImageType;
 import com.vn.enums.BookCopyStatus;
+import com.vn.enums.ImageProvider;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.logging.LogEvent;
@@ -16,6 +19,7 @@ import com.vn.logging.LogResult;
 import com.vn.mapper.BookMapper;
 import com.vn.repository.AuthorRepository;
 import com.vn.repository.BookCopyRepository;
+import com.vn.repository.BookImageRepository;
 import com.vn.repository.BookRepository;
 import com.vn.repository.CategoryRepository;
 import com.vn.service.BookService;
@@ -30,10 +34,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -54,6 +64,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
+    private final BookImageRepository bookImageRepository;
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final BookMapper bookMapper;
@@ -66,16 +77,23 @@ public class BookServiceImpl implements BookService {
                                                  String language, int page, int size, String sort) {
         Pageable pageable = buildPageable(page, size, sort);
         Specification<Book> spec = buildBookSearchSpec(q, title, isbn, authorId, author, categoryId, availableOnly, language);
+        Page<Book> books = bookRepository.findAll(spec, pageable);
 
-        return bookRepository.findAll(spec, pageable)
-                .map(bookMapper::toBookSummaryResponse);
+        // Book không còn giữ imageUrl trực tiếp, nên load ảnh primary theo batch cho cả page.
+        Map<Long, BookImage> primaryImagesByBookId = loadPrimaryImages(books.getContent());
+
+        return books.map(book -> bookMapper.toBookSummaryResponse(
+                book,
+                primaryImagesByBookId.get(book.getId())
+        ));
     }
 
     // Lấy thông tin chi tiết của một sách còn hoạt động
     @Override
     @Transactional(readOnly = true)
     public BookDetailResponse getBook(Long bookId) {
-        return bookMapper.toBookDetailResponse(getActiveBook(bookId));
+        Book book = getActiveBook(bookId);
+        return bookMapper.toBookDetailResponse(book, getPrimaryImage(book.getId()));
     }
 
     // Tạo mới đầu sách. Bản copy vật lý được tạo riêng qua BookCopyService.
@@ -93,7 +111,6 @@ public class BookServiceImpl implements BookService {
                 .publishedDate(request.publishedDate())
                 .language(normalizeOptional(request.language(), "vi"))
                 .edition(normalizeOptional(request.edition(), null))
-                .imageUrl(normalizeOptional(request.imageUrl(), null))
                 .category(getOptionalCategory(request.categoryId()))
                 .authors(resolveAuthors(request.authorIds()))
                 .totalCopies(0)
@@ -102,11 +119,14 @@ public class BookServiceImpl implements BookService {
 
         Book savedBook = bookRepository.save(book);
 
+        // API vẫn nhận imageUrl đơn giản, nhưng persistence thật nằm trong book_images.
+        BookImage primaryImage = syncPrimaryBookImage(savedBook, request.imageUrl());
+
         // Ghi log khi tạo sách thành công
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.CREATE_BOOK, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook);
+        return bookMapper.toBookDetailResponse(savedBook, primaryImage);
     }
 
     // Cập nhật một phần thông tin đầu sách
@@ -132,9 +152,7 @@ public class BookServiceImpl implements BookService {
             book.setEdition(normalizeOptional(request.edition(), null));
         }
 
-        if (request.imageUrl() != null) {
-            book.setImageUrl(normalizeOptional(request.imageUrl(), null));
-        }
+        BookImage primaryImage = getPrimaryImage(book.getId());
 
         // Cập nhật danh mục nếu categoryId hợp lệ
         if (request.categoryId() != null) {
@@ -142,12 +160,16 @@ public class BookServiceImpl implements BookService {
         }
 
         Book savedBook = bookRepository.save(book);
+        if (request.imageUrl() != null) {
+            // Null nghĩa là không đổi ảnh; blank string nghĩa là xóa ảnh primary.
+            primaryImage = syncPrimaryBookImage(savedBook, request.imageUrl());
+        }
 
         // Ghi log khi cập nhật sách thành công
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.UPDATE_BOOK, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook);
+        return bookMapper.toBookDetailResponse(savedBook, primaryImage);
     }
 
     // Xóa mềm sách, không cho xóa nếu còn bản copy đang mượn hoặc đang được giữ chỗ
@@ -181,7 +203,168 @@ public class BookServiceImpl implements BookService {
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.UPDATE_BOOK_AUTHORS, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook);
+        return bookMapper.toBookDetailResponse(savedBook, getPrimaryImage(savedBook.getId()));
+    }
+
+    // Gom ảnh primary theo bookId để response list có coverImage mà không phát sinh N+1 query.
+    private Map<Long, BookImage> loadPrimaryImages(Collection<Book> books) {
+        if (books.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> bookIds = books.stream()
+                .map(Book::getId)
+                .toList();
+
+        Map<Long, BookImage> imagesByBookId = new HashMap<>();
+        for (BookImage image : bookImageRepository.findPrimaryImagesByBookIds(bookIds)) {
+            imagesByBookId.put(image.getBook().getId(), image);
+        }
+
+        return imagesByBookId;
+    }
+
+    // Trả về ảnh bìa chính cho detail; null nếu sách chưa có ảnh.
+    private BookImage getPrimaryImage(Long bookId) {
+        return bookImageRepository
+                .findFirstByBookIdAndPrimaryImageTrueOrderBySortOrderAscIdAsc(bookId)
+                .orElse(null);
+    }
+
+    // Đồng bộ field imageUrl của API với bảng book_images. Hàm này chỉ quản lý ảnh primary.
+    private BookImage syncPrimaryBookImage(Book book, String imageUrl) {
+        String normalizedImageUrl = normalizeOptional(imageUrl, null);
+        if (normalizedImageUrl == null) {
+            bookImageRepository.deletePrimaryImagesByBookId(book.getId());
+            return null;
+        }
+
+        // publicId là định danh ổn định của asset Cloudinary, dùng để chống gán trùng.
+        BookImageMetadata metadata = extractCloudinaryMetadata(normalizedImageUrl);
+        ensureImageNotAttachedToAnotherBook(book.getId(), metadata.publicId());
+
+        BookImage image = bookImageRepository
+                .findFirstByBookIdAndPrimaryImageTrueOrderBySortOrderAscIdAsc(book.getId())
+                .orElseGet(() -> BookImage.builder()
+                        .book(book)
+                        .provider(ImageProvider.CLOUDINARY)
+                        .assetType(BookImageType.COVER_FRONT)
+                        .sortOrder(0)
+                        .primaryImage(true)
+                        .build());
+
+        image.setPublicId(metadata.publicId());
+        image.setSecureUrl(metadata.secureUrl());
+        image.setFormat(metadata.format());
+        image.setAltText(buildCoverAltText(book));
+        image.setPrimaryImage(true);
+
+        return bookImageRepository.save(image);
+    }
+
+    private void ensureImageNotAttachedToAnotherBook(Long bookId, String publicId) {
+        bookImageRepository.findByProviderAndPublicId(ImageProvider.CLOUDINARY, publicId)
+                .filter(image -> !image.getBook().getId().equals(bookId))
+                .ifPresent(image -> {
+                    throw new AppException(ErrorCode.DUPLICATE_RESOURCE);
+                });
+    }
+
+    // Parse URL Cloudinary để lấy publicId/format, hỗ trợ cả URL có version và transformation.
+    private BookImageMetadata extractCloudinaryMetadata(String imageUrl) {
+        URI uri;
+        try {
+            uri = URI.create(imageUrl);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        if (!"https".equalsIgnoreCase(uri.getScheme())
+                || uri.getHost() == null
+                || !"res.cloudinary.com".equalsIgnoreCase(uri.getHost())) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        String[] segments = uri.getPath().split("/");
+        int uploadIndex = findSegmentIndex(segments, "upload");
+        if (uploadIndex < 0 || uploadIndex >= segments.length - 1) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        int publicIdStart = uploadIndex + 1;
+
+        // Cloudinary URL thường có dạng /image/upload/v123/folder/file.png.
+        for (int i = publicIdStart; i < segments.length; i++) {
+            if (segments[i].matches("v\\d+")) {
+                publicIdStart = i + 1;
+                break;
+            }
+        }
+
+        // Nếu URL đã được optimize như /upload/c_fit,w_320,h_480,q_auto,f_auto/..., bỏ qua transformation.
+        while (publicIdStart < segments.length - 1 && looksLikeCloudinaryTransformation(segments[publicIdStart])) {
+            publicIdStart++;
+        }
+
+        if (publicIdStart >= segments.length) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        String publicIdWithExtension = joinPathSegments(segments, publicIdStart);
+        String format = extractFormat(publicIdWithExtension);
+        String publicId = removeExtension(publicIdWithExtension);
+        if (publicId.isBlank()) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        return new BookImageMetadata(publicId, imageUrl, format);
+    }
+
+    private int findSegmentIndex(String[] segments, String expectedSegment) {
+        for (int i = 0; i < segments.length; i++) {
+            if (expectedSegment.equals(segments[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean looksLikeCloudinaryTransformation(String segment) {
+        return segment.contains(",")
+                || segment.matches("[a-z]{1,3}_.+")
+                || "f_auto".equals(segment)
+                || "q_auto".equals(segment);
+    }
+
+    // Giữ lại folder trong publicId, ví dụ images/clean-code thay vì chỉ clean-code.
+    private String joinPathSegments(String[] segments, int startIndex) {
+        String joined = String.join("/", List.of(segments).subList(startIndex, segments.length));
+        return URLDecoder.decode(joined, StandardCharsets.UTF_8);
+    }
+
+    private String extractFormat(String publicIdWithExtension) {
+        int lastSlashIndex = publicIdWithExtension.lastIndexOf('/');
+        int dotIndex = publicIdWithExtension.lastIndexOf('.');
+        if (dotIndex <= lastSlashIndex || dotIndex == publicIdWithExtension.length() - 1) {
+            return null;
+        }
+
+        String format = publicIdWithExtension.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+        return format.length() <= 20 ? format : null;
+    }
+
+    private String removeExtension(String publicIdWithExtension) {
+        int lastSlashIndex = publicIdWithExtension.lastIndexOf('/');
+        int dotIndex = publicIdWithExtension.lastIndexOf('.');
+        if (dotIndex <= lastSlashIndex) {
+            return publicIdWithExtension;
+        }
+        return publicIdWithExtension.substring(0, dotIndex);
+    }
+
+    private String buildCoverAltText(Book book) {
+        String altText = "Book cover for " + book.getTitle();
+        return altText.length() <= 255 ? altText : altText.substring(0, 255);
     }
 
     // Tạo điều kiện tìm kiếm động cho API danh sách sách
@@ -345,6 +528,9 @@ public class BookServiceImpl implements BookService {
 
         String normalized = value.trim().toLowerCase(Locale.ROOT);
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private record BookImageMetadata(String publicId, String secureUrl, String format) {
     }
 }
 

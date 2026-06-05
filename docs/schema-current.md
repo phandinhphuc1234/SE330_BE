@@ -11,7 +11,7 @@ Redis by `V20__drop_idempotency_records.sql`.
 
 The current schema supports:
 
-- Catalog: authors, categories, books, physical book copies
+- Catalog: authors, categories, books, book images, physical book copies
 - Members and authentication: members, email verification tokens
 - Circulation: borrow records, holds/reservations, renewal data
 - Finance: fine configuration and payment records
@@ -80,7 +80,6 @@ Stores catalog-level book data. Physical inventory is tracked in
 | `published_date` | `DATE` | Yes | | |
 | `language` | `VARCHAR(10)` | No | `'vi'` | |
 | `edition` | `VARCHAR(50)` | Yes | | |
-| `image_url` | `VARCHAR(2048)` | Yes | | Absolute cover image URL, added by `V23` |
 | `category_id` | `BIGINT` | Yes | | FK to `categories(id)`, `ON DELETE SET NULL` |
 | `version` | `BIGINT` | No | `0` | Optimistic locking |
 | `deleted_at` | `TIMESTAMP` | Yes | | Soft delete marker |
@@ -107,7 +106,8 @@ Migration notes:
 
 - `V10` changed book copy counters to allow `0` copies. A catalog book can
   exist before any physical `book_copies` are created.
-- `V23` added optional `image_url` for catalog cover images.
+- `V23` temporarily added optional `image_url` for catalog cover images.
+- `V24` moved cover image metadata to `book_images` and dropped `books.image_url`.
 
 ### `book_authors`
 
@@ -121,6 +121,53 @@ Join table for the many-to-many relation between books and authors.
 Constraints:
 
 - `PRIMARY KEY (book_id, author_id)`
+
+### `book_images`
+
+Stores image metadata for catalog books. The image binary is stored by
+Cloudinary; this table stores provider metadata and the delivery URL used by
+the frontend.
+
+| Column | Type | Null | Default | Notes |
+|---|---:|---:|---:|---|
+| `id` | `BIGSERIAL` | No | | Primary key |
+| `book_id` | `BIGINT` | No | | FK to `books(id)`, `ON DELETE CASCADE` |
+| `provider` | `VARCHAR(50)` | No | `'CLOUDINARY'` | Currently only `CLOUDINARY` |
+| `public_id` | `VARCHAR(512)` | No | | Cloudinary public ID/reference |
+| `secure_url` | `VARCHAR(2048)` | No | | Stored HTTPS URL/reference; API response builds `coverImage` URLs from `public_id` and `format` |
+| `asset_type` | `VARCHAR(50)` | No | `'COVER_FRONT'` | `COVER_FRONT`, `COVER_BACK`, `PREVIEW`, `OTHER` |
+| `format` | `VARCHAR(20)` | Yes | | Example: `png`, `jpg`, `webp` |
+| `width` | `INT` | Yes | | Must be positive when present |
+| `height` | `INT` | Yes | | Must be positive when present |
+| `bytes` | `BIGINT` | Yes | | Must be non-negative when present |
+| `alt_text` | `VARCHAR(255)` | Yes | | Accessibility text |
+| `sort_order` | `INT` | No | `0` | Display order for multiple images |
+| `is_primary` | `BOOLEAN` | No | `FALSE` | Primary cover used by book list/detail responses |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+| `updated_at` | `TIMESTAMP` | No | `NOW()` | |
+
+Constraints:
+
+- `fk_book_images_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE`
+- `chk_book_images_provider CHECK (provider IN ('CLOUDINARY'))`
+- `chk_book_images_asset_type CHECK (asset_type IN ('COVER_FRONT', 'COVER_BACK', 'PREVIEW', 'OTHER'))`
+- Positive/non-negative checks for dimensions, bytes and sort order
+
+Indexes:
+
+- `idx_book_images_book_id ON book_images(book_id)`
+- `idx_book_images_book_primary ON book_images(book_id, is_primary)`
+- `uq_book_images_provider_public_id UNIQUE (provider, public_id)`
+- `uq_book_images_one_primary_per_book UNIQUE (book_id) WHERE is_primary = TRUE`
+
+Migration notes:
+
+- `V25` seeds primary Cloudinary cover rows from ISBN-named assets using
+  `books.isbn` as the Cloudinary `public_id`.
+- `V26` changes generated Cloudinary cover URLs to versionless delivery URLs
+  because uploaded assets can have different Cloudinary version segments.
+- Current book read APIs expose structured `coverImage` URLs. `imageUrl` remains
+  only as create/update request input for attaching a primary cover URL.
 
 ### `members`
 
@@ -655,6 +702,7 @@ idempotency state in Redis instead of PostgreSQL.
 - `books.deleted_by` -> `members.id`
 - `book_authors.book_id` -> `books.id`
 - `book_authors.author_id` -> `authors.id`
+- `book_images.book_id` -> `books.id`
 - `book_copies.book_id` -> `books.id`
 - `book_copies.deleted_by` -> `members.id`
 - `borrow_records.member_id` -> `members.id`

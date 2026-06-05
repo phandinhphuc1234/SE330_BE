@@ -11,7 +11,7 @@ public record BookDetailResponse(
         LocalDate publishedDate,
         String language,
         String edition,
-        String imageUrl,
+        BookCoverImageResponse coverImage,
         Integer totalCopies,
         Integer availableCopies,
         CategoryResponse category,

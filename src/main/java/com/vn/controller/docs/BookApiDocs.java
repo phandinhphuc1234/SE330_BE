@@ -31,7 +31,7 @@ public interface BookApiDocs {
             description = """
                     Public API for searching and filtering active books.
                     Supports keyword, title, ISBN, author, category, availability, language, pagination and sorting.
-                    Each book item includes imageUrl when a cover image URL has been configured.
+                    Each book item includes coverImage for frontend rendering.
                     Sort format: field,direction. Allowed fields: title, publishedDate, createdAt, availableCopies.
                     """
     )
@@ -52,7 +52,7 @@ public interface BookApiDocs {
     @SecurityRequirements
     @Operation(
             summary = "Get book detail",
-            description = "Public API for getting detailed information of an active book."
+            description = "Public API for getting detailed information of an active book, including coverImage when configured."
     )
     ResponseEntity<ApiResponse<BookDetailResponse>> getBook(
             @Parameter(description = "Book ID", required = true) Long bookId
@@ -63,7 +63,7 @@ public interface BookApiDocs {
             summary = "Create book",
             description = """
                     Create a new book metadata record. This API only creates the book information.
-                    imageUrl can store an absolute cover image URL for catalog display.
+                    Request imageUrl can attach a Cloudinary cover URL as the book's primary cover image metadata.
                     Physical copies must be created separately using POST /api/books/{bookId}/copies.
                     Librarian and Admin can access this API.
                     """
@@ -78,7 +78,7 @@ public interface BookApiDocs {
             summary = "Update book",
             description = """
                     Partially update book metadata such as title, published date, language, edition or category.
-                    imageUrl can be updated independently and blank value clears it.
+                    Request imageUrl can be updated independently; blank value clears the primary cover image.
                     ISBN is intentionally immutable here because CSV import and copy management use it as a catalog identity.
                     """
     )

@@ -56,9 +56,6 @@ public class Book {
     @Column(length = 50)
     private String edition;
 
-    @Column(name = "image_url", length = 2048)
-    private String imageUrl;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
