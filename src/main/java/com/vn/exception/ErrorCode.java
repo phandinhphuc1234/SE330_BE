@@ -52,6 +52,12 @@ public enum ErrorCode {
     REQUEST_ALREADY_PROCESSING(HttpStatus.CONFLICT, "REQUEST_ALREADY_PROCESSING", "Request với Idempotency-Key này đang được xử lý"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "Phương thức HTTP không được hỗ trợ"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.CONFLICT, "DATA_INTEGRITY_VIOLATION", "Dữ liệu xung đột với ràng buộc hệ thống"),
+    BOOK_HAS_NO_EBOOK(HttpStatus.BAD_REQUEST, "BOOK_HAS_NO_EBOOK", "Đầu sách này không có phiên bản ebook"),
+    EBOOK_ALREADY_BORROWED(HttpStatus.CONFLICT, "EBOOK_ALREADY_BORROWED", "Bạn đang mượn ebook này rồi"),
+    EBOOK_LOAN_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "EBOOK_LOAN_LIMIT_EXCEEDED", "Bạn đã đạt giới hạn số ebook đang mượn cùng lúc"),
+    EBOOK_LOAN_NOT_FOUND(HttpStatus.NOT_FOUND, "EBOOK_LOAN_NOT_FOUND", "Không tìm thấy lượt mượn ebook"),
+    EBOOK_LOAN_NOT_ACTIVE(HttpStatus.CONFLICT, "EBOOK_LOAN_NOT_ACTIVE", "Lượt mượn ebook này đã hết hạn hoặc đã trả"),
+    EBOOK_LOAN_NOT_RENEWABLE(HttpStatus.CONFLICT, "EBOOK_LOAN_NOT_RENEWABLE", "Lượt mượn ebook này không còn lượt gia hạn"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Hệ thống đang gặp lỗi, vui lòng thử lại sau");
 
     private final HttpStatus status;
