@@ -13,11 +13,13 @@ import com.vn.repository.AuthorRepository;
 import com.vn.service.AuthorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -25,20 +27,22 @@ import java.util.Locale;
 @Slf4j
 public class AuthorServiceImpl implements AuthorService {
 
+    private static final int DEFAULT_PAGE_SIZE = 6;
+    private static final int MAX_PAGE_SIZE = 50;
+
     private final AuthorRepository authorRepository;
     private final AuthorMapper authorMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<AuthorResponse> getAuthors(String q, String name) {
+    public Page<AuthorResponse> getAuthors(String q, String name, int page, int size) {
         String searchName = resolveSearchName(q, name);
-        List<Author> authors = searchName == null
-                ? authorRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
-                : authorRepository.findByNameContainingIgnoreCaseOrderByNameAsc(searchName);
+        Pageable pageable = buildPageable(page, size);
+        Page<Author> authors = searchName == null
+                ? authorRepository.findAll(pageable)
+                : authorRepository.findByNameContainingIgnoreCase(searchName, pageable);
 
-        return authors.stream()
-                .map(authorMapper::toAuthorResponse)
-                .toList();
+        return authors.map(authorMapper::toAuthorResponse);
     }
 
     @Override
@@ -115,6 +119,12 @@ public class AuthorServiceImpl implements AuthorService {
     private String resolveSearchName(String q, String name) {
         String normalizedName = normalizeSearch(name);
         return normalizedName != null ? normalizedName : normalizeSearch(q);
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = size <= 0 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
+        return PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.ASC, "name"));
     }
 
     // Chuẩn hóa keyword search: trim, lowercase, rỗng thì bỏ qua filter.

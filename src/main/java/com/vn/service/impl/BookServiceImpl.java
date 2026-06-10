@@ -7,6 +7,7 @@ import com.vn.dto.catalog.response.BookDetailResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
 import com.vn.entity.Author;
 import com.vn.entity.Book;
+import com.vn.entity.BookImage;
 import com.vn.entity.Category;
 import com.vn.enums.BookCopyStatus;
 import com.vn.exception.AppException;
@@ -16,6 +17,7 @@ import com.vn.logging.LogResult;
 import com.vn.mapper.BookMapper;
 import com.vn.repository.AuthorRepository;
 import com.vn.repository.BookCopyRepository;
+import com.vn.repository.BookImageRepository;
 import com.vn.repository.BookRepository;
 import com.vn.repository.CategoryRepository;
 import com.vn.service.BookService;
@@ -31,9 +33,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -54,6 +59,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
+    private final BookImageRepository bookImageRepository;
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final BookMapper bookMapper;
@@ -66,16 +72,23 @@ public class BookServiceImpl implements BookService {
                                                  String language, int page, int size, String sort) {
         Pageable pageable = buildPageable(page, size, sort);
         Specification<Book> spec = buildBookSearchSpec(q, title, isbn, authorId, author, categoryId, availableOnly, language);
+        Page<Book> books = bookRepository.findAll(spec, pageable);
 
-        return bookRepository.findAll(spec, pageable)
-                .map(bookMapper::toBookSummaryResponse);
+        // Book không còn giữ imageUrl trực tiếp, nên load ảnh primary theo batch cho cả page.
+        Map<Long, BookImage> primaryImagesByBookId = loadPrimaryImages(books.getContent());
+
+        return books.map(book -> bookMapper.toBookSummaryResponse(
+                book,
+                primaryImagesByBookId.get(book.getId())
+        ));
     }
 
     // Lấy thông tin chi tiết của một sách còn hoạt động
     @Override
     @Transactional(readOnly = true)
     public BookDetailResponse getBook(Long bookId) {
-        return bookMapper.toBookDetailResponse(getActiveBook(bookId));
+        Book book = getActiveBook(bookId);
+        return bookMapper.toBookDetailResponse(book, getPrimaryImage(book.getId()));
     }
 
     // Tạo mới đầu sách. Bản copy vật lý được tạo riêng qua BookCopyService.
@@ -105,7 +118,7 @@ public class BookServiceImpl implements BookService {
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.CREATE_BOOK, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook);
+        return bookMapper.toBookDetailResponse(savedBook, null);
     }
 
     // Cập nhật một phần thông tin đầu sách
@@ -142,7 +155,7 @@ public class BookServiceImpl implements BookService {
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.UPDATE_BOOK, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook);
+        return bookMapper.toBookDetailResponse(savedBook, getPrimaryImage(savedBook.getId()));
     }
 
     // Xóa mềm sách, không cho xóa nếu còn bản copy đang mượn hoặc đang được giữ chỗ
@@ -176,7 +189,35 @@ public class BookServiceImpl implements BookService {
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.UPDATE_BOOK_AUTHORS, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook);
+        return bookMapper.toBookDetailResponse(savedBook, getPrimaryImage(savedBook.getId()));
+    }
+
+    // Gom ảnh primary theo bookId để response list có coverImage mà không phát sinh N+1 query.
+    private Map<Long, BookImage> loadPrimaryImages(Collection<Book> books) {
+        if (books.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> bookIds = books.stream()
+                .map(Book::getId)
+                .toList();
+
+        Map<Long, BookImage> imagesByBookId = new HashMap<>();
+        for (BookImage image : bookImageRepository.findPrimaryImagesByBookIds(bookIds)) {
+            imagesByBookId.put(image.getBook().getId(), image);
+        }
+
+        return imagesByBookId;
+    }
+
+    // Trả về ảnh bìa chính cho detail; null nếu sách chưa có ảnh.
+    private BookImage getPrimaryImage(Long bookId) {
+        return bookImageRepository
+                .findFirstByBookIdAndPrimaryImageTrueAndStatusOrderBySortOrderAscIdAsc(
+                        bookId,
+                        com.vn.enums.BookImageStatus.ACTIVE
+                )
+                .orElse(null);
     }
 
     // Tạo điều kiện tìm kiếm động cho API danh sách sách
@@ -341,5 +382,6 @@ public class BookServiceImpl implements BookService {
         String normalized = value.trim().toLowerCase(Locale.ROOT);
         return normalized.isBlank() ? null : normalized;
     }
+
 }
 

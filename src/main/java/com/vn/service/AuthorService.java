@@ -3,12 +3,11 @@ package com.vn.service;
 import com.vn.dto.catalog.request.CreateAuthorRequest;
 import com.vn.dto.catalog.request.UpdateAuthorRequest;
 import com.vn.dto.catalog.response.AuthorResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface AuthorService {
 
-    List<AuthorResponse> getAuthors(String q, String name);
+    Page<AuthorResponse> getAuthors(String q, String name, int page, int size);
 
     AuthorResponse createAuthor(CreateAuthorRequest request);
 
