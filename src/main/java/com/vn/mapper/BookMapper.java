@@ -29,7 +29,8 @@ public class BookMapper {
                 book.getTotalCopies(),
                 book.getAvailableCopies(),
                 categoryMapper.toCategoryResponse(book.getCategory()),
-                toAuthorResponses(book)
+                toAuthorResponses(book),
+                book.getEbookUrl()
         );
     }
 
@@ -46,7 +47,8 @@ public class BookMapper {
                 categoryMapper.toCategoryResponse(book.getCategory()),
                 toAuthorResponses(book),
                 book.getCreatedAt(),
-                book.getUpdatedAt()
+                book.getUpdatedAt(),
+                book.getEbookUrl()
         );
     }
 

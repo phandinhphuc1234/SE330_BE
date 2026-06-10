@@ -13,7 +13,8 @@ public record BookSummaryResponse(
         Integer totalCopies,
         Integer availableCopies,
         CategoryResponse category,
-        List<AuthorResponse> authors
+        List<AuthorResponse> authors,
+        String ebookUrl
 ) {
 }
 

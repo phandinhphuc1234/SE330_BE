@@ -16,7 +16,8 @@ public record BookDetailResponse(
         CategoryResponse category,
         List<AuthorResponse> authors,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String ebookUrl
 ) {
 }
 
