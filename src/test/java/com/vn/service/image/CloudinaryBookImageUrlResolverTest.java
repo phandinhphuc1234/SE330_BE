@@ -1,5 +1,7 @@
 package com.vn.service.image;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.vn.dto.catalog.response.BookCoverImageResponse;
 import com.vn.entity.BookImage;
 import com.vn.enums.BookImageType;
@@ -8,10 +10,17 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CloudinaryImageUrlResolverTest {
+class CloudinaryBookImageUrlResolverTest {
 
-    private final CloudinaryImageUrlBuilder urlBuilder = new CloudinaryImageUrlBuilder("dwgv3yx7e");
-    private final CloudinaryImageUrlResolver resolver = new CloudinaryImageUrlResolver(urlBuilder);
+    private final Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+            "cloud_name", "dwgv3yx7e",
+            "api_key", "test-key",
+            "api_secret", "test-secret",
+            "secure", true,
+            "analytics", false
+    ));
+    private final CloudinaryImageUrlBuilder urlBuilder = new CloudinaryImageUrlBuilder(cloudinary);
+    private final CloudinaryBookImageUrlResolver resolver = new CloudinaryBookImageUrlResolver(urlBuilder);
 
     @Test
     void resolve_shouldBuildVersionlessCoverUrlsFromPublicId() {
@@ -31,9 +40,9 @@ class CloudinaryImageUrlResolverTest {
         assertThat(response.originalUrl())
                 .isEqualTo("https://res.cloudinary.com/dwgv3yx7e/image/upload/9780465050659.png");
         assertThat(response.thumbnailUrl())
-                .isEqualTo("https://res.cloudinary.com/dwgv3yx7e/image/upload/c_fit,w_320,h_480,q_auto,f_auto/9780465050659.png");
+                .isEqualTo("https://res.cloudinary.com/dwgv3yx7e/image/upload/c_fit,f_auto,h_480,q_auto,w_320/9780465050659.png");
         assertThat(response.detailUrl())
-                .isEqualTo("https://res.cloudinary.com/dwgv3yx7e/image/upload/c_fit,w_800,h_1200,q_auto,f_auto/9780465050659.png");
+                .isEqualTo("https://res.cloudinary.com/dwgv3yx7e/image/upload/c_fit,f_auto,h_1200,q_auto,w_800/9780465050659.png");
         assertThat(response.altText()).isEqualTo("Book cover for The Design of Everyday Things");
     }
 

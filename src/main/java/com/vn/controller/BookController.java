@@ -8,6 +8,7 @@ import com.vn.dto.catalog.request.UpdateBookAuthorsRequest;
 import com.vn.dto.catalog.request.UpdateBookRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.catalog.response.BookCopyResponse;
+import com.vn.dto.catalog.response.BookCoverManagementResponse;
 import com.vn.dto.catalog.response.BookDetailResponse;
 import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
@@ -16,6 +17,7 @@ import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.security.MemberUserDetails;
 import com.vn.service.BookCopyService;
+import com.vn.service.BookImageService;
 import com.vn.service.BookImportService;
 import com.vn.service.BookService;
 import jakarta.validation.Valid;
@@ -49,6 +51,7 @@ public class BookController implements BookApiDocs {
 
     private final BookService bookService;
     private final BookCopyService bookCopyService;
+    private final BookImageService bookImageService;
     private final BookImportService bookImportService;
 
     @GetMapping
@@ -103,6 +106,29 @@ public class BookController implements BookApiDocs {
         return ResponseEntity.ok(ApiResponse.success(
                 "Cập nhật sách thành công",
                 bookService.updateBook(bookId, request)
+        ));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping(value = "/{bookId}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookCoverManagementResponse>> addBookCover(
+            @PathVariable Long bookId,
+            @RequestPart("file") MultipartFile file) {
+        BookCoverManagementResponse cover = bookImageService.addCover(bookId, file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Thêm ảnh bìa sách thành công", cover));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PutMapping(value = "/{bookId}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookCoverManagementResponse>> updateBookCover(
+            @PathVariable Long bookId,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật ảnh bìa sách thành công",
+                bookImageService.updateCover(bookId, file)
         ));
     }
     // Xóa đầu sách trong hệ thống

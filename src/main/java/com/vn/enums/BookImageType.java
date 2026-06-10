@@ -1,7 +1,7 @@
 package com.vn.enums;
 
 public enum BookImageType {
-    // Ảnh bìa chính phía trước, dùng làm imageUrl mặc định của sách.
+    // Ảnh bìa chính phía trước, được expose qua response coverImage.
     COVER_FRONT,
     // Dự phòng cho bìa sau nếu sau này frontend cần gallery ảnh sách.
     COVER_BACK,

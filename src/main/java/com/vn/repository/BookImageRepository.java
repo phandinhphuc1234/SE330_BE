@@ -1,7 +1,9 @@
 package com.vn.repository;
 
 import com.vn.entity.BookImage;
+import com.vn.enums.BookImageStatus;
 import com.vn.enums.ImageProvider;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,8 +18,11 @@ public interface BookImageRepository extends JpaRepository<BookImage, Long> {
     // Lấy toàn bộ ảnh của một sách theo thứ tự hiển thị ổn định cho gallery/detail.
     List<BookImage> findByBookIdOrderBySortOrderAscIdAsc(Long bookId);
 
-    // Ảnh primary có thể được update lại khi staff thay imageUrl của sách.
-    Optional<BookImage> findFirstByBookIdAndPrimaryImageTrueOrderBySortOrderAscIdAsc(Long bookId);
+    // Ảnh primary đang active có thể được update lại khi staff thay cover của sách.
+    Optional<BookImage> findFirstByBookIdAndPrimaryImageTrueAndStatusOrderBySortOrderAscIdAsc(
+            Long bookId,
+            BookImageStatus status
+    );
 
     // Chặn một Cloudinary asset bị gán làm ảnh chính cho nhiều sách khác nhau.
     Optional<BookImage> findByProviderAndPublicId(ImageProvider provider, String publicId);
@@ -29,25 +34,21 @@ public interface BookImageRepository extends JpaRepository<BookImage, Long> {
             join fetch image.book book
             where book.id in :bookIds
               and image.primaryImage = true
+              and image.status = com.vn.enums.BookImageStatus.ACTIVE
             """)
     List<BookImage> findPrimaryImagesByBookIds(@Param("bookIds") Collection<Long> bookIds);
 
-    // Detail chỉ cần URL ảnh chính, không cần load toàn bộ entity ảnh.
-    @Query("""
-            select image.secureUrl
-            from BookImage image
-            where image.book.id = :bookId
-              and image.primaryImage = true
-            order by image.sortOrder asc, image.id asc
-            """)
-    Optional<String> findPrimaryImageUrlByBookId(@Param("bookId") Long bookId);
+    // Cleanup job dùng query có Pageable để giới hạn số asset Cloudinary retry mỗi lần chạy.
+    List<BookImage> findByStatusOrderByUpdatedAtAsc(BookImageStatus status, Pageable pageable);
 
-    // Blank imageUrl trong update nghĩa là xóa ảnh bìa chính khỏi catalog.
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-            delete from BookImage image
-            where image.book.id = :bookId
-              and image.primaryImage = true
+            update BookImage image
+            set image.status = :status,
+                image.deletedAt = CURRENT_TIMESTAMP,
+                image.updatedAt = CURRENT_TIMESTAMP
+            where image.id = :imageId
             """)
-    int deletePrimaryImagesByBookId(@Param("bookId") Long bookId);
+    int updateStatusWithDeletedAt(@Param("imageId") Long imageId,
+                                  @Param("status") BookImageStatus status);
 }

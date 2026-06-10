@@ -1,48 +1,73 @@
 package com.vn.service.image;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
+@RequiredArgsConstructor
 public class CloudinaryImageUrlBuilder {
 
     private static final String DEFAULT_FORMAT = "png";
-    private static final String THUMBNAIL_TRANSFORMATION = "c_fit,w_320,h_480,q_auto,f_auto";
-    private static final String DETAIL_TRANSFORMATION = "c_fit,w_800,h_1200,q_auto,f_auto";
 
-    private final String cloudName;
-
-    public CloudinaryImageUrlBuilder(@Value("${cloudinary.cloud-name}") String cloudName) {
-        this.cloudName = cloudName;
-    }
+    private final Cloudinary cloudinary;
 
     public String thumbnailUrl(String publicId, String format) {
-        return buildImageUrl(publicId, format, THUMBNAIL_TRANSFORMATION);
+        return buildImageUrl(
+                publicId,
+                format,
+                new Transformation<>()
+                        .crop("fit")
+                        .width(320)
+                        .height(480)
+                        .quality("auto")
+                        .fetchFormat("auto")
+        );
     }
 
     public String detailUrl(String publicId, String format) {
-        return buildImageUrl(publicId, format, DETAIL_TRANSFORMATION);
+        return buildImageUrl(
+                publicId,
+                format,
+                new Transformation<>()
+                        .crop("fit")
+                        .width(800)
+                        .height(1200)
+                        .quality("auto")
+                        .fetchFormat("auto")
+        );
     }
 
     public String originalUrl(String publicId, String format) {
         return buildImageUrl(publicId, format, null);
     }
 
-    // Dùng versionless URL vì mỗi asset Cloudinary có thể có version khác nhau.
-    private String buildImageUrl(String publicId, String format, String transformation) {
+    private String buildImageUrl(String publicId, String format, Transformation<?> transformation) {
         if (!StringUtils.hasText(publicId)) {
             return null;
         }
-        if (!StringUtils.hasText(cloudName)) {
+        if (!StringUtils.hasText(cloudinary.config.cloudName)) {
             throw new IllegalStateException("Cloudinary cloud name is not configured");
         }
 
+        String publicIdWithFormat = appendFormat(publicId, format);
+        var url = cloudinary.url()
+                .secure(true)
+                .resourceType("image");
+
+        if (transformation != null) {
+            url.transformation(transformation);
+        }
+
+        // SDK build URL giúp tránh tự nối sai transformation syntax khi sau này đổi option.
+        return url.generate(publicIdWithFormat);
+    }
+
+    private String appendFormat(String publicId, String format) {
         String safeFormat = StringUtils.hasText(format) ? format : DEFAULT_FORMAT;
-        String transformationPath = StringUtils.hasText(transformation) ? transformation + "/" : "";
-        return "https://res.cloudinary.com/" + cloudName
-                + "/image/upload/"
-                + transformationPath
-                + publicId + "." + safeFormat;
+        String suffix = "." + safeFormat;
+        return publicId.endsWith(suffix) ? publicId : publicId + suffix;
     }
 }

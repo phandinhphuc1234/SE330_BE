@@ -1,7 +1,7 @@
 # Current Database Schema
 
 This document describes the PostgreSQL schema after applying all Flyway
-migrations in `src/main/resources/db/migration` up to `V21`.
+migrations in `src/main/resources/db/migration` up to `V27`.
 
 Refresh tokens and idempotency records are not stored in PostgreSQL. Refresh
 tokens are stored in Redis, and idempotency state was moved from PostgreSQL to
@@ -135,14 +135,18 @@ the frontend.
 | `provider` | `VARCHAR(50)` | No | `'CLOUDINARY'` | Currently only `CLOUDINARY` |
 | `public_id` | `VARCHAR(512)` | No | | Cloudinary public ID/reference |
 | `secure_url` | `VARCHAR(2048)` | No | | Stored HTTPS URL/reference; API response builds `coverImage` URLs from `public_id` and `format` |
+| `version` | `BIGINT` | Yes | | Cloudinary asset version returned by upload |
 | `asset_type` | `VARCHAR(50)` | No | `'COVER_FRONT'` | `COVER_FRONT`, `COVER_BACK`, `PREVIEW`, `OTHER` |
 | `format` | `VARCHAR(20)` | Yes | | Example: `png`, `jpg`, `webp` |
+| `mime_type` | `VARCHAR(100)` | Yes | | MIME type accepted by upload API |
 | `width` | `INT` | Yes | | Must be positive when present |
 | `height` | `INT` | Yes | | Must be positive when present |
-| `bytes` | `BIGINT` | Yes | | Must be non-negative when present |
+| `size_bytes` | `BIGINT` | Yes | | Must be non-negative when present |
 | `alt_text` | `VARCHAR(255)` | Yes | | Accessibility text |
 | `sort_order` | `INT` | No | `0` | Display order for multiple images |
 | `is_primary` | `BOOLEAN` | No | `FALSE` | Primary cover used by book list/detail responses |
+| `status` | `VARCHAR(30)` | No | `'ACTIVE'` | `ACTIVE`, `REPLACED`, `DELETE_PENDING`, `DELETED`, `PURGED`, `FAILED` |
+| `deleted_at` | `TIMESTAMP` | Yes | | Set when an asset has been purged/deleted |
 | `created_at` | `TIMESTAMP` | No | `NOW()` | |
 | `updated_at` | `TIMESTAMP` | No | `NOW()` | |
 
@@ -151,14 +155,16 @@ Constraints:
 - `fk_book_images_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE`
 - `chk_book_images_provider CHECK (provider IN ('CLOUDINARY'))`
 - `chk_book_images_asset_type CHECK (asset_type IN ('COVER_FRONT', 'COVER_BACK', 'PREVIEW', 'OTHER'))`
-- Positive/non-negative checks for dimensions, bytes and sort order
+- `chk_book_images_status CHECK (status IN (...))`
+- Positive/non-negative checks for dimensions, size bytes and sort order
 
 Indexes:
 
 - `idx_book_images_book_id ON book_images(book_id)`
 - `idx_book_images_book_primary ON book_images(book_id, is_primary)`
+- `idx_book_images_status ON book_images(status)`
 - `uq_book_images_provider_public_id UNIQUE (provider, public_id)`
-- `uq_book_images_one_primary_per_book UNIQUE (book_id) WHERE is_primary = TRUE`
+- `uq_book_images_one_active_primary_per_book UNIQUE (book_id) WHERE is_primary = TRUE AND status = 'ACTIVE'`
 
 Migration notes:
 
@@ -166,8 +172,11 @@ Migration notes:
   `books.isbn` as the Cloudinary `public_id`.
 - `V26` changes generated Cloudinary cover URLs to versionless delivery URLs
   because uploaded assets can have different Cloudinary version segments.
-- Current book read APIs expose structured `coverImage` URLs. `imageUrl` remains
-  only as create/update request input for attaching a primary cover URL.
+- `V27` adds upload lifecycle metadata (`version`, `mime_type`, `size_bytes`,
+  `status`, `deleted_at`) and enforces one active primary cover per book.
+- Current book read APIs expose structured `coverImage` URLs. Book create/update
+  APIs no longer accept `imageUrl`; cover files are managed through
+  `POST /api/books/{bookId}/cover` and `PUT /api/books/{bookId}/cover`.
 
 ### `members`
 

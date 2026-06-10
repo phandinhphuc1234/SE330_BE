@@ -20,13 +20,16 @@ public interface AuthorApiDocs {
     @Operation(
             summary = "Get authors",
             description = """
-                    Public API for getting authors sorted by name. Used for filters and selection lists.
+                    Public API for getting authors sorted by name with pagination.
+                    Default page size is 6 records.
                     Optional filters q/name search by author name case-insensitively.
                     """
     )
     ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthors(
             @Parameter(description = "Quick author name search") String q,
-            @Parameter(description = "Author name search. Takes precedence over q when both are provided") String name
+            @Parameter(description = "Author name search. Takes precedence over q when both are provided") String name,
+            @Parameter(description = "Page number, starts from 0") int page,
+            @Parameter(description = "Page size. Default is 6") int size
     );
 
     @SecurityRequirement(name = "Bearer Authentication")

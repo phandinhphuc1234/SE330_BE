@@ -26,6 +26,7 @@
         <springdoc.version>3.0.3</springdoc.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <micrometer.version>1.16.5</micrometer.version>
+        <cloudinary.version>2.0.0</cloudinary.version>
     </properties>
 
     <dependencyManagement>
@@ -136,6 +137,13 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <version>${micrometer.version}</version>
+        </dependency>
+
+        <!-- Cloudinary Java SDK: upload/delete media and build transformation URLs -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http5</artifactId>
+            <version>${cloudinary.version}</version>
         </dependency>
 
         <!-- ================= JWT ================= -->

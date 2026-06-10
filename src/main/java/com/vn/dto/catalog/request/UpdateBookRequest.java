@@ -16,9 +16,6 @@ public record UpdateBookRequest(
         @Size(max = 50, message = "Phiên bản tối đa 50 ký tự")
         String edition,
 
-        @Size(max = 2048, message = "Link ảnh tối đa 2048 ký tự")
-        String imageUrl,
-
         Long categoryId
 ) {
 }

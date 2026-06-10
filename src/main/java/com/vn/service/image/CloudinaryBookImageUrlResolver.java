@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CloudinaryImageUrlResolver implements ImageUrlResolver {
+public class CloudinaryBookImageUrlResolver implements BookImageUrlResolver {
 
     private final CloudinaryImageUrlBuilder cloudinaryImageUrlBuilder;
 

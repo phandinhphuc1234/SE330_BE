@@ -1,6 +1,7 @@
 package com.vn.entity;
 
 import com.vn.enums.BookImageType;
+import com.vn.enums.BookImageStatus;
 import com.vn.enums.ImageProvider;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,7 +66,12 @@ public class BookImage {
 
     private Integer height;
 
-    private Long bytes;
+    private Long version;
+
+    @Column(length = 100)
+    private String mimeType;
+
+    private Long sizeBytes;
 
     @Column(length = 255)
     private String altText;
@@ -73,9 +79,15 @@ public class BookImage {
     @Column(nullable = false)
     private Integer sortOrder;
 
-    // Ảnh primary là ảnh bìa chính được expose qua BookSummaryResponse.imageUrl.
+    // Ảnh primary là ảnh bìa chính được expose qua BookSummaryResponse.coverImage.
     @Column(name = "is_primary", nullable = false)
     private Boolean primaryImage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private BookImageStatus status;
+
+    private Instant deletedAt;
 
     private Instant createdAt;
 
@@ -99,6 +111,9 @@ public class BookImage {
         }
         if (this.primaryImage == null) {
             this.primaryImage = false;
+        }
+        if (this.status == null) {
+            this.status = BookImageStatus.ACTIVE;
         }
     }
 
