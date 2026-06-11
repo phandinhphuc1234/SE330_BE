@@ -38,6 +38,11 @@ public interface EbookLoanRepository extends JpaRepository<EbookLoan, Long> {
     Page<EbookLoan> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
 
     /**
+     * Lấy loan theo status có phân trang.
+     */
+    Page<EbookLoan> findByMemberIdAndStatusOrderByCreatedAtDesc(Long memberId, EbookLoanStatus status, Pageable pageable);
+
+    /**
      * Dành cho scheduler: tìm các loan ACTIVE đã hết hạn để chuyển sang EXPIRED.
      */
     @Query("SELECT e FROM EbookLoan e WHERE e.status = 'ACTIVE' AND e.expiresAt < :now")

@@ -119,10 +119,9 @@ public class EbookServiceImpl implements EbookService {
     @Override
     @Transactional(readOnly = true)
     public Page<EbookLoanResponse> getMyEbookLoans(Long memberId, Pageable pageable) {
-        // Chỉ ACTIVE
         return ebookLoanRepository
-                .findByMemberIdOrderByCreatedAtDesc(memberId, pageable)
-                .map(loan -> toResponse(loan, loan.getStatus() == EbookLoanStatus.ACTIVE));
+                .findByMemberIdAndStatusOrderByCreatedAtDesc(memberId, EbookLoanStatus.ACTIVE, pageable)
+                .map(loan -> toResponse(loan, true));
     }
 
     @Override
