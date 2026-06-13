@@ -10,9 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -41,45 +38,39 @@ class AuthorServiceImplTest {
     void getAuthors_shouldReturnAllAuthorsSortedByName_whenSearchBlank() {
         Author author = author(1L, "Robert C. Martin");
         AuthorResponse response = response(1L, "Robert C. Martin");
-        PageRequest pageable = PageRequest.of(0, 6, Sort.by(Sort.Direction.ASC, "name"));
-        when(authorRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(author), pageable, 1));
+        when(authorRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))).thenReturn(List.of(author));
         when(authorMapper.toAuthorResponse(author)).thenReturn(response);
 
-        Page<AuthorResponse> result = authorService.getAuthors(" ", null, 0, 6);
+        List<AuthorResponse> result = authorService.getAuthors(" ", null);
 
-        assertThat(result.getContent()).containsExactly(response);
-        assertThat(result.getSize()).isEqualTo(6);
-        verify(authorRepository).findAll(pageable);
+        assertThat(result).containsExactly(response);
+        verify(authorRepository).findAll(Sort.by(Sort.Direction.ASC, "name"));
     }
 
     @Test
     void getAuthors_shouldSearchByQName_whenNameMissing() {
         Author author = author(2L, "Martin Fowler");
         AuthorResponse response = response(2L, "Martin Fowler");
-        PageRequest pageable = PageRequest.of(1, 6, Sort.by(Sort.Direction.ASC, "name"));
-        when(authorRepository.findByNameContainingIgnoreCase("martin", pageable))
-                .thenReturn(new PageImpl<>(List.of(author), pageable, 7));
+        when(authorRepository.findByNameContainingIgnoreCaseOrderByNameAsc("martin")).thenReturn(List.of(author));
         when(authorMapper.toAuthorResponse(author)).thenReturn(response);
 
-        Page<AuthorResponse> result = authorService.getAuthors(" Martin ", null, 1, 6);
+        List<AuthorResponse> result = authorService.getAuthors(" Martin ", null);
 
-        assertThat(result.getContent()).containsExactly(response);
-        verify(authorRepository).findByNameContainingIgnoreCase("martin", pageable);
+        assertThat(result).containsExactly(response);
+        verify(authorRepository).findByNameContainingIgnoreCaseOrderByNameAsc("martin");
     }
 
     @Test
     void getAuthors_shouldPreferNameOverQ_whenBothProvided() {
         Author author = author(3L, "Kent Beck");
         AuthorResponse response = response(3L, "Kent Beck");
-        PageRequest pageable = PageRequest.of(0, 6, Sort.by(Sort.Direction.ASC, "name"));
-        when(authorRepository.findByNameContainingIgnoreCase("kent", pageable))
-                .thenReturn(new PageImpl<>(List.of(author), pageable, 1));
+        when(authorRepository.findByNameContainingIgnoreCaseOrderByNameAsc("kent")).thenReturn(List.of(author));
         when(authorMapper.toAuthorResponse(author)).thenReturn(response);
 
-        Page<AuthorResponse> result = authorService.getAuthors("martin", " Kent ", 0, 6);
+        List<AuthorResponse> result = authorService.getAuthors("martin", " Kent ");
 
-        assertThat(result.getContent()).containsExactly(response);
-        verify(authorRepository).findByNameContainingIgnoreCase("kent", pageable);
+        assertThat(result).containsExactly(response);
+        verify(authorRepository).findByNameContainingIgnoreCaseOrderByNameAsc("kent");
     }
 
     private Author author(Long id, String name) {

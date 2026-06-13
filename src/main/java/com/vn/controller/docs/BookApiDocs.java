@@ -7,7 +7,6 @@ import com.vn.dto.catalog.request.UpdateBookAuthorsRequest;
 import com.vn.dto.catalog.request.UpdateBookRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.catalog.response.BookCopyResponse;
-import com.vn.dto.catalog.response.BookCoverManagementResponse;
 import com.vn.dto.catalog.response.BookDetailResponse;
 import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
@@ -32,7 +31,6 @@ public interface BookApiDocs {
             description = """
                     Public API for searching and filtering active books.
                     Supports keyword, title, ISBN, author, category, availability, language, pagination and sorting.
-                    Each book item includes coverImage for frontend rendering.
                     Sort format: field,direction. Allowed fields: title, publishedDate, createdAt, availableCopies.
                     """
     )
@@ -53,7 +51,7 @@ public interface BookApiDocs {
     @SecurityRequirements
     @Operation(
             summary = "Get book detail",
-            description = "Public API for getting detailed information of an active book, including coverImage when configured."
+            description = "Public API for getting detailed information of an active book."
     )
     ResponseEntity<ApiResponse<BookDetailResponse>> getBook(
             @Parameter(description = "Book ID", required = true) Long bookId
@@ -63,8 +61,7 @@ public interface BookApiDocs {
     @Operation(
             summary = "Create book",
             description = """
-                    Create a new book metadata record.
-                    Cover image upload is handled separately by POST /api/books/{bookId}/cover.
+                    Create a new book metadata record. This API only creates the book information.
                     Physical copies must be created separately using POST /api/books/{bookId}/copies.
                     Librarian and Admin can access this API.
                     """
@@ -79,7 +76,6 @@ public interface BookApiDocs {
             summary = "Update book",
             description = """
                     Partially update book metadata such as title, published date, language, edition or category.
-                    Cover image replacement is handled separately by PUT /api/books/{bookId}/cover.
                     ISBN is intentionally immutable here because CSV import and copy management use it as a catalog identity.
                     """
     )
@@ -87,37 +83,6 @@ public interface BookApiDocs {
             @Parameter(description = "Book ID", required = true) Long bookId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Book fields to update")
             UpdateBookRequest request
-    );
-
-    @SecurityRequirement(name = "Bearer Authentication")
-    @Operation(
-            summary = "Add book cover",
-            description = """
-                    Upload a new primary cover image for a book that does not already have an active cover.
-                    The file is uploaded to Cloudinary first, then metadata is stored in book_images.
-                    Supported file types: JPG, PNG, WEBP. Maximum size: 5MB.
-                    Librarian and Admin can access this API.
-                    """
-    )
-    ResponseEntity<ApiResponse<BookCoverManagementResponse>> addBookCover(
-            @Parameter(description = "Book ID", required = true) Long bookId,
-            @Parameter(description = "Cover image file", required = true) MultipartFile file
-    );
-
-    @SecurityRequirement(name = "Bearer Authentication")
-    @Operation(
-            summary = "Update book cover",
-            description = """
-                    Replace the active primary cover image of a book.
-                    Backend uploads the new image before changing database metadata, then marks the old image DELETE_PENDING
-                    and attempts to purge it from Cloudinary after the database transaction succeeds.
-                    Supported file types: JPG, PNG, WEBP. Maximum size: 5MB.
-                    Librarian and Admin can access this API.
-                    """
-    )
-    ResponseEntity<ApiResponse<BookCoverManagementResponse>> updateBookCover(
-            @Parameter(description = "Book ID", required = true) Long bookId,
-            @Parameter(description = "New cover image file", required = true) MultipartFile file
     );
 
     @SecurityRequirement(name = "Bearer Authentication")

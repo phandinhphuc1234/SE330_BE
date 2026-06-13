@@ -14,6 +14,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -79,6 +80,14 @@ public class Book {
             inverseJoinColumns = @JoinColumn(name = "author_id")
     )
     private Set<Author> authors = new LinkedHashSet<>();
+
+    @Column(name = "ebook_url", length = 500)
+    private String ebookUrl;
+
+    @Transient
+    public boolean hasEbook() {
+        return ebookUrl != null && !ebookUrl.isBlank();
+}
 
     @PrePersist
     void prePersist() {

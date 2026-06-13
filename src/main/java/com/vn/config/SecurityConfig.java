@@ -60,6 +60,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         // Cho phép truy cập swagger-ui và api-docs không cần đăng nhập
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        // Ebook loans
+                        .requestMatchers("/api/user/ebook-loans", "/api/user/ebook-loans/**").authenticated()
                         // Tất cả request còn lại phải authenticated
                         .anyRequest().authenticated()
                 )

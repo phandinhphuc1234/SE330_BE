@@ -11,13 +11,13 @@ public record BookDetailResponse(
         LocalDate publishedDate,
         String language,
         String edition,
-        BookCoverImageResponse coverImage,
         Integer totalCopies,
         Integer availableCopies,
         CategoryResponse category,
         List<AuthorResponse> authors,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String ebookUrl
 ) {
 }
 

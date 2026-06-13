@@ -4,12 +4,10 @@ import com.vn.controller.docs.AuthorApiDocs;
 import com.vn.dto.catalog.request.CreateAuthorRequest;
 import com.vn.dto.catalog.request.UpdateAuthorRequest;
 import com.vn.dto.common.ApiResponse;
-import com.vn.dto.common.PageMeta;
 import com.vn.dto.catalog.response.AuthorResponse;
 import com.vn.service.AuthorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,14 +33,10 @@ public class AuthorController implements AuthorApiDocs {
     @Override
     public ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthors(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size) {
-        Page<AuthorResponse> authors = authorService.getAuthors(q, name, page, size);
+            @RequestParam(required = false) String name) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Lấy danh sách tác giả thành công",
-                authors.getContent(),
-                PageMeta.from(authors)
+                authorService.getAuthors(q, name)
         ));
     }
     // Tạo thông tin tác giả mới trong hệ thống
