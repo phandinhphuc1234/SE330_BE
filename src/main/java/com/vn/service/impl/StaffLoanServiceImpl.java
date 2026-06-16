@@ -2,10 +2,11 @@ package com.vn.service.impl;
 
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.enums.BorrowStatus;
+import com.vn.enums.EbookLoanStatus;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
-import com.vn.mapper.StaffCirculationMapper;
-import com.vn.repository.BorrowRecordRepository;
+import com.vn.repository.EbookLoanRepository;
+import com.vn.repository.projection.StaffLoanRowProjection;
 import com.vn.service.StaffLoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,10 +16,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +30,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 100;
 
-    private final BorrowRecordRepository borrowRecordRepository;
-    private final StaffCirculationMapper staffCirculationMapper;
+    private final EbookLoanRepository ebookLoanRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,7 +50,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
         return searchLoansInternal(
                 null,
                 q,
-                parseBorrowStatus(status),
+                parseLoanStatus(status),
                 openOnly,
                 overdue,
                 parsedDueFrom,
@@ -58,6 +60,8 @@ public class StaffLoanServiceImpl implements StaffLoanService {
         );
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public Page<StaffLoanResponse> searchMemberLoans(Long memberId,
                                                      String status,
                                                      Boolean openOnly,
@@ -70,7 +74,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
         return searchLoansInternal(
                 memberId,
                 null,
-                parseBorrowStatus(status),
+                parseLoanStatus(status),
                 effectiveOpenOnly,
                 overdue,
                 null,
@@ -82,7 +86,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
 
     private Page<StaffLoanResponse> searchLoansInternal(Long memberId,
                                                        String q,
-                                                       BorrowStatus status,
+                                                       String status,
                                                        Boolean openOnly,
                                                        Boolean overdue,
                                                        Instant dueFrom,
@@ -92,34 +96,67 @@ public class StaffLoanServiceImpl implements StaffLoanService {
         String normalizedQuery = normalizeLikeQuery(q);
         Long numericId = parseOptionalLong(q);
 
-        return borrowRecordRepository
-                .searchStaffLoans(
+        return ebookLoanRepository
+                .searchStaffLoansIncludingEbooks(
                         memberId,
                         normalizedQuery,
                         numericId,
                         status,
                         openOnly,
-                        BorrowStatus.openStatuses(),
                         overdue,
-                        BorrowStatus.OVERDUE,
-                        BorrowStatus.BORROWED,
                         dueFrom,
                         dueTo,
                         now,
                         pageable
                 )
-                .map(borrow -> staffCirculationMapper.toStaffLoanResponse(borrow, now));
+                .map(this::toStaffLoanResponse);
     }
 
-    private BorrowStatus parseBorrowStatus(String status) {
+    private String parseLoanStatus(String status) {
         if (status == null || status.isBlank()) {
             return null;
         }
+        String normalized = status.trim().toUpperCase(Locale.ROOT);
         try {
-            return BorrowStatus.valueOf(status.trim().toUpperCase());
+            BorrowStatus.valueOf(normalized);
+            return normalized;
         } catch (IllegalArgumentException e) {
-            throw new AppException(ErrorCode.BAD_REQUEST);
+            try {
+                EbookLoanStatus.valueOf(normalized);
+                return normalized;
+            } catch (IllegalArgumentException ignored) {
+                throw new AppException(ErrorCode.BAD_REQUEST);
+            }
         }
+    }
+
+    private StaffLoanResponse toStaffLoanResponse(StaffLoanRowProjection row) {
+        return new StaffLoanResponse(
+                row.getBorrowId(),
+                row.getMemberId(),
+                row.getMemberName(),
+                row.getMemberEmail(),
+                row.getBookId(),
+                row.getBookTitle(),
+                row.getBookCopyId(),
+                row.getItemBarcode(),
+                row.getCopyStatus(),
+                row.getBorrowedAt(),
+                row.getDueDate(),
+                row.getReturnedAt(),
+                row.getStatus(),
+                row.getRenewCount(),
+                row.getMaxRenewals(),
+                row.getFineAmount() == null ? BigDecimal.ZERO : row.getFineAmount(),
+                row.getFineStatus(),
+                Boolean.TRUE.equals(row.getOverdue()),
+                row.getDaysOverdue() == null ? 0L : row.getDaysOverdue(),
+                row.getLoanType(),
+                row.getEbookLoanId(),
+                row.getBookEbookId(),
+                row.getPaymentId(),
+                row.getExpiredAt()
+        );
     }
 
     private Instant parseBoundaryInstant(String rawValue, boolean endOfDayForDateOnly) {
@@ -149,17 +186,11 @@ public class StaffLoanServiceImpl implements StaffLoanService {
     }
 
     private Pageable buildLoanPageable(int page, int size, Boolean openOnly) {
-        Sort sort = Boolean.TRUE.equals(openOnly)
-                ? Sort.by(Sort.Direction.ASC, "dueDate").and(Sort.by(Sort.Direction.DESC, "borrowedAt"))
-                : Sort.by(Sort.Direction.ASC, "dueDate").and(Sort.by(Sort.Direction.DESC, "borrowedAt"));
-        return PageRequest.of(normalizePage(page), normalizeSize(size), sort);
+        return PageRequest.of(normalizePage(page), normalizeSize(size), Sort.unsorted());
     }
 
     private Pageable buildMemberLoanPageable(int page, int size, Boolean openOnly) {
-        Sort sort = Boolean.TRUE.equals(openOnly)
-                ? Sort.by(Sort.Direction.ASC, "dueDate")
-                : Sort.by(Sort.Direction.DESC, "borrowedAt");
-        return PageRequest.of(normalizePage(page), normalizeSize(size), sort);
+        return PageRequest.of(normalizePage(page), normalizeSize(size), Sort.unsorted());
     }
 
     private int normalizePage(int page) {

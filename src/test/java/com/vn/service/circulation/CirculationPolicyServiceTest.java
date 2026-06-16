@@ -11,6 +11,7 @@ import com.vn.enums.ReservationStatus;
 import com.vn.exception.ErrorCode;
 import com.vn.repository.BorrowRecordRepository;
 import com.vn.repository.ReservationRepository;
+import com.vn.service.borrow.MediaBorrowLimitService;
 import com.vn.service.impl.circulation.policy.CirculationPolicyService;
 import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import com.vn.testsupport.TestDataFactory;
@@ -39,6 +40,9 @@ class CirculationPolicyServiceTest {
     @Mock
     private CirculationSettingService circulationSettingService;
 
+    @Mock
+    private MediaBorrowLimitService mediaBorrowLimitService;
+
     private CirculationPolicyService policyService;
 
     @BeforeEach
@@ -46,7 +50,8 @@ class CirculationPolicyServiceTest {
         policyService = new CirculationPolicyService(
                 borrowRecordRepository,
                 reservationRepository,
-                circulationSettingService
+                circulationSettingService,
+                mediaBorrowLimitService
         );
     }
 
@@ -115,6 +120,37 @@ class CirculationPolicyServiceTest {
                 .extracting("code")
                 .contains(ErrorCode.MEMBER_ALREADY_BORROWED_BOOK.getCode());
         verify(borrowRecordRepository).existsOpenBorrowForMemberAndBook(5L, 10L, BorrowStatus.openStatuses());
+    }
+
+    @Test
+    void validateCheckout_shouldBlock_whenTotalMediaBorrowLimitReached() {
+        Member member = TestDataFactory.activeMember(5L);
+        Book book = TestDataFactory.book(10L, 1);
+        BookCopy copy = TestDataFactory.bookCopy(51L, book, BookCopyStatus.AVAILABLE);
+        when(mediaBorrowLimitService.hasReachedLimit(member)).thenReturn(true);
+
+        var blocks = policyService.validateCheckout(member, copy);
+
+        assertThat(blocks)
+                .extracting("code")
+                .contains(ErrorCode.BORROW_LIMIT_EXCEEDED.getCode());
+    }
+
+    @Test
+    void validateCheckout_shouldNotTreatActiveEbookAsSamePhysicalBookBorrow() {
+        Member member = TestDataFactory.activeMember(5L);
+        Book book = TestDataFactory.book(10L, 1);
+        BookCopy copy = TestDataFactory.bookCopy(51L, book, BookCopyStatus.AVAILABLE);
+        when(mediaBorrowLimitService.hasReachedLimit(member)).thenReturn(false);
+        when(borrowRecordRepository.existsOpenBorrowForMemberAndBook(5L, 10L, BorrowStatus.openStatuses()))
+                .thenReturn(false);
+
+        var blocks = policyService.validateCheckout(member, copy);
+
+        assertThat(blocks)
+                .extracting("code")
+                .doesNotContain(ErrorCode.MEMBER_ALREADY_BORROWED_BOOK.getCode())
+                .doesNotContain(ErrorCode.BORROW_LIMIT_EXCEEDED.getCode());
     }
 
     private BorrowRecord borrow() {

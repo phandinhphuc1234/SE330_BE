@@ -7,18 +7,15 @@ import com.vn.dto.circulation.response.BorrowResponse;
 import com.vn.dto.circulation.response.CheckinResponse;
 import com.vn.dto.circulation.response.CheckoutPreviewResponse;
 import com.vn.dto.circulation.response.RenewBorrowResponse;
-import com.vn.enums.BorrowStatus;
-import com.vn.mapper.CirculationMapper;
-import com.vn.repository.BorrowRecordRepository;
+import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.service.CirculationService;
 import com.vn.service.IdempotencyService;
+import com.vn.service.StaffLoanService;
 import com.vn.service.impl.circulation.usecase.CheckinUseCase;
 import com.vn.service.impl.circulation.usecase.CheckoutUseCase;
 import com.vn.service.impl.circulation.usecase.RenewalUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CirculationServiceImpl implements CirculationService {
 
-    private static final int MAX_PAGE_SIZE = 10;
-
     private final CheckoutUseCase checkoutUseCase;
     private final CheckinUseCase checkinUseCase;
     private final RenewalUseCase renewalUseCase;
-    private final BorrowRecordRepository borrowRecordRepository;
-    private final CirculationMapper circulationMapper;
+    private final StaffLoanService staffLoanService;
     private final IdempotencyService idempotencyService;
 
     // Chức năng: kiểm tra trước một lượt mượn sách và trả về các lý do bị chặn nếu chưa đủ điều kiện.
@@ -101,23 +95,14 @@ public class CirculationServiceImpl implements CirculationService {
     // Chức năng: lấy danh sách lượt mượn đang còn hiệu lực của member hiện tại.
     @Override
     @Transactional(readOnly = true)
-    public Page<BorrowResponse> getMyActiveBorrows(Long memberId, int page, int size) {
-        return borrowRecordRepository
-                .findByMemberIdAndStatusInOrderByBorrowedAtDesc(memberId, BorrowStatus.activeStatuses(), buildPageable(page, size))
-                .map(circulationMapper::toBorrowResponse);
+    public Page<StaffLoanResponse> getMyActiveBorrows(Long memberId, int page, int size) {
+        return staffLoanService.searchMemberLoans(memberId, null, true, null, page, size);
     }
 
     // Chức năng: lấy lịch sử mượn/trả sách của member hiện tại.
     @Override
     @Transactional(readOnly = true)
-    public Page<BorrowResponse> getMyBorrowHistory(Long memberId, int page, int size) {
-        return borrowRecordRepository
-                .findByMemberIdOrderByBorrowedAtDesc(memberId, buildPageable(page, size))
-                .map(circulationMapper::toBorrowResponse);
-    }
-
-    // Chức năng: tạo Pageable và giới hạn page size để bảo vệ API danh sách.
-    private Pageable buildPageable(int page, int size) {
-        return PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), MAX_PAGE_SIZE));
+    public Page<StaffLoanResponse> getMyBorrowHistory(Long memberId, int page, int size) {
+        return staffLoanService.searchMemberLoans(memberId, null, false, null, page, size);
     }
 }

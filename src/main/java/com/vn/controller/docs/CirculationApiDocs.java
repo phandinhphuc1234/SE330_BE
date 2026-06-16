@@ -9,6 +9,7 @@ import com.vn.dto.circulation.response.CheckoutPreviewResponse;
 import com.vn.dto.circulation.response.RenewBorrowResponse;
 import com.vn.dto.common.ApiResponse;
 import com.vn.security.MemberUserDetails;
+import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,10 +39,10 @@ public interface CirculationApiDocs {
     ResponseEntity<ApiResponse<CheckinResponse>> checkin(String idempotencyKey, MemberUserDetails userDetails, CheckinRequest request);
 
     @Operation(summary = "Get my active borrows", description = "Member views currently borrowed/overdue books.")
-    ResponseEntity<ApiResponse<List<BorrowResponse>>> getMyActiveBorrows(MemberUserDetails userDetails, int page, int size);
+    ResponseEntity<ApiResponse<List<StaffLoanResponse>>> getMyActiveBorrows(MemberUserDetails userDetails, int page, int size);
 
     @Operation(summary = "Get my borrow history", description = "Member views all borrow history.")
-    ResponseEntity<ApiResponse<List<BorrowResponse>>> getMyBorrowHistory(MemberUserDetails userDetails, int page, int size);
+    ResponseEntity<ApiResponse<List<StaffLoanResponse>>> getMyBorrowHistory(MemberUserDetails userDetails, int page, int size);
 
     @Operation(summary = "Renew my borrow", description = "Member renews their own borrow. Requires Idempotency-Key.")
     ResponseEntity<ApiResponse<RenewBorrowResponse>> renewMyBorrow(

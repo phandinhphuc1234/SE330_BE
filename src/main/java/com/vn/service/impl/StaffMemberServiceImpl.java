@@ -11,6 +11,7 @@ import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.mapper.StaffMemberMapper;
 import com.vn.repository.MemberRepository;
+import com.vn.service.StaffLoanService;
 import com.vn.service.StaffMemberService;
 import com.vn.service.impl.staff.member.StaffMemberStatsLoader;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
     private static final int MAX_PAGE_SIZE = 100;
 
     private final MemberRepository memberRepository;
-    private final StaffLoanServiceImpl staffLoanService;
+    private final StaffLoanService staffLoanService;
     private final StaffMemberStatsLoader statsLoader;
     private final StaffMemberMapper staffMemberMapper;
 

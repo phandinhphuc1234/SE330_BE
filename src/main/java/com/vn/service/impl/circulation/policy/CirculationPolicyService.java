@@ -15,6 +15,7 @@ import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.repository.BorrowRecordRepository;
 import com.vn.repository.ReservationRepository;
+import com.vn.service.borrow.MediaBorrowLimitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ public class CirculationPolicyService {
     private final BorrowRecordRepository borrowRecordRepository;
     private final ReservationRepository reservationRepository;
     private final CirculationSettingService circulationSettingService;
+    private final MediaBorrowLimitService mediaBorrowLimitService;
 
     // Chức năng: validate checkout ở dạng danh sách lỗi để dùng cho màn hình preview.
     public List<CirculationBlockResponse> validateCheckout(Member member, BookCopy copy) {
@@ -151,7 +153,7 @@ public class CirculationPolicyService {
 
     // Chức năng: kiểm tra hạn mức mượn và tình trạng đang có sách quá hạn.
     private void validateBorrowingCapacity(Member member, List<PolicyBlock> blocks) {
-        if (borrowRecordRepository.countByMemberIdAndStatusIn(member.getId(), BorrowStatus.activeStatuses()) >= member.getMaxBorrowLimit()) {
+        if (mediaBorrowLimitService.hasReachedLimit(member)) {
             blocks.add(new PolicyBlock(ErrorCode.BORROW_LIMIT_EXCEEDED, ErrorCode.BORROW_LIMIT_EXCEEDED.getMessage()));
         }
         if (borrowRecordRepository.existsByMemberIdAndStatus(member.getId(), BorrowStatus.OVERDUE)) {

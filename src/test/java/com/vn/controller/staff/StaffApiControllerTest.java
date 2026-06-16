@@ -266,7 +266,12 @@ class StaffApiControllerTest {
                 new BigDecimal("15000"),
                 "UNPAID",
                 false,
-                0
+                0,
+                "PHYSICAL",
+                null,
+                null,
+                null,
+                null
         );
     }
 

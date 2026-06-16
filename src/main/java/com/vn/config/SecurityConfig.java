@@ -54,12 +54,25 @@ public class SecurityConfig {
                         // Các request không cấn bảo vệ
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/resend-verification").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify-email").permitAll()
-                        // Catalog public read endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/authors", "/api/categories").permitAll()
+                        // Catalog public read endpoints, gồm metadata ebook an toàn để render trang sách.
+                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/books/*/ebook", "/api/authors", "/api/categories").permitAll()
                         // Monitoring endpoints used by local Prometheus/Grafana setup.
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         // Cho phép truy cập swagger-ui và api-docs không cần đăng nhập
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        // VNPAY IPN là server-to-server callback public; bảo mật bằng vnp_SecureHash.
+                        .requestMatchers(HttpMethod.GET, "/api/payments/ipn/vnpay").permitAll()
+                        // Payment create APIs require a logged-in member.
+                        .requestMatchers(HttpMethod.POST, "/api/payments").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/payments/return/vnpay/confirm").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/receipts", "/api/payments/receipts/*").authenticated()
+                        .requestMatchers("/api/admin/payments", "/api/admin/payments/**").authenticated()
+                        // Các API cần được đăng nhập
+                        .requestMatchers(HttpMethod.GET, "/api/payments/*", "/api/payments/by-code/*").authenticated()
+                        // Ebook loans
+                        .requestMatchers("/api/ebook-loans", "/api/ebook-loans/**").authenticated()
+                        // Secure ebook reader session APIs require a logged-in member and X-Reading-Session where applicable.
+                        .requestMatchers("/api/ebooks/**").authenticated()
                         // Tất cả request còn lại phải authenticated
                         .anyRequest().authenticated()
                 )

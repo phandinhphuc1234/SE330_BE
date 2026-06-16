@@ -60,6 +60,19 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
+      # VNPAY sandbox
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
+      VNPAY_PAYMENT_URL: ${VNPAY_PAYMENT_URL:-https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL:-http://localhost:3000/payment/vnpay-return}
+      VNPAY_IPN_URL: ${VNPAY_IPN_URL:-http://localhost:8080/api/payments/ipn/vnpay}
+      VNPAY_VERSION: ${VNPAY_VERSION:-2.1.0}
+      VNPAY_COMMAND: ${VNPAY_COMMAND:-pay}
+
+      # Multipart uploads
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${APP_MULTIPART_MAX_FILE_SIZE:-100MB}
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${APP_MULTIPART_MAX_REQUEST_SIZE:-110MB}
+
       # App config
       APP_VERIFICATION_BASE_URL: ${APP_VERIFICATION_BASE_URL:-http://localhost:8080}
       APP_ENV: local

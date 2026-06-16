@@ -22,6 +22,11 @@ public record StaffLoanResponse(
         BigDecimal fineAmount,
         String fineStatus,
         boolean overdue,
-        long daysOverdue
+        long daysOverdue,
+        String loanType,
+        Long ebookLoanId,
+        Long bookEbookId,
+        Long paymentId,
+        Instant expiredAt
 ) {
 }

@@ -3,9 +3,11 @@ package com.vn.repository;
 import com.vn.entity.Member;
 import com.vn.enums.BorrowStatus;
 import com.vn.enums.MemberStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +21,15 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // Kiểm tra email đã được đăng ký chưa.
     boolean existsByEmail(String email);
+
+    // Lock member khi tạo loan để các loại media cùng dùng một hạn mức maxBorrowLimit nhất quán.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select member
+            from Member member
+            where member.id = :id
+            """)
+    Optional<Member> findLockedById(@Param("id") Long id);
 
     // Tìm kiếm member cho màn staff borrowers.
     @Query("""

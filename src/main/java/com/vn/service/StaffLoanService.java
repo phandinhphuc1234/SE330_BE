@@ -13,4 +13,11 @@ public interface StaffLoanService {
                                         String dueTo,
                                         int page,
                                         int size);
+
+    Page<StaffLoanResponse> searchMemberLoans(Long memberId,
+                                              String status,
+                                              Boolean openOnly,
+                                              Boolean overdue,
+                                              int page,
+                                              int size);
 }

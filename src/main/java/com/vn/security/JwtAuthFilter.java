@@ -100,7 +100,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         || "/api/auth/login".equals(path)
                         || "/api/auth/refresh".equals(path)
                         || "/api/auth/resend-verification".equals(path)
-        )) || ("GET".equals(method) && "/api/auth/verify-email".equals(path));
+        )) || ("GET".equals(method) && (
+                "/api/auth/verify-email".equals(path)
+                        || "/api/payments/ipn/vnpay".equals(path)
+        ));
     }
 }
 

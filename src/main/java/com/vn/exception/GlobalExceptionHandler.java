@@ -3,6 +3,7 @@ package com.vn.exception;
 import com.vn.dto.common.ApiResponse;
 import com.vn.logging.LogEvent;
 import com.vn.logging.LogResult;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
@@ -195,6 +197,25 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request) {
+        String traceId = getTraceId();
+        ErrorCode errorCode = isEbookUpload(request) ? ErrorCode.INVALID_EBOOK_FILE : ErrorCode.INVALID_MEDIA_FILE;
+        log.warn("eventType={} result={} errorCode={} reason={} path={}",
+                LogEvent.VALIDATION_FAILED, LogResult.FAILED,
+                errorCode.getCode(), ex.getClass().getSimpleName(), request.getRequestURI());
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.errorWithTrace(
+                        errorCode.getCode(),
+                        errorCode.getMessage(),
+                        traceId
+                ));
+    }
+
     // ================= GENERIC EXCEPTION (FALLBACK) =================
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
@@ -216,6 +237,12 @@ public class GlobalExceptionHandler {
     private String getTraceId() {
         String traceId = MDC.get("traceId");
         return traceId != null ? traceId : UUID.randomUUID().toString();
+    }
+
+    private boolean isEbookUpload(HttpServletRequest request) {
+        return request != null
+                && request.getRequestURI() != null
+                && request.getRequestURI().matches("^/api/books/\\d+/ebooks$");
     }
 }
 

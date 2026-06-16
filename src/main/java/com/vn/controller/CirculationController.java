@@ -8,6 +8,7 @@ import com.vn.dto.circulation.response.BorrowResponse;
 import com.vn.dto.circulation.response.CheckinResponse;
 import com.vn.dto.circulation.response.CheckoutPreviewResponse;
 import com.vn.dto.circulation.response.RenewBorrowResponse;
+import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.common.PageMeta;
 import com.vn.exception.AppException;
@@ -83,11 +84,11 @@ public class CirculationController implements CirculationApiDocs {
     @Override
     @PreAuthorize("hasRole('MEMBER')")
     @GetMapping("/borrows/my")
-    public ResponseEntity<ApiResponse<List<BorrowResponse>>> getMyActiveBorrows(
+    public ResponseEntity<ApiResponse<List<StaffLoanResponse>>> getMyActiveBorrows(
             @AuthenticationPrincipal MemberUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<BorrowResponse> borrows = circulationService.getMyActiveBorrows(getCurrentMemberId(userDetails), page, size);
+        Page<StaffLoanResponse> borrows = circulationService.getMyActiveBorrows(getCurrentMemberId(userDetails), page, size);
         return ResponseEntity.ok(ApiResponse.success(
                 "Lấy danh sách sách đang mượn thành công",
                 borrows.getContent(),
@@ -98,11 +99,11 @@ public class CirculationController implements CirculationApiDocs {
     @Override
     @PreAuthorize("hasRole('MEMBER')")
     @GetMapping("/borrows/my/history")
-    public ResponseEntity<ApiResponse<List<BorrowResponse>>> getMyBorrowHistory(
+    public ResponseEntity<ApiResponse<List<StaffLoanResponse>>> getMyBorrowHistory(
             @AuthenticationPrincipal MemberUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<BorrowResponse> borrows = circulationService.getMyBorrowHistory(getCurrentMemberId(userDetails), page, size);
+        Page<StaffLoanResponse> borrows = circulationService.getMyBorrowHistory(getCurrentMemberId(userDetails), page, size);
         return ResponseEntity.ok(ApiResponse.success(
                 "Lấy lịch sử mượn sách thành công",
                 borrows.getContent(),

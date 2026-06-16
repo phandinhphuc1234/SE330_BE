@@ -2,8 +2,10 @@ package com.vn.service.impl;
 
 import com.vn.dto.staff.dashboard.response.StaffDashboardSummaryResponse;
 import com.vn.enums.BorrowStatus;
+import com.vn.enums.EbookLoanStatus;
 import com.vn.enums.ReservationStatus;
 import com.vn.repository.BorrowRecordRepository;
+import com.vn.repository.EbookLoanRepository;
 import com.vn.repository.ReservationRepository;
 import com.vn.service.StaffDashboardService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class StaffDashboardServiceImpl implements StaffDashboardService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final BorrowRecordRepository borrowRecordRepository;
+    private final EbookLoanRepository ebookLoanRepository;
     private final ReservationRepository reservationRepository;
 
     @Override
@@ -35,13 +38,17 @@ public class StaffDashboardServiceImpl implements StaffDashboardService {
         BigDecimal unpaidFineTotal = borrowRecordRepository.sumUnpaidFineTotal();
 
         return new StaffDashboardSummaryResponse(
-                borrowRecordRepository.countByStatusIn(BorrowStatus.activeStatuses()),
-                borrowRecordRepository.countOverdueLoans(BorrowStatus.OVERDUE, BorrowStatus.BORROWED, now),
+                borrowRecordRepository.countByStatusIn(BorrowStatus.activeStatuses())
+                        + ebookLoanRepository.countByStatus(EbookLoanStatus.ACTIVE),
+                borrowRecordRepository.countOverdueLoans(BorrowStatus.OVERDUE, BorrowStatus.BORROWED, now)
+                        + ebookLoanRepository.countOverdueEbookLoans(EbookLoanStatus.ACTIVE, now),
                 reservationRepository.countByStatus(ReservationStatus.READY_FOR_PICKUP),
                 borrowRecordRepository.countUnpaidFineRecords(),
                 unpaidFineTotal == null ? BigDecimal.ZERO : unpaidFineTotal,
-                borrowRecordRepository.countByBorrowedAtGreaterThanEqualAndBorrowedAtLessThan(todayStart, tomorrowStart),
-                borrowRecordRepository.countByReturnedAtGreaterThanEqualAndReturnedAtLessThan(todayStart, tomorrowStart),
+                borrowRecordRepository.countByBorrowedAtGreaterThanEqualAndBorrowedAtLessThan(todayStart, tomorrowStart)
+                        + ebookLoanRepository.countByBorrowedAtGreaterThanEqualAndBorrowedAtLessThan(todayStart, tomorrowStart),
+                borrowRecordRepository.countByReturnedAtGreaterThanEqualAndReturnedAtLessThan(todayStart, tomorrowStart)
+                        + ebookLoanRepository.countByReturnedAtGreaterThanEqualAndReturnedAtLessThan(todayStart, tomorrowStart),
                 now
         );
     }

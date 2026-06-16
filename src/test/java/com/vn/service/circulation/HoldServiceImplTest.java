@@ -227,9 +227,11 @@ class HoldServiceImplTest {
 
     @Test
     void checkoutHold_shouldCreateBorrowAndFulfillHold_whenHoldReadyForPickup() {
+        Member member = member(5L);
         BookCopy copy = copy(50L, book(10L, 0), BookCopyStatus.ON_HOLD_SHELF);
-        Reservation hold = reservation(700L, member(5L), copy.getBook(), ReservationStatus.READY_FOR_PICKUP, copy);
+        Reservation hold = reservation(700L, member, copy.getBook(), ReservationStatus.READY_FOR_PICKUP, copy);
         when(reservationRepository.findById(700L)).thenReturn(Optional.of(hold));
+        when(memberRepository.findLockedById(5L)).thenReturn(Optional.of(member));
         when(circulationSettingService.getBorrowDaysDefault()).thenReturn(14);
         when(circulationSettingService.getMaxRenewalsDefault()).thenReturn(1);
         when(borrowRecordRepository.save(any(BorrowRecord.class))).thenAnswer(invocation -> {

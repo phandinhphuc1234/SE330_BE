@@ -13,10 +13,15 @@ import com.vn.dto.catalog.response.BookDetailResponse;
 import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
 import com.vn.dto.common.PageMeta;
+import com.vn.dto.ebook.request.UpdateBookEbookRequest;
+import com.vn.dto.ebook.response.BookEbookManagementResponse;
+import com.vn.dto.ebook.response.BookEbookPublicResponse;
+import com.vn.dto.ebook.response.BookEbookUploadResponse;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.security.MemberUserDetails;
 import com.vn.service.BookCopyService;
+import com.vn.service.BookEbookService;
 import com.vn.service.BookImageService;
 import com.vn.service.BookImportService;
 import com.vn.service.BookService;
@@ -52,6 +57,7 @@ public class BookController implements BookApiDocs {
     private final BookService bookService;
     private final BookCopyService bookCopyService;
     private final BookImageService bookImageService;
+    private final BookEbookService bookEbookService;
     private final BookImportService bookImportService;
 
     @GetMapping
@@ -131,6 +137,56 @@ public class BookController implements BookApiDocs {
                 bookImageService.updateCover(bookId, file)
         ));
     }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping(value = "/{bookId}/ebooks", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookUploadResponse>> uploadBookEbook(
+            @PathVariable Long bookId,
+            @RequestPart("file") MultipartFile file) {
+        // API quản trị chỉ upload/lưu metadata, chưa cấp URL đọc ebook cho member.
+        BookEbookUploadResponse ebook = bookEbookService.uploadMainPdf(bookId, file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Upload ebook PDF thành công", ebook));
+    }
+
+    // Public API cho trang chi tiết sách: chỉ trả metadata ebook, không trả publicId/URL PDF.
+    @GetMapping("/{bookId}/ebook")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookPublicResponse>> getBookEbookForCatalog(@PathVariable Long bookId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy thông tin ebook thành công",
+                bookEbookService.getPublicEbook(bookId)
+        ));
+    }
+
+    // Staff/admin dùng API này để load form quản trị ebook và xem metadata Cloudinary.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping("/{bookId}/ebooks/{bookEbookId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookManagementResponse>> getBookEbookForManagement(
+            @PathVariable Long bookId,
+            @PathVariable Long bookEbookId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy thông tin quản trị ebook thành công",
+                bookEbookService.getManagementEbook(bookId, bookEbookId)
+        ));
+    }
+
+    // Cập nhật policy/trạng thái ebook; thay thế file PDF vẫn dùng POST /{bookId}/ebooks.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PatchMapping("/{bookId}/ebooks/{bookEbookId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookManagementResponse>> updateBookEbook(
+            @PathVariable Long bookId,
+            @PathVariable Long bookEbookId,
+            @Valid @RequestBody UpdateBookEbookRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật thông tin ebook thành công",
+                bookEbookService.updateEbook(bookId, bookEbookId, request)
+        ));
+    }
+
     // Xóa đầu sách trong hệ thống
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{bookId}")

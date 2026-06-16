@@ -7,6 +7,7 @@ import com.vn.dto.circulation.response.BorrowResponse;
 import com.vn.dto.circulation.response.CheckinResponse;
 import com.vn.dto.circulation.response.CheckoutPreviewResponse;
 import com.vn.dto.circulation.response.RenewBorrowResponse;
+import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import org.springframework.data.domain.Page;
 
 public interface CirculationService {
@@ -21,7 +22,7 @@ public interface CirculationService {
 
     RenewBorrowResponse staffRenewBorrow(Long actorId, String idempotencyKey, Long borrowId, RenewBorrowRequest request);
 
-    Page<BorrowResponse> getMyActiveBorrows(Long memberId, int page, int size);
+    Page<StaffLoanResponse> getMyActiveBorrows(Long memberId, int page, int size);
 
-    Page<BorrowResponse> getMyBorrowHistory(Long memberId, int page, int size);
+    Page<StaffLoanResponse> getMyBorrowHistory(Long memberId, int page, int size);
 }

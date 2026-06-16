@@ -3,8 +3,10 @@ package com.vn.service.impl.staff.member;
 import com.vn.dto.staff.member.internal.StaffMemberStats;
 import com.vn.entity.Member;
 import com.vn.enums.BorrowStatus;
+import com.vn.enums.EbookLoanStatus;
 import com.vn.enums.ReservationStatus;
 import com.vn.repository.BorrowRecordRepository;
+import com.vn.repository.EbookLoanRepository;
 import com.vn.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class StaffMemberStatsLoader {
 
     private final BorrowRecordRepository borrowRecordRepository;
+    private final EbookLoanRepository ebookLoanRepository;
     private final ReservationRepository reservationRepository;
 
     // Load thống kê theo batch cho một trang member để tránh query từng member một.
@@ -39,9 +42,32 @@ public class StaffMemberStatsLoader {
         }
 
         applyBorrowCounts(statsByMemberId, memberIds, now);
+        applyEbookLoanCounts(statsByMemberId, memberIds, now);
         applyUnpaidFineTotals(statsByMemberId, memberIds);
         applyActiveHoldCounts(statsByMemberId, memberIds);
         return statsByMemberId;
+    }
+
+    // Cộng ebook_loans vào các thống kê loan chung cho màn staff member.
+    private void applyEbookLoanCounts(Map<Long, StaffMemberStats> statsByMemberId,
+                                      Collection<Long> memberIds,
+                                      Instant now) {
+        List<Object[]> rows = ebookLoanRepository.summarizeEbookLoanCountsByMemberIds(
+                memberIds,
+                EbookLoanStatus.ACTIVE,
+                now
+        );
+
+        for (Object[] row : rows) {
+            Long memberId = (Long) row[0];
+            StaffMemberStats current = statsByMemberId.getOrDefault(memberId, StaffMemberStats.empty());
+            statsByMemberId.put(memberId, current.plusLoanCounts(
+                    toLong(row[1]),
+                    toLong(row[2]),
+                    toLong(row[3]),
+                    toLong(row[4])
+            ));
+        }
     }
 
     // Lấy các số liệu từ borrow_records: active/open/overdue/history.

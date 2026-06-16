@@ -32,6 +32,20 @@ public record StaffMemberStats(
         );
     }
 
+    public StaffMemberStats plusLoanCounts(long activeLoansCount,
+                                           long openLoansCount,
+                                           long overdueLoansCount,
+                                           long borrowHistoryCount) {
+        return new StaffMemberStats(
+                this.activeLoansCount + activeLoansCount,
+                this.openLoansCount + openLoansCount,
+                this.overdueLoansCount + overdueLoansCount,
+                this.borrowHistoryCount + borrowHistoryCount,
+                activeHoldsCount,
+                unpaidFineTotal
+        );
+    }
+
     // Tạo bản copy mới với tổng fine chưa thanh toán, giữ nguyên các số liệu còn lại.
     public StaffMemberStats withUnpaidFineTotal(BigDecimal unpaidFineTotal) {
         return new StaffMemberStats(

@@ -9,6 +9,10 @@ import com.vn.dto.common.ApiResponse;
 import com.vn.dto.catalog.response.BookCopyResponse;
 import com.vn.dto.catalog.response.BookCoverManagementResponse;
 import com.vn.dto.catalog.response.BookDetailResponse;
+import com.vn.dto.ebook.request.UpdateBookEbookRequest;
+import com.vn.dto.ebook.response.BookEbookManagementResponse;
+import com.vn.dto.ebook.response.BookEbookPublicResponse;
+import com.vn.dto.ebook.response.BookEbookUploadResponse;
 import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.dto.catalog.response.BookSummaryResponse;
 import com.vn.security.MemberUserDetails;
@@ -118,6 +122,65 @@ public interface BookApiDocs {
     ResponseEntity<ApiResponse<BookCoverManagementResponse>> updateBookCover(
             @Parameter(description = "Book ID", required = true) Long bookId,
             @Parameter(description = "New cover image file", required = true) MultipartFile file
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Upload ebook PDF",
+            description = """
+                    Upload an ebook PDF for a book to Cloudinary as a protected raw/authenticated asset.
+                    The Cloudinary public ID is built as pdf/{isbn}/main.pdf, for example pdf/9780132350884/main.pdf.
+                    The response returns metadata only; it does not return a public PDF URL.
+                    Supported file type: PDF. Maximum size: 100MB.
+                    Librarian and Admin can access this API.
+                    """
+    )
+    ResponseEntity<ApiResponse<BookEbookUploadResponse>> uploadBookEbook(
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "PDF file", required = true) MultipartFile file
+    );
+
+    @SecurityRequirements
+    @Operation(
+            summary = "Get ebook info for book detail page",
+            description = """
+                    Public read API for rendering ebook availability, access type, fee, currency and duration on a book page.
+                    This response intentionally does not expose Cloudinary publicId, signed URL or any direct PDF URL.
+                    """
+    )
+    ResponseEntity<ApiResponse<BookEbookPublicResponse>> getBookEbookForCatalog(
+            @Parameter(description = "Book ID", required = true) Long bookId
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Get ebook management detail",
+            description = """
+                    Get full ebook metadata for staff/admin edit screens.
+                    Includes storage metadata such as provider, publicId, deliveryType and file metadata.
+                    It still does not return a readable PDF URL.
+                    """
+    )
+    ResponseEntity<ApiResponse<BookEbookManagementResponse>> getBookEbookForManagement(
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "Book ebook ID", required = true) Long bookEbookId
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Update ebook metadata",
+            description = """
+                    Partially update ebook policy fields for one book ebook.
+                    Editable fields: maxConcurrentLoans, loanDurationDays, accessType, accessFee, currency,
+                    accessDurationDays and status. Use POST /api/books/{bookId}/ebooks to replace the PDF file itself.
+                    accessType supports FREE and PAID only.
+                    """
+    )
+    ResponseEntity<ApiResponse<BookEbookManagementResponse>> updateBookEbook(
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "Book ebook ID", required = true) Long bookEbookId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Ebook metadata fields to update")
+            UpdateBookEbookRequest request
     );
 
     @SecurityRequirement(name = "Bearer Authentication")

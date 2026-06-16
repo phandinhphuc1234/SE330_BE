@@ -45,7 +45,12 @@ public class StaffCirculationMapper {
                 safeFineAmount(borrow),
                 fineStatusResolver.resolve(borrow).name(),
                 overdue,
-                overdue ? daysOverdue(borrow.getDueDate(), now) : 0
+                overdue ? daysOverdue(borrow.getDueDate(), now) : 0,
+                "PHYSICAL",
+                null,
+                null,
+                null,
+                null
         );
     }
 

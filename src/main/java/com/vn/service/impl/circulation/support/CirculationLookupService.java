@@ -33,6 +33,12 @@ public class CirculationLookupService {
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
     }
 
+    // Chức năng: lock member khi chuẩn bị tạo BorrowRecord để đồng bộ hạn mức giữa sách vật lý và ebook.
+    public Member getLockedMember(Long memberId) {
+        return memberRepository.findLockedById(memberId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+
     // Chức năng: lấy bản sách theo barcode và chuẩn hóa lỗi khi không tìm thấy.
     public BookCopy getCopyByBarcode(String barcode) {
         return bookCopyRepository.findByBarcodeIgnoreCaseAndDeletedAtIsNull(normalizeRequired(barcode))

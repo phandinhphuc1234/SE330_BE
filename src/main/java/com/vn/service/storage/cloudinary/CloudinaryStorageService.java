@@ -5,6 +5,10 @@ import com.cloudinary.utils.ObjectUtils;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.service.storage.MediaDeleteCommand;
+import com.vn.service.storage.MediaDeliveryType;
+import com.vn.service.storage.MediaResourceType;
+import com.vn.service.storage.MediaSignedUrlCommand;
+import com.vn.service.storage.MediaSignedUrlResult;
 import com.vn.service.storage.MediaStorageService;
 import com.vn.service.storage.MediaUploadCommand;
 import com.vn.service.storage.MediaUploadResult;
@@ -53,6 +57,40 @@ public class CloudinaryStorageService implements MediaStorageService {
     }
 
     @Override
+    public MediaSignedUrlResult generateSignedUrl(MediaSignedUrlCommand command) {
+        ensureConfigured();
+        validateSignedUrlCommand(command);
+
+        try {
+            // URL được build từ metadata DB, không từ input frontend, để frontend không đoán public_id.
+            // signed(true) yêu cầu Cloudinary verify signature khi deliver authenticated/private asset.
+
+            // Với resource type RAW (như PDF), phần mở rộng thường nằm sẵn trong publicId.
+            // Cloudinary SDK yêu cầu publicId gốc của RAW file để ký chính xác.
+            String publicIdToSign = command.resourceType() == MediaResourceType.RAW
+                    ? command.publicId()
+                    : appendFormat(command.publicId(), command.format());
+
+            String signedUrl = cloudinary.url()
+                    .secure(true)
+                    .signed(true)
+                    .resourceType(command.resourceType().cloudinaryValue())
+                    .type(deliveryType(command.deliveryType()).cloudinaryValue())
+                    .generate(publicIdToSign);
+            // expiresAt được trả về cho reader service/frontend để kiểm soát vòng đời URL ở tầng app.
+            return new MediaSignedUrlResult(signedUrl, command.expiresAt());
+        } catch (Exception e) {
+            log.warn(
+                    "Cloudinary signed URL generation failed. resourceType={} publicId={}",
+                    command.resourceType(),
+                    command.publicId(),
+                    e
+            );
+            throw new AppException(ErrorCode.CLOUDINARY_SIGNED_URL_FAILED);
+        }
+    }
+
+    @Override
     public void delete(MediaDeleteCommand command) {
         ensureConfigured();
         if (command == null || !StringUtils.hasText(command.publicId())) {
@@ -67,6 +105,7 @@ public class CloudinaryStorageService implements MediaStorageService {
                     command.publicId(),
                     ObjectUtils.asMap(
                             "resource_type", command.resourceType().cloudinaryValue(),
+                            "type", deliveryType(command.deliveryType()).cloudinaryValue(),
                             "invalidate", command.invalidate()
                     )
             );
@@ -94,8 +133,18 @@ public class CloudinaryStorageService implements MediaStorageService {
         // Business service quyết định publicId/category; SDK implementation chỉ chuyển thành Cloudinary options.
         Map<String, Object> options = ObjectUtils.asMap(
                 "resource_type", command.resourceType().cloudinaryValue(),
-                "public_id", command.publicId()
+                "type", deliveryType(command.deliveryType()).cloudinaryValue(),
+                "public_id", command.publicId(),
+                // Ebook main PDF cần overwrite để publicId pdf/{isbn}/main.pdf luôn trỏ bản mới nhất.
+                "overwrite", command.overwrite()
         );
+
+        String assetFolder = assetFolderFromPublicId(command.publicId());
+        if (StringUtils.hasText(assetFolder)) {
+            // Cloudinary dynamic folders tách asset folder trong Media Library khỏi public_id path.
+            // Set asset_folder để UI hiển thị đúng folder mà vẫn giữ public_id dùng cho delivery.
+            options.put("asset_folder", assetFolder);
+        }
 
         List<String> tags = toCloudinaryTags(command.tags());
         if (!tags.isEmpty()) {
@@ -109,6 +158,23 @@ public class CloudinaryStorageService implements MediaStorageService {
         return options;
     }
 
+    private String assetFolderFromPublicId(String publicId) {
+        if (!StringUtils.hasText(publicId)) {
+            return null;
+        }
+
+        int lastSlashIndex = publicId.lastIndexOf('/');
+        if (lastSlashIndex <= 0) {
+            return null;
+        }
+
+        return publicId.substring(0, lastSlashIndex);
+    }
+
+    private MediaDeliveryType deliveryType(MediaDeliveryType deliveryType) {
+        return deliveryType == null ? MediaDeliveryType.UPLOAD : deliveryType;
+    }
+
     private void validateUploadCommand(MediaUploadCommand command) {
         // Validation ở đây chỉ là validation kỹ thuật chung; rule MIME/size nằm ở business service.
         if (command == null
@@ -118,6 +184,25 @@ public class CloudinaryStorageService implements MediaStorageService {
                 || !StringUtils.hasText(command.publicId())) {
             throw new AppException(ErrorCode.INVALID_MEDIA_FILE);
         }
+    }
+
+    private void validateSignedUrlCommand(MediaSignedUrlCommand command) {
+        // Thiếu publicId/resourceType/expiresAt nghĩa là backend chưa đủ dữ liệu để cấp URL an toàn.
+        if (command == null
+                || !StringUtils.hasText(command.publicId())
+                || command.resourceType() == null
+                || command.expiresAt() == null) {
+            throw new AppException(ErrorCode.CLOUDINARY_SIGNED_URL_FAILED);
+        }
+    }
+
+    private String appendFormat(String publicId, String format) {
+        // Upload ebook hiện lưu publicId có thể đã gồm ".pdf"; tránh tạo main.pdf.pdf.
+        if (!StringUtils.hasText(format)) {
+            return publicId;
+        }
+        String suffix = "." + format;
+        return publicId.endsWith(suffix) ? publicId : publicId + suffix;
     }
 
     private MediaUploadResult toUploadResult(Map<?, ?> response, MediaUploadCommand command) {

@@ -10,6 +10,7 @@ import com.vn.dto.circulation.response.CheckinResponse;
 import com.vn.dto.circulation.response.CheckoutPreviewResponse;
 import com.vn.dto.circulation.response.CirculationBlockResponse;
 import com.vn.dto.circulation.response.RenewBorrowResponse;
+import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.entity.Member;
 import com.vn.enums.MemberRole;
 import com.vn.enums.MemberStatus;
@@ -241,7 +242,7 @@ class CirculationControllerTest {
         authenticateAs(5L, MemberRole.MEMBER);
         PageRequest pageable = PageRequest.of(0, 10);
         when(circulationService.getMyActiveBorrows(5L, 0, 10))
-                .thenReturn(new PageImpl<>(List.of(borrowResponse()), pageable, 1));
+                .thenReturn(new PageImpl<>(List.of(staffLoanResponse()), pageable, 1));
 
         mockMvc.perform(get("/api/borrows/my")
                         .param("page", "0")
@@ -261,7 +262,7 @@ class CirculationControllerTest {
         authenticateAs(5L, MemberRole.MEMBER);
         PageRequest pageable = PageRequest.of(0, 10);
         when(circulationService.getMyBorrowHistory(5L, 0, 10))
-                .thenReturn(new PageImpl<>(List.of(borrowResponse()), pageable, 1));
+                .thenReturn(new PageImpl<>(List.of(staffLoanResponse()), pageable, 1));
 
         mockMvc.perform(get("/api/borrows/my/history"))
                 .andExpect(status().isOk())
@@ -365,6 +366,35 @@ class CirculationControllerTest {
                 0,
                 1,
                 BigDecimal.ZERO
+        );
+    }
+
+    private StaffLoanResponse staffLoanResponse() {
+        return new StaffLoanResponse(
+                100L,
+                5L,
+                "Member Name",
+                "member@example.com",
+                2L,
+                "Clean Code",
+                10L,
+                "BC001",
+                "BORROWED",
+                Instant.parse("2026-05-17T10:00:00Z"),
+                Instant.parse("2026-05-31T10:00:00Z"),
+                null,
+                "BORROWED",
+                0,
+                1,
+                BigDecimal.ZERO,
+                "NONE",
+                false,
+                0,
+                "PHYSICAL",
+                null,
+                null,
+                null,
+                null
         );
     }
 }

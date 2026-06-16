@@ -73,7 +73,8 @@ public class CheckoutUseCase {
 
     // Chức năng: tạo lượt mượn sách sau khi request đã qua lớp idempotency.
     public BorrowResponse checkout(CheckoutRequest request) {
-        Member member = circulationLookupService.getMember(request.memberId());
+        // Lock member để hạn mức tổng media không bị vượt khi checkout vật lý và ebook loan chạy đồng thời.
+        Member member = circulationLookupService.getLockedMember(request.memberId());
         BookCopy copy = circulationLookupService.getCopyByBarcode(request.itemBarcode());
         circulationPolicyService.assertCheckoutAllowed(member, copy);
 

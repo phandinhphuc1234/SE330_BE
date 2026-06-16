@@ -48,7 +48,7 @@ EXPOSE 8080
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0"
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD wget -q --spider http://127.0.0.1:8080/actuator/health || exit 1
+    CMD wget -q -O /dev/null http://127.0.0.1:8080/actuator/health || exit 1
 
 # Spring Boot 4 tools extraction creates application.jar plus lib/.
 ENTRYPOINT ["java", "-jar", "application.jar"]

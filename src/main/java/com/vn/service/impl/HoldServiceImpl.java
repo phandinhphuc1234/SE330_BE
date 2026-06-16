@@ -147,7 +147,8 @@ public class HoldServiceImpl implements HoldService {
         Reservation hold = getHold(holdId);
         validateHoldReadyForCheckout(hold);
 
-        Member member = hold.getMember();
+        // Lock member trước khi tạo BorrowRecord từ hold để chia sẻ hạn mức với ebook loan.
+        Member member = getLockedMember(hold.getMember().getId());
         BookCopy copy = hold.getAssignedCopy();
         circulationPolicyService.assertBorrowerAccountAllowed(member);
         circulationPolicyService.assertBorrowingCapacityAllowed(member);
@@ -190,6 +191,12 @@ public class HoldServiceImpl implements HoldService {
     // Chức năng: lấy member và chuẩn hóa lỗi not found.
     private Member getMember(Long memberId) {
         return memberRepository.findById(memberId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+
+    // Chức năng: lock member khi checkout hold vì đây là lúc tạo borrow thật.
+    private Member getLockedMember(Long memberId) {
+        return memberRepository.findLockedById(memberId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
     }
 
