@@ -150,10 +150,6 @@ public class EbookPaymentApplier implements PaymentBusinessApplier {
         if (fee == null) {
             return 0L;
         }
-        try {
-            return fee.setScale(0, RoundingMode.UNNECESSARY).longValueExact();
-        } catch (ArithmeticException ex) {
-            throw new AppException(ErrorCode.BAD_REQUEST);
-        }
+        return fee.setScale(0, RoundingMode.HALF_UP).longValue();
     }
 }

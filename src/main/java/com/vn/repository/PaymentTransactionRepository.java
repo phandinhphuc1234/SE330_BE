@@ -75,7 +75,11 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                         p.purpose as "purpose",
                         p.target_type as "targetType",
                         p.target_id as "targetId",
-                        coalesce(b.title, p.target_type || ' #' || p.target_id) as "itemTitle",
+                        coalesce(
+                            b_ebook.title,
+                            b_fine.title,
+                            p.target_type || ' #' || p.target_id
+                        ) as "itemTitle",
                         p.amount as "amount",
                         p.currency as "currency",
                         p.status as "status",
@@ -88,7 +92,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                     left join book_ebooks be
                         on p.target_type = 'BOOK_EBOOK'
                        and be.id = p.target_id
-                    left join books b on b.id = be.book_id
+                    left join books b_ebook on b_ebook.id = be.book_id
+                    left join borrow_records br
+                        on p.target_type = 'BORROW_RECORD'
+                       and br.id = p.target_id
+                    left join book_copies bc on bc.id = br.book_copy_id
+                    left join books b_fine on b_fine.id = bc.book_id
                     where p.member_id = :memberId
                       and p.status = 'SUCCESS'
                     order by p.paid_at desc nulls last, p.created_at desc
@@ -120,7 +129,11 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                         p.purpose as "purpose",
                         p.target_type as "targetType",
                         p.target_id as "targetId",
-                        coalesce(b.title, p.target_type || ' #' || p.target_id) as "itemTitle",
+                        coalesce(
+                            b_ebook.title,
+                            b_fine.title,
+                            p.target_type || ' #' || p.target_id
+                        ) as "itemTitle",
                         p.amount as "amount",
                         p.currency as "currency",
                         p.status as "status",
@@ -133,7 +146,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                     left join book_ebooks be
                         on p.target_type = 'BOOK_EBOOK'
                        and be.id = p.target_id
-                    left join books b on b.id = be.book_id
+                    left join books b_ebook on b_ebook.id = be.book_id
+                    left join borrow_records br
+                        on p.target_type = 'BORROW_RECORD'
+                       and br.id = p.target_id
+                    left join book_copies bc on bc.id = br.book_copy_id
+                    left join books b_fine on b_fine.id = bc.book_id
                     where p.member_id = :memberId
                       and p.payment_code = :paymentCode
                       and p.status = 'SUCCESS'
@@ -159,7 +177,11 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                         p.purpose as "purpose",
                         p.target_type as "targetType",
                         p.target_id as "targetId",
-                        coalesce(b.title, p.target_type || ' #' || p.target_id) as "itemTitle",
+                        coalesce(
+                            b_ebook.title,
+                            b_fine.title,
+                            p.target_type || ' #' || p.target_id
+                        ) as "itemTitle",
                         p.amount as "amount",
                         p.currency as "currency",
                         p.status as "status",
@@ -172,7 +194,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                     left join book_ebooks be
                         on p.target_type = 'BOOK_EBOOK'
                        and be.id = p.target_id
-                    left join books b on b.id = be.book_id
+                    left join books b_ebook on b_ebook.id = be.book_id
+                    left join borrow_records br
+                        on p.target_type = 'BORROW_RECORD'
+                       and br.id = p.target_id
+                    left join book_copies bc on bc.id = br.book_copy_id
+                    left join books b_fine on b_fine.id = bc.book_id
                     where (:status is null or p.status = :status)
                       and (cast(:paidFrom as timestamp) is null or p.paid_at >= cast(:paidFrom as timestamp))
                       and (cast(:paidTo as timestamp) is null or p.paid_at <= cast(:paidTo as timestamp))
@@ -182,7 +209,8 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                             or lower(coalesce(p.provider_transaction_id, '')) like :qLike
                             or lower(m.full_name) like :qLike
                             or lower(m.email) like :qLike
-                            or lower(coalesce(b.title, '')) like :qLike
+                            or lower(coalesce(b_ebook.title, '')) like :qLike
+                            or lower(coalesce(b_fine.title, '')) like :qLike
                             or (
                                 :numericId is not null
                                 and (
@@ -201,7 +229,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                     left join book_ebooks be
                         on p.target_type = 'BOOK_EBOOK'
                        and be.id = p.target_id
-                    left join books b on b.id = be.book_id
+                    left join books b_ebook on b_ebook.id = be.book_id
+                    left join borrow_records br
+                        on p.target_type = 'BORROW_RECORD'
+                       and br.id = p.target_id
+                    left join book_copies bc on bc.id = br.book_copy_id
+                    left join books b_fine on b_fine.id = bc.book_id
                     where (:status is null or p.status = :status)
                       and (cast(:paidFrom as timestamp) is null or p.paid_at >= cast(:paidFrom as timestamp))
                       and (cast(:paidTo as timestamp) is null or p.paid_at <= cast(:paidTo as timestamp))
@@ -211,7 +244,8 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                             or lower(coalesce(p.provider_transaction_id, '')) like :qLike
                             or lower(m.full_name) like :qLike
                             or lower(m.email) like :qLike
-                            or lower(coalesce(b.title, '')) like :qLike
+                            or lower(coalesce(b_ebook.title, '')) like :qLike
+                            or lower(coalesce(b_fine.title, '')) like :qLike
                             or (
                                 :numericId is not null
                                 and (
@@ -247,7 +281,11 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                         p.purpose as "purpose",
                         p.target_type as "targetType",
                         p.target_id as "targetId",
-                        coalesce(b.title, p.target_type || ' #' || p.target_id) as "itemTitle",
+                        coalesce(
+                            b_ebook.title,
+                            b_fine.title,
+                            p.target_type || ' #' || p.target_id
+                        ) as "itemTitle",
                         p.amount as "amount",
                         p.currency as "currency",
                         p.status as "status",
@@ -260,7 +298,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
                     left join book_ebooks be
                         on p.target_type = 'BOOK_EBOOK'
                        and be.id = p.target_id
-                    left join books b on b.id = be.book_id
+                    left join books b_ebook on b_ebook.id = be.book_id
+                    left join borrow_records br
+                        on p.target_type = 'BORROW_RECORD'
+                       and br.id = p.target_id
+                    left join book_copies bc on bc.id = br.book_copy_id
+                    left join books b_fine on b_fine.id = bc.book_id
                     where p.payment_code = :paymentCode
                     """,
             nativeQuery = true

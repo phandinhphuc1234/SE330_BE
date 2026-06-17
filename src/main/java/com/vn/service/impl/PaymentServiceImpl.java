@@ -146,7 +146,7 @@ public class PaymentServiceImpl implements PaymentService {
                     paymentCode,
                     target.amount(),
                     target.currency(),
-                    "Thanh toan ebook " + target.targetId() + " ma " + paymentCode,
+                    buildPaymentDescription(target, paymentCode),
                     clientIp,
                     null,
                     null,
@@ -159,6 +159,13 @@ public class PaymentServiceImpl implements PaymentService {
         } catch (RuntimeException ex) {
             throw new AppException(ErrorCode.PAYMENT_PROVIDER_ERROR);
         }
+    }
+
+    private String buildPaymentDescription(PayableTarget target, String paymentCode) {
+        String prefix = (target.purpose() == PaymentPurpose.OVERDUE_FINE)
+                ? "Nop phat "
+                : "Thanh toan ebook ";
+        return prefix + target.targetId() + " ma " + paymentCode;
     }
 
     // Check sớm để trả lỗi rõ ràng; partial unique indexes trong DB vẫn là lớp bảo vệ cuối khi concurrent.

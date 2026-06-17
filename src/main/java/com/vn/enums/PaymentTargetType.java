@@ -1,5 +1,6 @@
 package com.vn.enums;
 
 public enum PaymentTargetType {
-    BOOK_EBOOK
+    BOOK_EBOOK,
+    BORROW_RECORD
 }

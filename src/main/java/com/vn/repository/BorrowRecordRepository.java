@@ -204,6 +204,16 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
             """)
     List<Object[]> summarizeUnpaidFineTotalsByMemberIds(@Param("memberIds") Collection<Long> memberIds);
 
+    @Query("""
+            select count(borrow.id)
+            from BorrowRecord borrow
+            where borrow.member.id = :memberId
+              and borrow.fineAmount > 0
+              and borrow.finePaidAt is null
+              and borrow.fineWaivedBy is null
+            """)
+    long countUnpaidFinesByMemberId(@Param("memberId") Long memberId);
+
     // Tìm kiếm loan cho màn staff loans và tab loans trong hồ sơ member.
     @EntityGraph(attributePaths = {"member", "bookCopy", "bookCopy.book"})
     @Query("""

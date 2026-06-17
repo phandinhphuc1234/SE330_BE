@@ -66,6 +66,8 @@ public enum ErrorCode {
     BORROW_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "BORROW_LIMIT_EXCEEDED", "Bạn đọc đã đạt giới hạn số sách đang mượn"),
     MEMBER_ALREADY_BORROWED_BOOK(HttpStatus.CONFLICT, "MEMBER_ALREADY_BORROWED_BOOK", "Bạn đọc đang mượn một bản khác của đầu sách này"),
     MEMBER_HAS_OVERDUE_ITEMS(HttpStatus.CONFLICT, "MEMBER_HAS_OVERDUE_ITEMS", "Bạn đọc đang có sách quá hạn"),
+    MEMBER_HAS_UNPAID_FINES(HttpStatus.CONFLICT, "MEMBER_HAS_UNPAID_FINES", "Bạn đọc còn khoản nợ tiền phạt chưa thanh toán"),
+    FINE_NOT_FOUND(HttpStatus.NOT_FOUND, "FINE_NOT_FOUND", "Không tìm thấy khoản tiền phạt"),
     BOOK_COPY_NOT_AVAILABLE(HttpStatus.CONFLICT, "BOOK_COPY_NOT_AVAILABLE", "Bản sách này hiện không khả dụng để mượn"),
     BOOK_AVAILABLE_ON_SHELF(HttpStatus.CONFLICT, "BOOK_AVAILABLE_ON_SHELF", "Sách hiện vẫn còn bản trên kệ, chỉ được đặt giữ chỗ khi đã hết bản khả dụng"),
     ACTIVE_BORROW_NOT_FOUND(HttpStatus.NOT_FOUND, "ACTIVE_BORROW_NOT_FOUND", "Không tìm thấy lượt mượn đang mở cho bản sách này"),
