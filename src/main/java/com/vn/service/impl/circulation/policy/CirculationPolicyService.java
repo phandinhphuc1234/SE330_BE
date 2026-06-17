@@ -67,6 +67,9 @@ public class CirculationPolicyService {
     // Chức năng: kiểm tra toàn bộ điều kiện gia hạn của một lượt mượn.
     public void assertRenewalAllowed(Long actorId, boolean staffFlow, BorrowRecord borrow) {
         assertBorrowerAccountAllowed(borrow.getMember());
+        if (mediaBorrowLimitService.hasUnpaidFines(borrow.getMember().getId())) {
+            throw new AppException(ErrorCode.MEMBER_HAS_UNPAID_FINES);
+        }
         if (!staffFlow && !borrow.getMember().getId().equals(actorId)) {
             throw new AppException(ErrorCode.ACCESS_DENIED);
         }
@@ -153,21 +156,15 @@ public class CirculationPolicyService {
 
     // Chức năng: kiểm tra hạn mức mượn và tình trạng đang có sách quá hạn/tiền phạt chưa trả.
     private void validateBorrowingCapacity(Member member, List<PolicyBlock> blocks) {
+        if (mediaBorrowLimitService.hasUnpaidFines(member.getId())) {
+            blocks.add(new PolicyBlock(ErrorCode.MEMBER_HAS_UNPAID_FINES, "Bạn còn khoản nợ tiền phạt chưa thanh toán"));
+        }
         if (mediaBorrowLimitService.hasReachedLimit(member)) {
             blocks.add(new PolicyBlock(ErrorCode.BORROW_LIMIT_EXCEEDED, ErrorCode.BORROW_LIMIT_EXCEEDED.getMessage()));
         }
         if (borrowRecordRepository.existsByMemberIdAndStatus(member.getId(), BorrowStatus.OVERDUE)) {
             blocks.add(new PolicyBlock(ErrorCode.MEMBER_HAS_OVERDUE_ITEMS, ErrorCode.MEMBER_HAS_OVERDUE_ITEMS.getMessage()));
         }
-        // Thêm kiểm tra tiền phạt chưa thanh toán
-        if (hasUnpaidFines(member.getId())) {
-            blocks.add(new PolicyBlock(ErrorCode.MEMBER_HAS_UNPAID_FINES, "Bạn còn khoản nợ tiền phạt chưa thanh toán"));
-        }
-    }
-
-    private boolean hasUnpaidFines(Long memberId) {
-        // Query đếm các bản ghi có fineAmount > 0 và chưa được trả (finePaidAt null) hoặc miễn (fineWaivedBy null)
-        return borrowRecordRepository.countUnpaidFinesByMemberId(memberId) > 0;
     }
 
     // Chức năng: chặn member mượn nhiều bản copy khác nhau của cùng một đầu sách.

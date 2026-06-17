@@ -28,7 +28,11 @@ public class MediaBorrowLimitService {
         return member != null && activeMediaLoanCount(member.getId(), Instant.now()) >= maxBorrowLimit(member);
     }
 
-    // Dùng khi tạo payment ebook: chặn sớm nếu member đã đạt hạn mức tổng media.
+    public boolean hasUnpaidFines(Long memberId) {
+        return borrowRecordRepository.countUnpaidFinesByMemberId(memberId) > 0;
+    }
+
+    // Dùng khi tạo payment ebook: chặn sớm nếu member đã đạt hạn mức tổng media hoặc còn nợ tiền phạt.
     public void assertCanBorrowMore(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
@@ -42,6 +46,9 @@ public class MediaBorrowLimitService {
     }
 
     public void assertCanBorrowMore(Member member) {
+        if (hasUnpaidFines(member.getId())) {
+            throw new AppException(ErrorCode.MEMBER_HAS_UNPAID_FINES);
+        }
         if (hasReachedLimit(member)) {
             throw new AppException(ErrorCode.BORROW_LIMIT_EXCEEDED);
         }
