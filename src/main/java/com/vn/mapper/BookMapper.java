@@ -23,6 +23,10 @@ public class BookMapper {
 
     // Ảnh chính nằm ở book_images; response chỉ expose coverImage cho frontend.
     public BookSummaryResponse toBookSummaryResponse(Book book, BookImage primaryImage) {
+        return toBookSummaryResponse(book, primaryImage, 0.0, 0L);
+    }
+
+    public BookSummaryResponse toBookSummaryResponse(Book book, BookImage primaryImage, Double averageRating, Long totalReviews) {
         BookCoverImageResponse coverImage = bookImageMapper.toCoverImageResponse(primaryImage);
         return new BookSummaryResponse(
                 book.getId(),
@@ -35,12 +39,18 @@ public class BookMapper {
                 book.getTotalCopies(),
                 book.getAvailableCopies(),
                 categoryMapper.toCategoryResponse(book.getCategory()),
-                toAuthorResponses(book)
+                toAuthorResponses(book),
+                averageRating,
+                totalReviews
         );
     }
 
     // Frontend dùng coverImage.detailUrl cho detail page.
     public BookDetailResponse toBookDetailResponse(Book book, BookImage primaryImage) {
+        return toBookDetailResponse(book, primaryImage, 0.0, 0L);
+    }
+
+    public BookDetailResponse toBookDetailResponse(Book book, BookImage primaryImage, Double averageRating, Long totalReviews) {
         BookCoverImageResponse coverImage = bookImageMapper.toCoverImageResponse(primaryImage);
         return new BookDetailResponse(
                 book.getId(),
@@ -55,7 +65,9 @@ public class BookMapper {
                 categoryMapper.toCategoryResponse(book.getCategory()),
                 toAuthorResponses(book),
                 book.getCreatedAt(),
-                book.getUpdatedAt()
+                book.getUpdatedAt(),
+                averageRating,
+                totalReviews
         );
     }
 
