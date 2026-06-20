@@ -265,4 +265,63 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
                                         @Param("dueTo") Instant dueTo,
                                         @Param("now") Instant now,
                                         Pageable pageable);
+
+    @Query(value = """
+        select cast(borrow.borrowed_at at time zone 'Asia/Ho_Chi_Minh' as date) as day,
+               count(borrow.id)
+        from borrow_records borrow
+        join book_copies copy on borrow.book_copy_id = copy.id
+        join books book on copy.book_id = book.id
+        left join categories cat on book.category_id = cat.id
+        where borrow.borrowed_at >= :from and borrow.borrowed_at < :to
+          and (
+            cast(:filterType as text) is null
+            or (:filterType = 'category' and lower(cat.name) like lower(concat('%', :filterValue, '%')))
+            or (:filterType = 'isbn'     and lower(book.isbn) like lower(concat('%', :filterValue, '%')))
+            or (:filterType = 'title'    and lower(book.title) like lower(concat('%', :filterValue, '%')))
+          )
+        
+        and (
+        cast(:language as text) is null
+        or lower(book.language) = lower(:language)
+        )
+        group by cast(borrow.borrowed_at at time zone 'Asia/Ho_Chi_Minh' as date)
+        order by day
+        """, nativeQuery = true)
+List<Object[]> countBorrowedPerDay(@Param("from") Instant from,
+                                   @Param("to") Instant to,
+                                   @Param("filterType") String filterType,
+                                   @Param("filterValue") String filterValue,
+                                   @Param("language") String language);
+
+    @Query(value = """
+        select cast(borrow.returned_at at time zone 'Asia/Ho_Chi_Minh' as date) as day,
+               count(borrow.id)
+        from borrow_records borrow
+        join book_copies copy on borrow.book_copy_id = copy.id
+        join books book on copy.book_id = book.id
+        left join categories cat on book.category_id = cat.id
+        where borrow.returned_at >= :from and borrow.returned_at < :to
+          and borrow.status = 'RETURNED'
+          and (
+            cast(:filterType as text) is null
+            or (:filterType = 'category' and lower(cat.name) like lower(concat('%', :filterValue, '%')))
+            or (:filterType = 'isbn'     and lower(book.isbn) like lower(concat('%', :filterValue, '%')))
+            or (:filterType = 'title'    and lower(book.title) like lower(concat('%', :filterValue, '%')))
+          )
+        
+        and (
+        cast(:language as text) is null
+        or lower(book.language) = lower(:language)
+        )
+        group by cast(borrow.returned_at at time zone 'Asia/Ho_Chi_Minh' as date)
+        order by day
+        """, nativeQuery = true)
+List<Object[]> countReturnedPerDay(@Param("from") Instant from,
+                                   @Param("to") Instant to,
+                                   @Param("filterType") String filterType,
+                                   @Param("filterValue") String filterValue,
+                                   @Param("language") String language);
 }
+
+
