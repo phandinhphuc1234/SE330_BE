@@ -82,6 +82,8 @@ public enum ErrorCode {
     REQUEST_ALREADY_PROCESSING(HttpStatus.CONFLICT, "REQUEST_ALREADY_PROCESSING", "Request với Idempotency-Key này đang được xử lý"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "Phương thức HTTP không được hỗ trợ"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.CONFLICT, "DATA_INTEGRITY_VIOLATION", "Dữ liệu xung đột với ràng buộc hệ thống"),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "REVIEW_ALREADY_EXISTS", "Bạn đã đánh giá sách này rồi"),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW_NOT_FOUND", "Không tìm thấy đánh giá"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Hệ thống đang gặp lỗi, vui lòng thử lại sau");
 
     private final HttpStatus status;
