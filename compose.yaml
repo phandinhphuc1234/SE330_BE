@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16
-    container_name: postgres_db
+    container_name: library_postgres
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -19,7 +19,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis_cache
+    container_name: library_redis
     restart: always
     ports:
       - "${REDIS_PORT}:6379"
@@ -55,10 +55,21 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-onboarding@resend.dev}
 
-      # Cloudinary
+      # Cloudinary - chỉ nên dùng cho cover image, không dùng cho PDF ebook
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+
+      # RAG service
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-api:8000}
+
+      # SeaweedFS S3
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://rag-seaweedfs:8333}
+      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:-http://localhost:8333}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-admin}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-secret}
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
+      LIBRARY_EBOOK_BUCKET: ${LIBRARY_EBOOK_BUCKET:-library-private}
 
       # VNPAY sandbox
       VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
@@ -84,10 +95,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      default:
+      library-platform-net:
+        aliases:
+          - library-api
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin_ui
+    container_name: library_pgadmin
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
@@ -100,7 +116,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v3.0.1
-    container_name: prometheus_monitoring
+    container_name: library_prometheus
     restart: always
     ports:
       - "9090:9090"
@@ -109,10 +125,13 @@ services:
       - prometheus_data:/prometheus
     depends_on:
       - library-service
+    networks:
+      default:
+      library-platform-net:
 
   grafana:
     image: grafana/grafana:11.4.0
-    container_name: grafana_monitoring
+    container_name: library_grafana
     restart: always
     ports:
       - "3001:3000"
@@ -126,8 +145,18 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+    networks:
+      default:
+      library-platform-net:
 
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+
+networks:
+  default:
+    name: library-internal-net
+
+  library-platform-net:
+    external: true

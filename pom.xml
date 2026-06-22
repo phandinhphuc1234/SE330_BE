@@ -27,6 +27,7 @@
         <testcontainers.version>1.21.4</testcontainers.version>
         <micrometer.version>1.16.5</micrometer.version>
         <cloudinary.version>2.0.0</cloudinary.version>
+        <aws.sdk.version>2.31.54</aws.sdk.version>
     </properties>
 
     <dependencyManagement>
@@ -91,6 +92,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
 
         <!-- Dùng nếu bạn render email template hoặc có server-side HTML -->

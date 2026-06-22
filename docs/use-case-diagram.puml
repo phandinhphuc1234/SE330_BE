@@ -1,0 +1,274 @@
+@startuml QuanLyThuVienUseCase
+left to right direction
+title Use Case Diagram - QuanLyThuVien Library API
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F8FBFF
+  BorderColor #24527A
+  ArrowColor #24527A
+}
+skinparam actor {
+  BorderColor #333333
+  BackgroundColor #FFFFFF
+}
+
+actor "Khách\n(chưa đăng nhập)" as Guest
+actor "Người dùng\nđã đăng nhập" as AuthUser
+actor "Bạn đọc\n(MEMBER)" as Member
+actor "Thủ thư\n(LIBRARIAN)" as Librarian
+actor "Quản trị viên\n(ADMIN)" as Admin
+actor "VNPAY" as Vnpay
+actor "Email/SMTP" as Email
+actor "Cloudinary" as Cloudinary
+actor "Scheduler\n(Cron jobs)" as Scheduler
+
+Member --|> AuthUser
+Librarian --|> AuthUser
+Admin --|> Librarian
+
+rectangle "QuanLyThuVien Library API" {
+  package "Tài khoản & hồ sơ" {
+    usecase "Đăng ký tài khoản" as UC_Register
+    usecase "Xác thực email" as UC_VerifyEmail
+    usecase "Gửi lại email xác thực" as UC_ResendVerification
+    usecase "Đăng nhập" as UC_Login
+    usecase "Làm mới token" as UC_RefreshToken
+    usecase "Đăng xuất" as UC_Logout
+    usecase "Xem/cập nhật\nhồ sơ cá nhân" as UC_Profile
+    usecase "Gửi email\nxác thực" as UC_SendVerificationEmail
+  }
+
+  package "Tra cứu catalog" {
+    usecase "Tìm kiếm sách" as UC_SearchBooks
+    usecase "Xem chi tiết sách" as UC_ViewBook
+    usecase "Xem tác giả" as UC_ViewAuthors
+    usecase "Xem thể loại" as UC_ViewCategories
+    usecase "Xem metadata ebook\ntrong catalog" as UC_ViewEbookMetadata
+  }
+
+  package "Bạn đọc - Mượn, giữ chỗ, phạt" {
+    usecase "Xem sách đang mượn" as UC_MyActiveBorrows
+    usecase "Xem lịch sử mượn" as UC_MyBorrowHistory
+    usecase "Gia hạn sách của mình" as UC_MemberRenew
+    usecase "Đặt giữ chỗ sách" as UC_CreateHold
+    usecase "Xem giữ chỗ của mình" as UC_MyHolds
+    usecase "Hủy giữ chỗ" as UC_CancelHold
+    usecase "Xem tiền phạt" as UC_MyFines
+    usecase "Thanh toán phạt quá hạn" as UC_PayFine
+    usecase "Kiểm tra policy mượn/gia hạn" as UC_CirculationPolicy
+    usecase "Kiểm tra sách đã hết\nbản available" as UC_HoldAvailability
+  }
+
+  package "Bạn đọc - Ebook & reader" {
+    usecase "Mượn ebook miễn phí" as UC_BorrowFreeEbook
+    usecase "Thanh toán ebook trả phí" as UC_PayEbook
+    usecase "Xem ebook loan\ncủa mình" as UC_MyEbookLoans
+    usecase "Tạo phiên đọc ebook" as UC_CreateReadingSession
+    usecase "Lấy URL ký để đọc ebook" as UC_GetSignedContent
+    usecase "Gia hạn phiên đọc" as UC_RefreshReadingSession
+    usecase "Đóng phiên đọc" as UC_CloseReadingSession
+    usecase "Kiểm tra ebook loan\nđang active" as UC_ValidateEbookLoan
+    usecase "Kiểm tra reading session" as UC_ValidateReadingSession
+    usecase "Tạo signed URL\nCloudinary" as UC_CreateSignedUrl
+  }
+
+  package "Thủ thư - Lưu thông & bạn đọc" {
+    usecase "Xem dashboard staff" as UC_StaffDashboard
+    usecase "Tìm/Xem hồ sơ bạn đọc" as UC_StaffMembers
+    usecase "Xem lượt mượn\ncủa bạn đọc" as UC_StaffMemberLoans
+    usecase "Tìm lượt mượn\ntoàn hệ thống" as UC_StaffLoans
+    usecase "Tìm giữ chỗ\ntoàn hệ thống" as UC_StaffHolds
+    usecase "Preview checkout" as UC_CheckoutPreview
+    usecase "Checkout tại quầy" as UC_Checkout
+    usecase "Check-in / trả sách" as UC_Checkin
+    usecase "Gia hạn hộ bạn đọc" as UC_StaffRenew
+    usecase "Checkout từ hold" as UC_CheckoutHold
+    usecase "Tính phạt quá hạn" as UC_CalculateFine
+    usecase "Gán copy cho hold\nkế tiếp" as UC_AssignNextHold
+  }
+
+  package "Thủ thư - Catalog & media" {
+    usecase "Quản lý sách\n(tạo/cập nhật)" as UC_ManageBooks
+    usecase "Quản lý tác giả" as UC_ManageAuthors
+    usecase "Quản lý bản sao sách" as UC_ManageCopies
+    usecase "Upload/cập nhật ảnh bìa" as UC_ManageCover
+    usecase "Upload/cập nhật ebook PDF" as UC_ManageEbookPdf
+    usecase "Cập nhật policy/trạng thái ebook" as UC_ManageEbookPolicy
+    usecase "Import sách từ CSV" as UC_ImportCsv
+    usecase "Theo dõi job import CSV" as UC_ViewImportJob
+    usecase "Lưu/xóa media" as UC_StoreMedia
+  }
+
+  package "Admin" {
+    usecase "Quản lý thể loại" as UC_ManageCategories
+    usecase "Xóa sách" as UC_DeleteBook
+    usecase "Xóa bản sao sách" as UC_DeleteCopy
+    usecase "Xem tổng quan thanh toán" as UC_AdminPaymentSummary
+    usecase "Tìm giao dịch thanh toán" as UC_AdminSearchPayments
+    usecase "Xem biên lai bất kỳ" as UC_AdminReceipt
+  }
+
+  package "Thanh toán" {
+    usecase "Tạo giao dịch thanh toán" as UC_CreatePayment
+    usecase "Tạo URL thanh toán VNPAY" as UC_CreateVnpayUrl
+    usecase "Xác nhận VNPAY return" as UC_ConfirmVnpayReturn
+    usecase "Xử lý IPN VNPAY" as UC_HandleVnpayIpn
+    usecase "Verify chữ ký & số tiền" as UC_VerifyPaymentPayload
+    usecase "Cập nhật trạng thái payment" as UC_UpdatePayment
+    usecase "Cấp quyền mượn ebook\nsau thanh toán" as UC_FulfillEbookPayment
+    usecase "Đánh dấu phạt đã thanh toán" as UC_FulfillFinePayment
+    usecase "Xem trạng thái payment" as UC_ViewPayment
+    usecase "Xem biên lai thanh toán" as UC_ViewReceipts
+  }
+
+  package "Job nền" {
+    usecase "Đánh dấu lượt mượn quá hạn" as UC_MarkOverdue
+    usecase "Tự động gia hạn" as UC_AutoRenewal
+    usecase "Tạo nhắc sắp đến hạn" as UC_DueSoonReminder
+    usecase "Hết hạn hold quá hạn lấy" as UC_ExpireHolds
+    usecase "Dọn ảnh bìa chờ xóa" as UC_CleanupImages
+    usecase "Gửi email auto-renewal" as UC_SendAutoRenewalEmail
+    usecase "Gửi email nhắc trả sách" as UC_SendDueSoonEmail
+    usecase "Ghi log chạy job" as UC_LogJob
+  }
+}
+
+Guest --> UC_Register
+Guest --> UC_VerifyEmail
+Guest --> UC_ResendVerification
+Guest --> UC_Login
+Guest --> UC_SearchBooks
+Guest --> UC_ViewBook
+Guest --> UC_ViewAuthors
+Guest --> UC_ViewCategories
+Guest --> UC_ViewEbookMetadata
+
+AuthUser --> UC_RefreshToken
+AuthUser --> UC_Logout
+AuthUser --> UC_Profile
+
+Member --> UC_MyActiveBorrows
+Member --> UC_MyBorrowHistory
+Member --> UC_MemberRenew
+Member --> UC_CreateHold
+Member --> UC_MyHolds
+Member --> UC_CancelHold
+Member --> UC_MyFines
+Member --> UC_PayFine
+Member --> UC_BorrowFreeEbook
+Member --> UC_PayEbook
+Member --> UC_MyEbookLoans
+Member --> UC_CreateReadingSession
+Member --> UC_GetSignedContent
+Member --> UC_RefreshReadingSession
+Member --> UC_CloseReadingSession
+Member --> UC_ViewPayment
+Member --> UC_ViewReceipts
+Member --> UC_ConfirmVnpayReturn
+
+Librarian --> UC_StaffDashboard
+Librarian --> UC_StaffMembers
+Librarian --> UC_StaffMemberLoans
+Librarian --> UC_StaffLoans
+Librarian --> UC_StaffHolds
+Librarian --> UC_CheckoutPreview
+Librarian --> UC_Checkout
+Librarian --> UC_Checkin
+Librarian --> UC_StaffRenew
+Librarian --> UC_CheckoutHold
+Librarian --> UC_CancelHold
+Librarian --> UC_ManageBooks
+Librarian --> UC_ManageAuthors
+Librarian --> UC_ManageCopies
+Librarian --> UC_ManageCover
+Librarian --> UC_ManageEbookPdf
+Librarian --> UC_ManageEbookPolicy
+Librarian --> UC_ImportCsv
+Librarian --> UC_ViewImportJob
+
+Admin --> UC_ManageCategories
+Admin --> UC_DeleteBook
+Admin --> UC_DeleteCopy
+Admin --> UC_AdminPaymentSummary
+Admin --> UC_AdminSearchPayments
+Admin --> UC_AdminReceipt
+
+Vnpay --> UC_CreateVnpayUrl
+Vnpay --> UC_HandleVnpayIpn
+Vnpay --> UC_ConfirmVnpayReturn
+
+Email --> UC_SendVerificationEmail
+Email --> UC_SendAutoRenewalEmail
+Email --> UC_SendDueSoonEmail
+
+Cloudinary --> UC_StoreMedia
+Cloudinary --> UC_CreateSignedUrl
+
+Scheduler --> UC_MarkOverdue
+Scheduler --> UC_AutoRenewal
+Scheduler --> UC_DueSoonReminder
+Scheduler --> UC_ExpireHolds
+Scheduler --> UC_CleanupImages
+
+UC_Register .> UC_SendVerificationEmail : <<include>>
+UC_ResendVerification .> UC_SendVerificationEmail : <<include>>
+
+UC_CheckoutPreview .> UC_CirculationPolicy : <<include>>
+UC_Checkout .> UC_CirculationPolicy : <<include>>
+UC_MemberRenew .> UC_CirculationPolicy : <<include>>
+UC_StaffRenew .> UC_CirculationPolicy : <<include>>
+UC_CreateHold .> UC_HoldAvailability : <<include>>
+UC_Checkin .> UC_CalculateFine : <<include>>
+UC_AssignNextHold .> UC_Checkin : <<extend>>
+UC_AssignNextHold .> UC_CancelHold : <<extend>>
+UC_AssignNextHold .> UC_ExpireHolds : <<extend>>
+UC_CheckoutHold .> UC_CirculationPolicy : <<include>>
+
+UC_BorrowFreeEbook .> UC_ValidateEbookLoan : <<include>>
+UC_CreateReadingSession .> UC_ValidateEbookLoan : <<include>>
+UC_GetSignedContent .> UC_ValidateReadingSession : <<include>>
+UC_GetSignedContent .> UC_CreateSignedUrl : <<include>>
+
+UC_PayEbook .> UC_CreatePayment : <<include>>
+UC_PayFine .> UC_CreatePayment : <<include>>
+UC_CreatePayment .> UC_CreateVnpayUrl : <<include>>
+UC_ConfirmVnpayReturn .> UC_VerifyPaymentPayload : <<include>>
+UC_ConfirmVnpayReturn .> UC_UpdatePayment : <<include>>
+UC_HandleVnpayIpn .> UC_VerifyPaymentPayload : <<include>>
+UC_HandleVnpayIpn .> UC_UpdatePayment : <<include>>
+UC_FulfillEbookPayment .> UC_HandleVnpayIpn : <<extend>>
+UC_FulfillFinePayment .> UC_HandleVnpayIpn : <<extend>>
+UC_FulfillEbookPayment .> UC_ConfirmVnpayReturn : <<extend>>
+UC_FulfillFinePayment .> UC_ConfirmVnpayReturn : <<extend>>
+
+UC_ManageCover .> UC_StoreMedia : <<include>>
+UC_ManageEbookPdf .> UC_StoreMedia : <<include>>
+UC_CleanupImages .> UC_StoreMedia : <<include>>
+
+UC_AutoRenewal .> UC_CirculationPolicy : <<include>>
+UC_AutoRenewal .> UC_SendAutoRenewalEmail : <<include>>
+UC_DueSoonReminder .> UC_SendDueSoonEmail : <<include>>
+UC_MarkOverdue .> UC_LogJob : <<include>>
+UC_AutoRenewal .> UC_LogJob : <<include>>
+UC_DueSoonReminder .> UC_LogJob : <<include>>
+UC_ExpireHolds .> UC_LogJob : <<include>>
+
+note right of Admin
+  ADMIN kế thừa các use case của LIBRARIAN
+  và có thêm quyền xóa/quản trị/thanh toán.
+end note
+
+note bottom of UC_HandleVnpayIpn
+  IPN là luồng server-to-server.
+  Khi SUCCESS, hệ thống apply nghiệp vụ
+  theo purpose/targetType của payment.
+end note
+
+note bottom of UC_ConfirmVnpayReturn
+  Return confirm là fallback có xác minh chữ ký,
+  dùng cho local/sandbox khi IPN không về được.
+end note
+
+@enduml

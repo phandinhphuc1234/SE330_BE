@@ -1,5 +1,6 @@
 package com.vn.enums;
 
 public enum MediaProvider {
-    CLOUDINARY
+    CLOUDINARY,
+    SEAWEEDFS
 }

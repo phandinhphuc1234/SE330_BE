@@ -48,9 +48,15 @@ public class BookEbook {
     @Column(nullable = false, length = 50)
     private MediaProvider provider;
 
-    // Cloudinary publicId for the protected raw PDF, for example pdf/9780132350884/main.pdf.
-    @Column(name = "public_id", nullable = false, length = 500)
+    // Legacy Cloudinary identifier. New SeaweedFS records use objectKey instead.
+    @Column(name = "public_id", length = 500)
     private String publicId;
+
+    @Column(name = "bucket_name", length = 255)
+    private String bucketName;
+
+    @Column(name = "object_key", length = 1000)
+    private String objectKey;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "resource_type", nullable = false, length = 30)
@@ -77,6 +83,9 @@ public class BookEbook {
 
     @Column(length = 128)
     private String checksum;
+
+    @Column(name = "checksum_sha256", length = 64)
+    private String checksumSha256;
 
     // ACTIVE là bản ebook đang dùng; upload lại main.pdf sẽ giữ một row và cập nhật metadata.
     @Enumerated(EnumType.STRING)

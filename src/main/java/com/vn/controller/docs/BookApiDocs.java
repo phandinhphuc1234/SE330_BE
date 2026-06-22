@@ -145,7 +145,7 @@ public interface BookApiDocs {
             summary = "Get ebook info for book detail page",
             description = """
                     Public read API for rendering ebook availability, access type, fee, currency and duration on a book page.
-                    This response intentionally does not expose Cloudinary publicId, signed URL or any direct PDF URL.
+                    This response intentionally does not expose an object key, signed URL or any direct PDF URL.
                     """
     )
     ResponseEntity<ApiResponse<BookEbookPublicResponse>> getBookEbookForCatalog(

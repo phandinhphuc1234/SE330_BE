@@ -1,46 +1,96 @@
-# Prometheus configuration for local library-service monitoring.
+# Prometheus configuration for local library platform monitoring.
 #
 # Vai trò file này:
-# - Khai báo Prometheus sẽ đi lấy metric từ những service nào.
-# - Khai báo chu kỳ scrape metric.
-# - Gắn label cố định để query/Grafana filter dễ hơn.
+# - Prometheus chung cho cả Spring Boot + RAG.
+# - Scrape metrics từ:
+#   1. Prometheus itself
+#   2. Spring Boot library-service
+#   3. RAG API nếu có /metrics
+#   4. RAG PostgreSQL exporter
+#   5. RAG Redis exporter
+#   6. Qdrant metrics
 #
-# Backend Spring Boot hiện chạy bằng service library-service trong cùng
-# Docker Compose network với Prometheus. Vì vậy Prometheus gọi backend
-# bằng service name: library-service:8080.
+# Điều kiện:
+# - prometheus container phải join network chung: library-platform-net
+# - RAG compose phải có alias:
+#   - rag-api
+#   - rag-postgres-exporter
+#   - rag-redis-exporter
+#   - rag-qdrant
 
 global:
-  # Chu kỳ mặc định Prometheus gọi các endpoint metric.
   scrape_interval: 15s
-
-  # Chu kỳ mặc định Prometheus evaluate rules/alerts.
-  # Hiện project chưa khai báo alert rules, nhưng để sẵn cho cấu hình chuẩn.
   evaluation_interval: 15s
 
 scrape_configs:
-  # Job tự monitor chính Prometheus.
-  # Hữu ích để kiểm tra Prometheus server còn hoạt động không.
+  # Monitor chính Prometheus.
   - job_name: prometheus
     static_configs:
       - targets:
           - localhost:9090
+        labels:
+          application: prometheus
+          environment: local
 
-  # Job chính của đồ án: scrape metric từ Spring Boot backend.
+  # Spring Boot backend.
   - job_name: library-service
-
-    # Endpoint do Spring Boot Actuator + Micrometer Prometheus expose.
     metrics_path: /actuator/prometheus
-
-    # Scrape backend nhanh hơn default để dashboard local phản hồi rõ khi demo.
     scrape_interval: 10s
-
     static_configs:
       - targets:
-          # Prometheus container gọi app Spring Boot trong cùng Compose network.
           - library-service:8080
-
-        # Label cố định được gắn vào mọi metric của target này.
-        # Dùng trong PromQL/Grafana, ví dụ: up{job="library-service"}.
         labels:
           application: library-service
           environment: local
+          service_group: spring
+
+  # Python RAG API.
+  # Lưu ý: chỉ bật job này nếu FastAPI của bạn đã expose endpoint /metrics.
+  # Nếu chưa có /metrics thì comment nguyên job này lại.
+  - job_name: rag-api
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - rag-api:8000
+        labels:
+          application: rag-api
+          environment: local
+          service_group: rag
+
+  # RAG PostgreSQL exporter.
+  - job_name: rag-postgres
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - rag-postgres-exporter:9187
+        labels:
+          application: rag-postgres
+          environment: local
+          service_group: rag
+          component: database
+
+  # RAG Redis exporter.
+  - job_name: rag-redis
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - rag-redis-exporter:9121
+        labels:
+          application: rag-redis
+          environment: local
+          service_group: rag
+          component: cache
+
+  # Qdrant metrics.
+  - job_name: rag-qdrant
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - rag-qdrant:6333
+        labels:
+          application: rag-qdrant
+          environment: local
+          service_group: rag
+          component: vector-db
