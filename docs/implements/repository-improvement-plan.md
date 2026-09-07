@@ -25,14 +25,14 @@ Hoàn thành 07/09/2026 trên nhánh `improve/repository-sync`: GitHub `origin/m
 
 ## 2. Thống nhất migration và môi trường demo
 
-- [ ] Kiểm tra lịch sử `flyway_schema_history` của các database cần giữ.
+- [x] Kiểm tra lịch sử `flyway_schema_history` của database local cần giữ.
 - [x] Giải quyết xung đột V35 và hai script tạo `book_reviews`; thống nhất kiểu dữ liệu, constraint và index.
 - [x] Chuẩn bị hướng dẫn nâng cấp database hiện có; không tự ý sửa migration đã áp dụng hoặc xóa dữ liệu.
 - [x] Thêm cấu hình bật/tắt RAG, mặc định tắt cho demo; không gọi ingestion khi RAG tắt.
 - [x] Bỏ yêu cầu RAG key/network khỏi cách chạy demo cơ bản; nếu giữ ebook/S3 thì cấu hình storage chạy độc lập.
-- [ ] Hoàn thiện Docker Compose, `.env.example`, Java 21 và dữ liệu mẫu; kiểm tra khởi động trên môi trường sạch.
+- [x] Hoàn thiện Docker Compose, `.env.example`, Java 21 và dữ liệu mẫu; kiểm tra khởi động với database demo local.
 
-Cập nhật 07/09/2026: Docker demo đã chỉ còn PostgreSQL, Redis và service chính; PgAdmin/monitoring dùng profile tùy chọn. Test hồi quy RAG và full unit/slice suite đều xanh (175 tests). Stack database trống xác nhận migration dừng ở `V22__normalize_book_isbns.sql`: file này là data-fix lịch sử cho các book ID 2999-3311 không được seed bởi migration trước đó. Theo quyết định dự án, giữ nguyên migration local và demo dùng database local/snapshot đã chạy thành công V22; không sửa checksum migration để hỗ trợ database trống.
+Cập nhật 07/09/2026: Docker demo đã chỉ còn PostgreSQL, Redis và service chính; PgAdmin/monitoring dùng profile tùy chọn. Test hồi quy RAG và full unit/slice suite đều xanh (175 tests). Stack database trống xác nhận migration dừng ở `V22__normalize_book_isbns.sql`: file này là data-fix lịch sử cho các book ID 2999-3311 không được seed bởi migration trước đó. Theo quyết định dự án, giữ nguyên migration local và demo dùng database local/snapshot đã chạy thành công V22; không sửa checksum migration để hỗ trợ database trống. Database local đã xác minh 39 migration thành công; backend validate schema và healthcheck thành công trên 07/09/2026.
 
 ## 3. Sửa xác thực và chuẩn hóa lỗi API
 
