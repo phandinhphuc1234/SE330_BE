@@ -14,12 +14,14 @@ Mục tiêu: đồng bộ source, sửa các lỗi đã xác nhận, có bản d
 
 ## 1. Bảo toàn và đồng bộ source
 
-- [ ] Kiểm tra lại GitHub/local tại thời điểm bắt đầu triển khai; sao lưu thay đổi chưa commit và dữ liệu cần giữ.
-- [ ] Tạo nhánh cải thiện riêng; chia thay đổi thành các nhóm nhỏ, dễ review.
-- [ ] Hợp nhất hai bản review sách, giữ các cải tiến local về validation, truy vấn thống kê, xử lý trùng và test.
-- [ ] Đưa thống kê mượn/trả từ GitHub về local; giữ phần ảnh tác giả và SSE import CSV đang có ở local.
-- [ ] Đối chiếu DTO, API docs, cấu hình, timezone, dependency và các thay đổi ebook/storage giữa hai phía.
-- [ ] Rà soát PR #2 và #3 để xác định phần đã có, còn thiếu hoặc bị thay thế trước khi đề xuất xử lý PR.
+- [x] Kiểm tra lại GitHub/local tại thời điểm bắt đầu triển khai; sao lưu thay đổi chưa commit và dữ liệu cần giữ.
+- [x] Tạo nhánh cải thiện riêng; chia thay đổi thành checkpoint, merge, và các commit sửa lỗi dễ review.
+- [x] Hợp nhất hai bản review sách, giữ các cải tiến local về validation, truy vấn thống kê, xử lý trùng và test.
+- [x] Đưa thống kê mượn/trả từ GitHub về local; giữ phần ảnh tác giả và SSE import CSV đang có ở local.
+- [x] Đối chiếu DTO, API docs, cấu hình, timezone, dependency và các thay đổi ebook/storage giữa hai phía.
+- [x] Rà soát PR #2 và #3 để xác định phần đã có, còn thiếu hoặc bị thay thế trước khi đề xuất xử lý PR.
+
+Hoàn thành 07/09/2026 trên nhánh `improve/repository-sync`: GitHub `origin/main` đã là tổ tiên của nhánh; checkpoint dự phòng là `backup/pre-repository-sync-20260907`. Giữ migration local V35 cho ebook storage và V36 cho book review để tránh trùng version Flyway. Kiểm thử sau merge: 173 tests, 0 failures, 0 errors.
 
 ## 2. Thống nhất migration và môi trường demo
 
