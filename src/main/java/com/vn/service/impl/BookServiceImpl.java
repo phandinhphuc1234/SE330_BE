@@ -19,7 +19,9 @@ import com.vn.repository.AuthorRepository;
 import com.vn.repository.BookCopyRepository;
 import com.vn.repository.BookImageRepository;
 import com.vn.repository.BookRepository;
+import com.vn.repository.BookReviewRepository;
 import com.vn.repository.CategoryRepository;
+import com.vn.repository.projection.BookReviewStatsProjection;
 import com.vn.service.BookService;
 import jakarta.persistence.criteria.JoinType;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +62,7 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
     private final BookImageRepository bookImageRepository;
+    private final BookReviewRepository bookReviewRepository;
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final BookMapper bookMapper;
@@ -76,11 +79,17 @@ public class BookServiceImpl implements BookService {
 
         // Book không còn giữ imageUrl trực tiếp, nên load ảnh primary theo batch cho cả page.
         Map<Long, BookImage> primaryImagesByBookId = loadPrimaryImages(books.getContent());
+        Map<Long, ReviewStats> reviewStatsByBookId = loadReviewStats(books.getContent());
 
-        return books.map(book -> bookMapper.toBookSummaryResponse(
-                book,
-                primaryImagesByBookId.get(book.getId())
-        ));
+        return books.map(book -> {
+            ReviewStats stats = reviewStatsByBookId.getOrDefault(book.getId(), ReviewStats.EMPTY);
+            return bookMapper.toBookSummaryResponse(
+                    book,
+                    primaryImagesByBookId.get(book.getId()),
+                    stats.averageRating(),
+                    stats.totalReviews()
+            );
+        });
     }
 
     // Lấy thông tin chi tiết của một sách còn hoạt động
@@ -88,7 +97,10 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     public BookDetailResponse getBook(Long bookId) {
         Book book = getActiveBook(bookId);
-        return bookMapper.toBookDetailResponse(book, getPrimaryImage(book.getId()));
+        ReviewStats stats = loadReviewStats(List.of(book)).getOrDefault(bookId, ReviewStats.EMPTY);
+        return bookMapper.toBookDetailResponse(
+                book, getPrimaryImage(book.getId()), stats.averageRating(), stats.totalReviews()
+        );
     }
 
     // Tạo mới đầu sách. Bản copy vật lý được tạo riêng qua BookCopyService.
@@ -155,7 +167,10 @@ public class BookServiceImpl implements BookService {
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.UPDATE_BOOK, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook, getPrimaryImage(savedBook.getId()));
+        ReviewStats stats = loadReviewStats(List.of(savedBook)).getOrDefault(savedBook.getId(), ReviewStats.EMPTY);
+        return bookMapper.toBookDetailResponse(
+                savedBook, getPrimaryImage(savedBook.getId()), stats.averageRating(), stats.totalReviews()
+        );
     }
 
     // Xóa mềm sách, không cho xóa nếu còn bản copy đang mượn hoặc đang được giữ chỗ
@@ -189,7 +204,10 @@ public class BookServiceImpl implements BookService {
         log.info("eventType={} result={} entityType=BOOK entityId={}",
                 LogEvent.UPDATE_BOOK_AUTHORS, LogResult.SUCCESS, savedBook.getId());
 
-        return bookMapper.toBookDetailResponse(savedBook, getPrimaryImage(savedBook.getId()));
+        ReviewStats stats = loadReviewStats(List.of(savedBook)).getOrDefault(savedBook.getId(), ReviewStats.EMPTY);
+        return bookMapper.toBookDetailResponse(
+                savedBook, getPrimaryImage(savedBook.getId()), stats.averageRating(), stats.totalReviews()
+        );
     }
 
     // Gom ảnh primary theo bookId để response list có coverImage mà không phát sinh N+1 query.
@@ -208,6 +226,26 @@ public class BookServiceImpl implements BookService {
         }
 
         return imagesByBookId;
+    }
+
+    // Aggregate một lần cho toàn bộ page để tránh N+1 query rating.
+    private Map<Long, ReviewStats> loadReviewStats(Collection<Book> books) {
+        if (books.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> bookIds = books.stream().map(Book::getId).toList();
+        Map<Long, ReviewStats> statsByBookId = new HashMap<>();
+        for (BookReviewStatsProjection row : bookReviewRepository.findReviewStatsByBookIds(bookIds)) {
+            statsByBookId.put(
+                    row.getBookId(),
+                    new ReviewStats(
+                            row.getAverageRating() == null ? 0.0 : row.getAverageRating(),
+                            row.getTotalReviews() == null ? 0L : row.getTotalReviews()
+                    )
+            );
+        }
+        return statsByBookId;
     }
 
     // Trả về ảnh bìa chính cho detail; null nếu sách chưa có ảnh.
@@ -381,6 +419,10 @@ public class BookServiceImpl implements BookService {
 
         String normalized = value.trim().toLowerCase(Locale.ROOT);
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private record ReviewStats(Double averageRating, Long totalReviews) {
+        private static final ReviewStats EMPTY = new ReviewStats(0.0, 0L);
     }
 
 }

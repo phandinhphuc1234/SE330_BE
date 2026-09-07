@@ -1,14 +1,13 @@
 services:
   postgres:
     image: postgres:16
-    container_name: library_postgres
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,10 +18,9 @@ services:
 
   redis:
     image: redis:7
-    container_name: library_redis
     restart: always
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:${REDIS_PORT}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -34,7 +32,6 @@ services:
       context: .
       dockerfile: Dockerfile
     image: quanlythuvien:local
-    container_name: library_service
     restart: always
     env_file:
       - .env
@@ -55,21 +52,24 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-onboarding@resend.dev}
 
-      # Cloudinary - chỉ nên dùng cho cover image, không dùng cho PDF ebook
+      # Cloudinary - public images only
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
-      # RAG service
+      # RAG internal API on library-platform-net
       RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-api:8000}
+      RAG_INTERNAL_API_KEY: ${RAG_INTERNAL_API_KEY:?RAG_INTERNAL_API_KEY is required}
 
-      # SeaweedFS S3
+      # Shared SeaweedFS S3
       OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://rag-seaweedfs:8333}
-      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:-http://localhost:8333}
+      # Browser-facing endpoint used in presigned URLs. Use HTTPS storage domain on VPS.
+      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:?OBJECT_STORAGE_PUBLIC_ENDPOINT is required}
       OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-admin}
       OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-secret}
       OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
       LIBRARY_EBOOK_BUCKET: ${LIBRARY_EBOOK_BUCKET:-library-private}
+      LIBRARY_TEMP_BUCKET: ${LIBRARY_TEMP_BUCKET:-library-temp}
 
       # VNPAY sandbox
       VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
@@ -89,7 +89,7 @@ services:
       APP_ENV: local
 
     ports:
-      - "8080:8080"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,38 +103,36 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: library_pgadmin
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
-      - "5050:80"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:5050:80"
     depends_on:
       postgres:
         condition: service_healthy
 
   prometheus:
     image: prom/prometheus:v3.0.1
-    container_name: library_prometheus
     restart: always
     ports:
-      - "9090:9090"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     depends_on:
       - library-service
+    # Prometheus needs the shared network because it scrapes RAG targets.
     networks:
       default:
       library-platform-net:
 
   grafana:
     image: grafana/grafana:11.4.0
-    container_name: library_grafana
     restart: always
     ports:
-      - "3001:3000"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
@@ -145,9 +143,6 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
-    networks:
-      default:
-      library-platform-net:
 
 volumes:
   postgres_data:

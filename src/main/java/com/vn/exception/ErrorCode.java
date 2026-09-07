@@ -58,6 +58,8 @@ public enum ErrorCode {
     CLOUDINARY_UPLOAD_FAILED(HttpStatus.BAD_GATEWAY, "CLOUDINARY_UPLOAD_FAILED", "Không thể upload ảnh lên Cloudinary, vui lòng thử lại sau"),
     CLOUDINARY_DELETE_FAILED(HttpStatus.BAD_GATEWAY, "CLOUDINARY_DELETE_FAILED", "Không thể xóa ảnh trên Cloudinary, hệ thống sẽ thử lại sau"),
     CLOUDINARY_SIGNED_URL_FAILED(HttpStatus.BAD_GATEWAY, "CLOUDINARY_SIGNED_URL_FAILED", "Không thể tạo URL đọc ebook, vui lòng thử lại sau"),
+    RAG_SERVICE_CONFIG_MISSING(HttpStatus.INTERNAL_SERVER_ERROR, "RAG_SERVICE_CONFIG_MISSING", "Cấu hình kết nối RAG chưa đầy đủ"),
+    RAG_SERVICE_ERROR(HttpStatus.BAD_GATEWAY, "RAG_SERVICE_ERROR", "RAG service đang không khả dụng"),
     BOOK_HAS_ACTIVE_COPIES(HttpStatus.CONFLICT, "BOOK_HAS_ACTIVE_COPIES", "Không thể xóa sách khi còn bản sao đang được mượn hoặc được giữ chỗ"),
     BOOK_COPY_HAS_BORROW_HISTORY(HttpStatus.CONFLICT, "BOOK_COPY_HAS_BORROW_HISTORY", "Không thể xóa bản sao đã có lịch sử mượn sách"),
     BORROWER_MUST_BE_MEMBER(HttpStatus.BAD_REQUEST, "BORROWER_MUST_BE_MEMBER", "Chỉ tài khoản bạn đọc mới được đứng tên mượn sách"),
@@ -82,6 +84,8 @@ public enum ErrorCode {
     REQUEST_ALREADY_PROCESSING(HttpStatus.CONFLICT, "REQUEST_ALREADY_PROCESSING", "Request với Idempotency-Key này đang được xử lý"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "Phương thức HTTP không được hỗ trợ"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.CONFLICT, "DATA_INTEGRITY_VIOLATION", "Dữ liệu xung đột với ràng buộc hệ thống"),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "REVIEW_ALREADY_EXISTS", "Bạn đã đánh giá sách này rồi"),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW_NOT_FOUND", "Không tìm thấy đánh giá"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Hệ thống đang gặp lỗi, vui lòng thử lại sau");
 
     private final HttpStatus status;

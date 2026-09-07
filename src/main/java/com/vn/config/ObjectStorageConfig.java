@@ -22,7 +22,10 @@ public class ObjectStorageConfig {
                 .endpointOverride(URI.create(properties.endpoint()))
                 .region(Region.of(properties.region()))
                 .credentialsProvider(credentials(properties))
-                .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(true)
+                        .chunkedEncodingEnabled(false)
+                        .build())
                 .build();
     }
 

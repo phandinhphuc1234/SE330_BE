@@ -9,6 +9,7 @@ public record ObjectStorageProperties(
         String accessKey,
         String secretKey,
         String region,
-        String ebookBucket
+        String ebookBucket,
+        String tempBucket
 ) {
 }

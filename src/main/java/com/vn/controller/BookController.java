@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.UUID;
@@ -255,6 +256,15 @@ public class BookController implements BookApiDocs {
                 bookImportService.getImportJob(jobId)
         ));
     }
+    // Endpoint trả về SSE stream để client lắng nghe sự kiện tiến trình import CSV.
+    // Dùng EventSource API trên frontend.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping(value = "/import-csv/{jobId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Override
+    public SseEmitter streamBookImportJobEvents(@PathVariable UUID jobId) {
+        return bookImportService.streamImportJobEvents(jobId);
+    }
+
     // Cập nhật tác giả cho sách
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @PutMapping("/{bookId}/authors")
@@ -275,4 +285,3 @@ public class BookController implements BookApiDocs {
         return userDetails.getMember().getId();
     }
 }
-

@@ -1,0 +1,95 @@
+# Kế hoạch cải thiện repo để ứng tuyển thực tập
+
+Ngày lập: 07/09/2026. Phạm vi chính: backend `SE330_BE` và bản local `QuanLyThuVien`.
+
+Mục tiêu: đồng bộ source, sửa các lỗi đã xác nhận, có bản demo dễ chạy và repo đủ tài liệu để giới thiệu khi phỏng vấn. Tạm dừng phát triển tính năng RAG.
+
+## Hiện trạng làm mốc
+
+- Local `main`: `dd67e7e`; GitHub `main`: `a879d6f`; lệch 1 commit local và 4 commit remote.
+- Local có 36 file sửa và 29 file chưa được Git theo dõi.
+- Build mới: local chạy thành công 173 test; snapshot GitHub chạy thành công 161 test. Chưa chạy context test với hạ tầng thật.
+- Đã tái hiện trên cả hai bản: refresh token được chấp nhận như access token, JWT filter xác thực tài khoản BANNED, lỗi path variable sai kiểu trả 500.
+- Chưa có README gốc, workflow CI và kiểm thử tích hợp PostgreSQL/security filter chain đầy đủ.
+
+## 1. Bảo toàn và đồng bộ source
+
+- [ ] Kiểm tra lại GitHub/local tại thời điểm bắt đầu triển khai; sao lưu thay đổi chưa commit và dữ liệu cần giữ.
+- [ ] Tạo nhánh cải thiện riêng; chia thay đổi thành các nhóm nhỏ, dễ review.
+- [ ] Hợp nhất hai bản review sách, giữ các cải tiến local về validation, truy vấn thống kê, xử lý trùng và test.
+- [ ] Đưa thống kê mượn/trả từ GitHub về local; giữ phần ảnh tác giả và SSE import CSV đang có ở local.
+- [ ] Đối chiếu DTO, API docs, cấu hình, timezone, dependency và các thay đổi ebook/storage giữa hai phía.
+- [ ] Rà soát PR #2 và #3 để xác định phần đã có, còn thiếu hoặc bị thay thế trước khi đề xuất xử lý PR.
+
+## 2. Thống nhất migration và môi trường demo
+
+- [ ] Kiểm tra lịch sử `flyway_schema_history` của các database cần giữ.
+- [ ] Giải quyết xung đột V35 và hai script tạo `book_reviews`; thống nhất kiểu dữ liệu, constraint và index.
+- [ ] Chuẩn bị đường nâng cấp database hiện có; không tự ý sửa migration đã áp dụng hoặc xóa dữ liệu.
+- [ ] Thêm cấu hình bật/tắt RAG, mặc định tắt cho demo; không gọi ingestion khi RAG tắt.
+- [ ] Bỏ yêu cầu RAG key/network khỏi cách chạy demo cơ bản; nếu giữ ebook/S3 thì cấu hình storage chạy độc lập.
+- [ ] Hoàn thiện Docker Compose, `.env.example`, Java 21 và dữ liệu mẫu; kiểm tra khởi động trên môi trường sạch.
+
+## 3. Sửa xác thực và chuẩn hóa lỗi API
+
+- [ ] Phân biệt access token và refresh token; kiểm tra đúng loại ở từng endpoint/filter.
+- [ ] Kiểm tra trạng thái tài khoản khi xác thực JWT và làm mới token; rà soát thu hồi token khi khóa tài khoản/đăng xuất.
+- [ ] Chuẩn hóa lỗi 401/403 trong security filter bằng cùng contract lỗi của ứng dụng.
+- [ ] Đưa lỗi thiếu refresh token về xử lý tập trung; thống nhất `ErrorCode`, log và trace ID.
+- [ ] Bổ sung xử lý sai kiểu dữ liệu, thiếu header/file, content type không hỗ trợ và các lỗi validation còn thiếu.
+- [ ] Kiểm tra quyền MEMBER/LIBRARIAN/ADMIN và quyền sở hữu tài nguyên tại các API quan trọng.
+- [ ] Rà soát cookie, CORS, log và cấu hình demo để tránh đưa token/secret vào repo hoặc response.
+
+## 4. Hoàn thiện nghiệp vụ và API hiện có
+
+- [ ] Refactor thống kê mượn/trả về service + DTO + `ApiResponse`; kiểm tra khoảng ngày, bộ lọc và timezone.
+- [ ] Thống nhất HTTP status, `Location` khi phù hợp, quy ước dữ liệu rỗng, phân trang và timestamp; đối chiếu frontend trước thay đổi contract.
+- [ ] Giữ format riêng của SSE và callback VNPAY; kiểm tra cả đường lỗi, mất kết nối và gọi lặp.
+- [ ] Rà soát transaction, khóa dữ liệu và idempotency của mượn/trả, giữ chỗ và thanh toán.
+- [ ] Kiểm tra luồng ảnh tác giả, review sách, import CSV và các tác vụ quá hạn/gia hạn/nhắc hạn.
+
+## 5. Kiểm thử và CI
+
+Viết test hồi quy cùng lúc sửa lỗi; bổ sung kiểm thử tích hợp sau khi thống nhất migration và môi trường.
+
+- [ ] Test hồi quy cho sai loại JWT, tài khoản bị khóa, sai quyền và mapping lỗi 4xx.
+- [ ] Thiết lập test profile và PostgreSQL Testcontainers; dùng Redis test riêng hoặc mock theo phạm vi.
+- [ ] Kiểm tra migration từ database trống và đường nâng cấp dữ liệu đã thống nhất.
+- [ ] Test hai request cùng mượn một bản sách, giữ chỗ/gia hạn cạnh tranh và ràng buộc database.
+- [ ] Test lặp `Idempotency-Key`, payload khác cùng key và callback payment trùng không tạo kết quả trùng.
+- [ ] Test API qua security filter chain; chạy context test trong môi trường cô lập, không dùng dữ liệu thật hay gửi email/thanh toán thật.
+- [ ] Thêm GitHub Actions chạy build/test cho push và PR; lưu kết quả kiểm thử để dễ kiểm tra.
+
+## 6. Tài liệu, demo và bản phát hành
+
+- [ ] Viết README: chức năng đã có, công nghệ, cách chạy, test, Swagger, tài khoản demo và phần trực tiếp phụ trách.
+- [ ] Hoàn thiện kiến trúc, ERD và sơ đồ ba luồng chính: mượn/trả, giữ chỗ, thanh toán.
+- [ ] Đồng bộ Swagger/OpenAPI với response thành công, lỗi, phân trang và các ngoại lệ SSE/provider.
+- [ ] Cập nhật tài liệu cũ; phân biệt chức năng đã hoàn thành với RAG và các ý tưởng để sau.
+- [ ] Chuẩn bị request mẫu/Postman collection, kịch bản demo và ảnh/video ngắn.
+- [ ] Kiểm tra lại thao tác clone → cấu hình → chạy → demo; review diff và test trước khi merge/push bản hoàn thiện.
+- [ ] Rà soát PR cũ theo kết quả đối chiếu, viết release notes và chọn commit ổn định dùng trong hồ sơ.
+
+## 7. Làm thêm nếu còn thời gian
+
+- [ ] Đổi mật khẩu và quên/đặt lại mật khẩu, kèm giới hạn tần suất và vô hiệu hóa token phù hợp.
+- [ ] API quản lý trạng thái thành viên theo phân quyền, kèm ghi nhận thao tác.
+- [ ] Bổ sung đo hiệu năng/coverage cho luồng quan trọng và cập nhật số liệu đã đo vào README.
+
+## Các điểm cần hỏi trước khi triển khai phần liên quan
+
+1. Database local/VPS nào cần giữ dữ liệu, và V35/V36 đã được áp dụng ở đâu?
+2. Bản demo có giữ ebook/S3 không? RAG sẽ được giữ dưới cấu hình tắt hay chuyển sang nhánh phát triển riêng?
+3. Cần hoàn thành trước ngày nào để ưu tiên khối lượng phù hợp?
+4. Frontend đang dùng repo/nhánh nào; phạm vi cải thiện lần này có bao gồm cập nhật frontend khi API thay đổi không?
+5. Khi hai phía có nghiệp vụ mâu thuẫn hoặc cần quyết định giữ/bỏ phần của thành viên khác, xác nhận với người dùng trước khi hợp nhất.
+
+Các câu hỏi được xử lý khi bắt đầu giai đoạn liên quan; vẫn tiếp tục những việc độc lập có đủ thông tin. Kế hoạch này chưa phải quyết định thay đổi database, loại bỏ tính năng hay xử lý PR.
+
+## Tiêu chí hoàn thành
+
+- Có một bản source thống nhất, các thay đổi cần giữ được quản lý bằng Git.
+- Các lỗi đã xác nhận được sửa và có test hồi quy; build và CI thành công.
+- Database mới và đường nâng cấp đã chọn đều được kiểm tra.
+- Demo chạy được với RAG tắt; các luồng trong phạm vi đã chốt hoạt động từ đầu đến cuối.
+- README, API docs và nội dung giới thiệu phản ánh đúng khả năng thực tế của bản phát hành.

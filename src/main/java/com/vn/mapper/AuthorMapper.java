@@ -16,6 +16,8 @@ public class AuthorMapper {
                 author.getId(),
                 author.getName(),
                 author.getBio(),
+                author.getImageUrl(),
+                author.getImageProvider() == null ? null : author.getImageProvider().name(),
                 author.getCreatedAt(),
                 author.getUpdatedAt()
         );

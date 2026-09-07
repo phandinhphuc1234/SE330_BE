@@ -7,6 +7,7 @@ import com.vn.dto.ebook.response.BookEbookUploadResponse;
 import com.vn.entity.Book;
 import com.vn.entity.BookEbook;
 import com.vn.enums.BookEbookStatus;
+import com.vn.enums.EbookIngestionStatus;
 import com.vn.enums.EbookAccessType;
 import com.vn.enums.MediaProvider;
 import com.vn.exception.AppException;
@@ -15,6 +16,7 @@ import com.vn.repository.BookEbookRepository;
 import com.vn.repository.BookRepository;
 import com.vn.service.BookEbookService;
 import com.vn.service.ebook.EbookPdfValidator;
+import com.vn.service.impl.ebook.EbookRagIngestionAsyncProcessor;
 import com.vn.service.storage.MediaDeliveryType;
 import com.vn.service.storage.MediaResourceType;
 import com.vn.service.storage.ebook.EbookObjectStorageService;
@@ -28,6 +30,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -42,6 +45,7 @@ public class BookEbookServiceImpl implements BookEbookService {
     private final BookEbookRepository bookEbookRepository;
     private final EbookObjectStorageService ebookObjectStorageService;
     private final EbookPdfValidator ebookPdfValidator;
+    private final EbookRagIngestionAsyncProcessor ragIngestionAsyncProcessor;
     private final TransactionTemplate transactionTemplate;
 
     @Override
@@ -56,15 +60,18 @@ public class BookEbookServiceImpl implements BookEbookService {
 
         String objectKey = "ebooks/%d/%d/original.pdf".formatted(bookId, prepared.ebookId());
         EbookObjectMetadata metadata = ebookObjectStorageService.upload(objectKey, file);
+        BookEbook savedEbook;
         try {
-            BookEbook savedEbook = transactionTemplate.execute(status ->
+            savedEbook = transactionTemplate.execute(status ->
                     saveUploadedEbook(prepared.ebookId(), metadata)
             );
-            return toResponse(savedEbook);
         } catch (RuntimeException e) {
             cleanupOnlyWhenThisWasANewObject(metadata, prepared.wasNew());
             throw e;
         }
+
+        BookEbook ebookWithScheduledIngestion = scheduleRagIngestion(savedEbook);
+        return toResponse(ebookWithScheduledIngestion);
     }
 
     @Override
@@ -151,6 +158,11 @@ public class BookEbookServiceImpl implements BookEbookService {
         ebook.setChecksum(null);
         ebook.setChecksumSha256(metadata.checksumSha256());
         ebook.setStatus(BookEbookStatus.ACTIVE);
+        ebook.setIngestionStatus(EbookIngestionStatus.QUEUED);
+        ebook.setRagDocumentId(null);
+        ebook.setRagJobId(null);
+        ebook.setIngestionLastError(null);
+        ebook.setIndexingRequestedAt(Instant.now());
 
         if (ebook.getMaxConcurrentLoans() == null) {
             ebook.setMaxConcurrentLoans(5);
@@ -159,6 +171,29 @@ public class BookEbookServiceImpl implements BookEbookService {
             ebook.setLoanDurationDays(14);
         }
 
+        return bookEbookRepository.save(ebook);
+    }
+
+    private BookEbook scheduleRagIngestion(BookEbook ebook) {
+        try {
+            ragIngestionAsyncProcessor.requestIngestionAsync(ebook.getId());
+            return ebook;
+        } catch (RuntimeException exception) {
+            log.warn("Could not schedule RAG ingestion for ebookId={} objectKey={}",
+                    ebook.getId(), ebook.getObjectKey(), exception);
+            BookEbook failed = transactionTemplate.execute(status ->
+                    markIngestionFailed(ebook.getId(), ErrorCode.INTERNAL_SERVER_ERROR.getCode())
+            );
+            return failed != null ? failed : ebook;
+        }
+    }
+
+    private BookEbook markIngestionFailed(Long ebookId, String errorCode) {
+        BookEbook ebook = bookEbookRepository.findById(ebookId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        ebook.setIngestionStatus(EbookIngestionStatus.FAILED);
+        ebook.setIngestionLastError(truncate(errorCode, 1000));
+        ebook.setIndexingRequestedAt(Instant.now());
         return bookEbookRepository.save(ebook);
     }
 
@@ -249,7 +284,10 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getAccessType().name(),
                 ebook.getAccessFee(),
                 ebook.getCurrency(),
-                ebook.getAccessDurationDays()
+                ebook.getAccessDurationDays(),
+                ebook.getIngestionStatus().name(),
+                ebook.getRagDocumentId(),
+                ebook.getRagJobId()
         );
     }
 
@@ -295,6 +333,11 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getAccessFee(),
                 ebook.getCurrency(),
                 ebook.getAccessDurationDays(),
+                ebook.getIngestionStatus().name(),
+                ebook.getRagDocumentId(),
+                ebook.getRagJobId(),
+                ebook.getIngestionLastError(),
+                ebook.getIndexingRequestedAt(),
                 ebook.getCreatedAt(),
                 ebook.getUpdatedAt()
         );

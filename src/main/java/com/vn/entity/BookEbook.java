@@ -1,6 +1,7 @@
 package com.vn.entity;
 
 import com.vn.enums.BookEbookStatus;
+import com.vn.enums.EbookIngestionStatus;
 import com.vn.enums.EbookAccessType;
 import com.vn.enums.MediaProvider;
 import com.vn.service.storage.MediaDeliveryType;
@@ -87,6 +88,22 @@ public class BookEbook {
     @Column(name = "checksum_sha256", length = 64)
     private String checksumSha256;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ingestion_status", nullable = false, length = 30)
+    private EbookIngestionStatus ingestionStatus;
+
+    @Column(name = "rag_document_id", length = 100)
+    private String ragDocumentId;
+
+    @Column(name = "rag_job_id")
+    private Long ragJobId;
+
+    @Column(name = "ingestion_last_error", length = 1000)
+    private String ingestionLastError;
+
+    @Column(name = "indexing_requested_at")
+    private Instant indexingRequestedAt;
+
     // ACTIVE là bản ebook đang dùng; upload lại main.pdf sẽ giữ một row và cập nhật metadata.
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -145,6 +162,9 @@ public class BookEbook {
         }
         if (this.status == null) {
             this.status = BookEbookStatus.ACTIVE;
+        }
+        if (this.ingestionStatus == null) {
+            this.ingestionStatus = EbookIngestionStatus.NOT_REQUESTED;
         }
         if (this.maxConcurrentLoans == null) {
             this.maxConcurrentLoans = 5;

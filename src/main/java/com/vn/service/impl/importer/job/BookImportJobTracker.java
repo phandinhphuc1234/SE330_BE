@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Instant;
 import java.util.List;
@@ -26,6 +28,7 @@ public class BookImportJobTracker {
 
     private final BookImportJobRepository jobRepository;
     private final BookImportJobErrorRepository errorRepository;
+    private final BookImportSseService sseService;
 
     @Transactional
     public BookImportJob createJob(String originalFilename) {
@@ -41,6 +44,7 @@ public class BookImportJobTracker {
         job.setStatus(BookImportJobStatus.PROCESSING);
         job.setStartedAt(Instant.now());
         jobRepository.save(job);
+        publishAfterCommit(jobId, "book-import-processing");
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -48,6 +52,7 @@ public class BookImportJobTracker {
         BookImportJob job = getJob(jobId);
         job.setTotalRows(totalRows);
         jobRepository.save(job);
+        publishAfterCommit(jobId, "book-import-progress");
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -65,6 +70,7 @@ public class BookImportJobTracker {
                     .map(error -> toEntity(job, error))
                     .toList());
         }
+        publishAfterCommit(jobId, "book-import-progress");
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -73,6 +79,7 @@ public class BookImportJobTracker {
         job.setStatus(BookImportJobStatus.COMPLETED);
         job.setCompletedAt(Instant.now());
         jobRepository.save(job);
+        publishAfterCommit(jobId, "book-import-completed");
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -82,6 +89,7 @@ public class BookImportJobTracker {
         job.setErrorMessage(message);
         job.setCompletedAt(Instant.now());
         jobRepository.save(job);
+        publishAfterCommit(jobId, "book-import-failed");
     }
 
     @Transactional(readOnly = true)
@@ -136,5 +144,20 @@ public class BookImportJobTracker {
                 job.getCompletedAt(),
                 errors
         );
+    }
+
+    private void publishAfterCommit(UUID jobId, String eventName) {
+        Runnable publisher = () -> sseService.publish(jobId, eventName, getJobResponse(jobId));
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            publisher.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publisher.run();
+            }
+        });
     }
 }

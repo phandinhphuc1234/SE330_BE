@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.UUID;
@@ -128,9 +129,9 @@ public interface BookApiDocs {
     @Operation(
             summary = "Upload ebook PDF",
             description = """
-                    Upload an ebook PDF for a book to Cloudinary as a protected raw/authenticated asset.
-                    The Cloudinary public ID is built as pdf/{isbn}/main.pdf, for example pdf/9780132350884/main.pdf.
+                    Upload an ebook PDF for a book to SeaweedFS/S3 private storage.
                     The response returns metadata only; it does not return a public PDF URL.
+                    RAG ingestion is scheduled asynchronously after the PDF metadata is saved.
                     Supported file type: PDF. Maximum size: 100MB.
                     Librarian and Admin can access this API.
                     """
@@ -254,7 +255,8 @@ public interface BookApiDocs {
                     Optional headers: condition,location,language,published_date,edition.
                     Each row creates one physical copy. Existing books are matched by active ISBN;
                     missing authors and categories are created automatically.
-                    The response returns a jobId. Poll GET /api/books/import-csv/{jobId} for progress and row errors.
+                    The response returns a jobId. Use GET /api/books/import-csv/{jobId} for snapshots
+                    or GET /api/books/import-csv/{jobId}/events for Server-Sent Events progress.
                     Librarian and Admin can access this API.
                     """
     )
@@ -273,6 +275,21 @@ public interface BookApiDocs {
                     """
     )
     ResponseEntity<ApiResponse<BookImportJobResponse>> getBookImportJob(
+            @Parameter(description = "CSV import job ID", required = true) UUID jobId
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Stream CSV import job events",
+            description = """
+                    Open a Server-Sent Events stream for a CSV import job.
+                    Events include book-import-snapshot, book-import-processing,
+                    book-import-progress, book-import-completed and book-import-failed.
+                    The event payload is BookImportJobResponse.
+                    Librarian and Admin can access this API.
+                    """
+    )
+    SseEmitter streamBookImportJobEvents(
             @Parameter(description = "CSV import job ID", required = true) UUID jobId
     );
 

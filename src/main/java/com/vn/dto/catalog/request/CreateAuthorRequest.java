@@ -8,7 +8,10 @@ public record CreateAuthorRequest(
         @Size(max = 100, message = "Tên tác giả tối đa 100 ký tự")
         String name,
 
-        String bio
+        String bio,
+
+        @Size(max = 2048, message = "URL ảnh tác giả tối đa 2048 ký tự")
+        String imageUrl
 ) {
 }
 

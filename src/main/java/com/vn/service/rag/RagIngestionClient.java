@@ -2,7 +2,7 @@ package com.vn.service.rag;
 
 public interface RagIngestionClient {
 
-    void ingestLibraryEbook(IngestionRequest request);
+    IngestionResponse ingestLibraryEbook(IngestionRequest request);
 
     record IngestionRequest(
             String sourceType,
@@ -10,13 +10,26 @@ public interface RagIngestionClient {
             Long ebookId,
             String bucket,
             String objectKey,
+            String originalFilename,
+            String contentType,
+            Long fileSizeBytes,
             String checksumSha256
     ) {
         public static IngestionRequest libraryEbook(Long bookId, Long ebookId, String bucket,
-                                                     String objectKey, String checksumSha256) {
+                                                     String objectKey, String originalFilename,
+                                                     String contentType, Long fileSizeBytes,
+                                                     String checksumSha256) {
             return new IngestionRequest(
-                    "LIBRARY_EBOOK", bookId, ebookId, bucket, objectKey, checksumSha256
+                    "LIBRARY_EBOOK", bookId, ebookId, bucket, objectKey, originalFilename,
+                    contentType, fileSizeBytes, checksumSha256
             );
         }
+    }
+
+    record IngestionResponse(
+            String documentId,
+            Long ingestionJobId,
+            String status
+    ) {
     }
 }
