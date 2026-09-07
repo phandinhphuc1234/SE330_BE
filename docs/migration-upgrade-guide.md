@@ -13,7 +13,9 @@ Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệ
 | V37 | Bổ sung metadata theo dõi RAG cho ebook |
 | V38-V39 | Bổ sung ảnh tác giả và metadata Cloudinary |
 
-Do lịch sử GitHub từng có một file khác cũng mang version `V35` để tạo review, source hiện tại cố ý chỉ giữ V35 storage và V36 review. Đây là chuỗi đúng cho database mới hoặc database đã chạy local source.
+Do lịch sử GitHub từng có một file khác cũng mang version `V35` để tạo review, source hiện tại cố ý chỉ giữ V35 storage và V36 review. Đây là chuỗi migration chuẩn của local và phải được giữ nguyên byte-for-byte nếu database local đã ghi nhận checksum.
+
+`V22__normalize_book_isbns.sql` là data-fix lịch sử cho các book ID đã tồn tại trong database local. Vì vậy database trống không phải đường chạy demo được hỗ trợ: migration sẽ chủ động dừng nếu các book ID đó chưa tồn tại. Không sửa hay bỏ V22 chỉ để làm database trống chạy được.
 
 ## Kiểm tra database cần giữ
 
@@ -29,16 +31,19 @@ ORDER BY installed_rank;
 - Nếu đã có `V35__move_ebook_storage_metadata_to_s3.sql` và `V36__create_book_reviews.sql`: chỉ cần đối chiếu checksum, không đổi các file migration đã chạy.
 - Nếu history có `V35__create_book_reviews.sql`: dừng lại. Không chạy `clean`, không sửa checksum và không chạy `repair` để ép qua. Cần đối chiếu schema thật của `book_reviews` và lập kế hoạch migration riêng theo database đó.
 
-## Chạy demo độc lập
+## Chạy demo với database local/snapshot
 
-Dockerfile và Maven đều cố định Java 21. Để chạy demo mới:
+Dockerfile và Maven đều cố định Java 21. Dùng database local đã migrate thành công qua V22, hoặc restore một backup/snapshot của database đó trước khi khởi động `library-service`:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up --build
+docker compose up -d postgres redis
+# Restore backup vào đúng POSTGRES_DB/POSTGRES_USER trong .env, nếu cần.
+# Sau khi kiểm tra flyway_schema_history, mới khởi động service:
+docker compose up --build library-service
 ```
 
-Mặc định RAG tắt (`RAG_ENABLED=false`) nên demo không cần RAG key, RAG container hay network bên ngoài. Ebook/S3 cũng là tích hợp tùy chọn; chỉ cấu hình endpoint/credentials khi cần demo upload PDF.
+Không chạy `docker compose down -v` với volume database demo cần giữ. Mặc định RAG tắt (`RAG_ENABLED=false`) nên demo không cần RAG key, RAG container hay network bên ngoài. Ebook/S3 cũng là tích hợp tùy chọn; chỉ cấu hình endpoint/credentials khi cần demo upload PDF.
 
 Nếu cổng 8080 đang được project khác sử dụng, đổi `LIBRARY_APP_PORT` trong `.env`; cổng trong container vẫn là 8080.
 

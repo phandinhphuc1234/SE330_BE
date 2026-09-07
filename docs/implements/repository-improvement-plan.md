@@ -32,7 +32,7 @@ Hoàn thành 07/09/2026 trên nhánh `improve/repository-sync`: GitHub `origin/m
 - [x] Bỏ yêu cầu RAG key/network khỏi cách chạy demo cơ bản; nếu giữ ebook/S3 thì cấu hình storage chạy độc lập.
 - [ ] Hoàn thiện Docker Compose, `.env.example`, Java 21 và dữ liệu mẫu; kiểm tra khởi động trên môi trường sạch.
 
-Cập nhật 07/09/2026: Docker demo đã chỉ còn PostgreSQL, Redis và service chính; PgAdmin/monitoring dùng profile tùy chọn. Test hồi quy RAG và full unit/slice suite đều xanh (175 tests). Stack database trống xác nhận migration dừng ở `V22__normalize_book_isbns.sql`: file này là data-fix lịch sử cho các book ID 2999-3311 không được seed bởi migration trước đó. File không được sửa để tránh đổi checksum của database cũ; cần kiểm tra `flyway_schema_history` của database cần giữ hoặc quyết định chỉ ưu tiên database demo mới.
+Cập nhật 07/09/2026: Docker demo đã chỉ còn PostgreSQL, Redis và service chính; PgAdmin/monitoring dùng profile tùy chọn. Test hồi quy RAG và full unit/slice suite đều xanh (175 tests). Stack database trống xác nhận migration dừng ở `V22__normalize_book_isbns.sql`: file này là data-fix lịch sử cho các book ID 2999-3311 không được seed bởi migration trước đó. Theo quyết định dự án, giữ nguyên migration local và demo dùng database local/snapshot đã chạy thành công V22; không sửa checksum migration để hỗ trợ database trống.
 
 ## 3. Sửa xác thực và chuẩn hóa lỗi API
 
