@@ -19,4 +19,3 @@ public record BookSummaryResponse(
         Long totalReviews
 ) {
 }
-
