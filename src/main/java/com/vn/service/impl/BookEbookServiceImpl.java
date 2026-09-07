@@ -1,5 +1,6 @@
 package com.vn.service.impl;
 
+import com.vn.config.RagServiceProperties;
 import com.vn.dto.ebook.request.UpdateBookEbookRequest;
 import com.vn.dto.ebook.response.BookEbookManagementResponse;
 import com.vn.dto.ebook.response.BookEbookPublicResponse;
@@ -46,6 +47,7 @@ public class BookEbookServiceImpl implements BookEbookService {
     private final EbookObjectStorageService ebookObjectStorageService;
     private final EbookPdfValidator ebookPdfValidator;
     private final EbookRagIngestionAsyncProcessor ragIngestionAsyncProcessor;
+    private final RagServiceProperties ragServiceProperties;
     private final TransactionTemplate transactionTemplate;
 
     @Override
@@ -70,7 +72,9 @@ public class BookEbookServiceImpl implements BookEbookService {
             throw e;
         }
 
-        BookEbook ebookWithScheduledIngestion = scheduleRagIngestion(savedEbook);
+        BookEbook ebookWithScheduledIngestion = ragServiceProperties.enabled()
+                ? scheduleRagIngestion(savedEbook)
+                : savedEbook;
         return toResponse(ebookWithScheduledIngestion);
     }
 
@@ -158,11 +162,13 @@ public class BookEbookServiceImpl implements BookEbookService {
         ebook.setChecksum(null);
         ebook.setChecksumSha256(metadata.checksumSha256());
         ebook.setStatus(BookEbookStatus.ACTIVE);
-        ebook.setIngestionStatus(EbookIngestionStatus.QUEUED);
+        ebook.setIngestionStatus(ragServiceProperties.enabled()
+                ? EbookIngestionStatus.QUEUED
+                : EbookIngestionStatus.NOT_REQUESTED);
         ebook.setRagDocumentId(null);
         ebook.setRagJobId(null);
         ebook.setIngestionLastError(null);
-        ebook.setIndexingRequestedAt(Instant.now());
+        ebook.setIndexingRequestedAt(ragServiceProperties.enabled() ? Instant.now() : null);
 
         if (ebook.getMaxConcurrentLoans() == null) {
             ebook.setMaxConcurrentLoans(5);

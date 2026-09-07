@@ -24,7 +24,7 @@ public class RestRagIngestionClient implements RagIngestionClient {
 
     @Override
     public IngestionResponse ingestLibraryEbook(IngestionRequest request) {
-        if (!StringUtils.hasText(properties.internalApiKey())) {
+        if (!properties.enabled() || !StringUtils.hasText(properties.internalApiKey())) {
             throw new AppException(ErrorCode.RAG_SERVICE_CONFIG_MISSING);
         }
         try {

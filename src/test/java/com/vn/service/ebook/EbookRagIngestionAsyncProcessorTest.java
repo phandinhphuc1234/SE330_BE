@@ -1,5 +1,6 @@
 package com.vn.service.ebook;
 
+import com.vn.config.RagServiceProperties;
 import com.vn.entity.Book;
 import com.vn.entity.BookEbook;
 import com.vn.enums.EbookIngestionStatus;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,12 +47,9 @@ class EbookRagIngestionAsyncProcessorTest {
         processor = new EbookRagIngestionAsyncProcessor(
                 bookEbookRepository,
                 ragIngestionClient,
+                new RagServiceProperties(true, "http://localhost:8000", "test-key"),
                 transactionTemplate
         );
-        when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
-            TransactionCallback<?> callback = invocation.getArgument(0);
-            return callback.doInTransaction(null);
-        });
     }
 
     @Test
@@ -59,6 +58,7 @@ class EbookRagIngestionAsyncProcessorTest {
         when(bookEbookRepository.findById(200L)).thenReturn(Optional.of(ebook));
         when(ragIngestionClient.ingestLibraryEbook(any()))
                 .thenReturn(new IngestionResponse("doc_ebook_200", 300L, "QUEUED"));
+        stubTransactions();
 
         processor.requestIngestionAsync(200L);
 
@@ -79,17 +79,39 @@ class EbookRagIngestionAsyncProcessorTest {
     }
 
     @Test
+    void requestIngestionAsync_shouldDoNothingWhenRagIsDisabled() {
+        EbookRagIngestionAsyncProcessor disabledProcessor = new EbookRagIngestionAsyncProcessor(
+                bookEbookRepository,
+                ragIngestionClient,
+                new RagServiceProperties(false, "http://localhost:8000", ""),
+                transactionTemplate
+        );
+
+        disabledProcessor.requestIngestionAsync(200L);
+
+        verifyNoInteractions(bookEbookRepository, ragIngestionClient, transactionTemplate);
+    }
+
+    @Test
     void requestIngestionAsync_shouldMarkFailedWhenRagClientFails() {
         BookEbook ebook = ebook();
         when(bookEbookRepository.findById(200L)).thenReturn(Optional.of(ebook));
         when(ragIngestionClient.ingestLibraryEbook(any()))
                 .thenThrow(new AppException(ErrorCode.RAG_SERVICE_ERROR));
+        stubTransactions();
 
         processor.requestIngestionAsync(200L);
 
         assertThat(ebook.getIngestionStatus()).isEqualTo(EbookIngestionStatus.FAILED);
         assertThat(ebook.getIngestionLastError()).isEqualTo(ErrorCode.RAG_SERVICE_ERROR.getCode());
         verify(bookEbookRepository).save(ebook);
+    }
+
+    private void stubTransactions() {
+        when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
+            TransactionCallback<?> callback = invocation.getArgument(0);
+            return callback.doInTransaction(null);
+        });
     }
 
     private BookEbook ebook() {

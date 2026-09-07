@@ -1,22 +1,6 @@
-# Prometheus configuration for local library platform monitoring.
-#
-# Vai trò file này:
-# - Prometheus chung cho cả Spring Boot + RAG.
-# - Scrape metrics từ:
-#   1. Prometheus itself
-#   2. Spring Boot library-service
-#   3. RAG API nếu có /metrics
-#   4. RAG PostgreSQL exporter
-#   5. RAG Redis exporter
-#   6. Qdrant metrics
-#
-# Điều kiện:
-# - prometheus container phải join network chung: library-platform-net
-# - RAG compose phải có alias:
-#   - rag-api
-#   - rag-postgres-exporter
-#   - rag-redis-exporter
-#   - rag-qdrant
+# Prometheus configuration for the standalone library demo.
+# It intentionally scrapes only services declared by this repository. RAG can be
+# monitored from its own deployment when that optional integration is enabled.
 
 global:
   scrape_interval: 15s
@@ -43,54 +27,3 @@ scrape_configs:
           application: library-service
           environment: local
           service_group: spring
-
-  # Python RAG API.
-  # Lưu ý: chỉ bật job này nếu FastAPI của bạn đã expose endpoint /metrics.
-  # Nếu chưa có /metrics thì comment nguyên job này lại.
-  - job_name: rag-api
-    metrics_path: /metrics
-    scrape_interval: 10s
-    static_configs:
-      - targets:
-          - rag-api:8000
-        labels:
-          application: rag-api
-          environment: local
-          service_group: rag
-
-  # RAG PostgreSQL exporter.
-  - job_name: rag-postgres
-    scrape_interval: 15s
-    static_configs:
-      - targets:
-          - rag-postgres-exporter:9187
-        labels:
-          application: rag-postgres
-          environment: local
-          service_group: rag
-          component: database
-
-  # RAG Redis exporter.
-  - job_name: rag-redis
-    scrape_interval: 15s
-    static_configs:
-      - targets:
-          - rag-redis-exporter:9121
-        labels:
-          application: rag-redis
-          environment: local
-          service_group: rag
-          component: cache
-
-  # Qdrant metrics.
-  - job_name: rag-qdrant
-    metrics_path: /metrics
-    scrape_interval: 15s
-    static_configs:
-      - targets:
-          - rag-qdrant:6333
-        labels:
-          application: rag-qdrant
-          environment: local
-          service_group: rag
-          component: vector-db

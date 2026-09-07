@@ -33,8 +33,6 @@ services:
       dockerfile: Dockerfile
     image: quanlythuvien:local
     restart: always
-    env_file:
-      - .env
     environment:
       # Spring datasource
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?timezone=Asia/Ho_Chi_Minh
@@ -57,14 +55,15 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
-      # RAG internal API on library-platform-net
+      # Optional RAG integration. The standard demo does not need a RAG service.
+      RAG_ENABLED: ${RAG_ENABLED:-false}
       RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-api:8000}
-      RAG_INTERNAL_API_KEY: ${RAG_INTERNAL_API_KEY:?RAG_INTERNAL_API_KEY is required}
+      RAG_INTERNAL_API_KEY: ${RAG_INTERNAL_API_KEY:-}
 
-      # Shared SeaweedFS S3
-      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://rag-seaweedfs:8333}
+      # Optional external S3-compatible storage for ebook flows.
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://host.docker.internal:8333}
       # Browser-facing endpoint used in presigned URLs. Use HTTPS storage domain on VPS.
-      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:?OBJECT_STORAGE_PUBLIC_ENDPOINT is required}
+      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:-http://localhost:8333}
       OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-admin}
       OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-secret}
       OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
@@ -89,20 +88,15 @@ services:
       APP_ENV: local
 
     ports:
-      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:8080:8080"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:${LIBRARY_APP_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      default:
-      library-platform-net:
-        aliases:
-          - library-api
-
   pgadmin:
     image: dpage/pgadmin4
+    profiles: ["tools"]
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
@@ -115,6 +109,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v3.0.1
+    profiles: ["monitoring"]
     restart: always
     ports:
       - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:9090:9090"
@@ -123,13 +118,9 @@ services:
       - prometheus_data:/prometheus
     depends_on:
       - library-service
-    # Prometheus needs the shared network because it scrapes RAG targets.
-    networks:
-      default:
-      library-platform-net:
-
   grafana:
     image: grafana/grafana:11.4.0
+    profiles: ["monitoring"]
     restart: always
     ports:
       - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:3001:3000"
@@ -152,6 +143,3 @@ volumes:
 networks:
   default:
     name: library-internal-net
-
-  library-platform-net:
-    external: true

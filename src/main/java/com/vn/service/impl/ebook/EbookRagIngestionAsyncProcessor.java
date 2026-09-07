@@ -1,5 +1,6 @@
 package com.vn.service.impl.ebook;
 
+import com.vn.config.RagServiceProperties;
 import com.vn.entity.BookEbook;
 import com.vn.enums.EbookIngestionStatus;
 import com.vn.exception.AppException;
@@ -25,10 +26,16 @@ public class EbookRagIngestionAsyncProcessor {
 
     private final BookEbookRepository bookEbookRepository;
     private final RagIngestionClient ragIngestionClient;
+    private final RagServiceProperties ragServiceProperties;
     private final TransactionTemplate transactionTemplate;
 
     @Async("ragIngestionExecutor")
     public void requestIngestionAsync(Long ebookId) {
+        if (!ragServiceProperties.enabled()) {
+            log.debug("Skipping RAG ingestion for ebookId={} because RAG is disabled", ebookId);
+            return;
+        }
+
         try {
             IngestionRequest request = transactionTemplate.execute(status -> buildRequest(ebookId));
             if (request == null) {

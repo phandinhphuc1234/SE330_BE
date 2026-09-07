@@ -1,5 +1,6 @@
 package com.vn.service;
 
+import com.vn.config.RagServiceProperties;
 import com.vn.dto.ebook.response.BookEbookUploadResponse;
 import com.vn.entity.Book;
 import com.vn.entity.BookEbook;
@@ -34,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class BookEbookServiceImplTest {
@@ -69,6 +71,7 @@ class BookEbookServiceImplTest {
                 ebookObjectStorageService,
                 ebookPdfValidator,
                 ragIngestionAsyncProcessor,
+                new RagServiceProperties(true, "http://localhost:8000", "test-key"),
                 transactionTemplate
         );
         when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
@@ -119,6 +122,54 @@ class BookEbookServiceImplTest {
         verify(ebookPdfValidator).validate(file);
         verify(ebookObjectStorageService).upload("ebooks/10/200/original.pdf", file);
         verify(ragIngestionAsyncProcessor).requestIngestionAsync(200L);
+    }
+
+    @Test
+    void uploadMainPdf_shouldNotRequestRagWhenRagIsDisabled() {
+        service = new BookEbookServiceImpl(
+                bookRepository,
+                bookEbookRepository,
+                ebookObjectStorageService,
+                ebookPdfValidator,
+                ragIngestionAsyncProcessor,
+                new RagServiceProperties(false, "http://localhost:8000", ""),
+                transactionTemplate
+        );
+        Book book = new Book();
+        book.setId(10L);
+        BookEbook[] ebookRow = new BookEbook[1];
+        EbookObjectMetadata metadata = new EbookObjectMetadata(
+                "library-private",
+                "ebooks/10/200/original.pdf",
+                "clean-code.pdf",
+                "application/pdf",
+                1024L,
+                "abc123",
+                Instant.now()
+        );
+
+        when(bookRepository.findByIdAndDeletedAtIsNull(10L)).thenReturn(Optional.of(book));
+        when(bookEbookRepository.findFirstByBookIdOrderByIdDesc(10L)).thenReturn(Optional.empty());
+        when(bookEbookRepository.saveAndFlush(any(BookEbook.class))).thenAnswer(invocation -> {
+            BookEbook ebook = invocation.getArgument(0);
+            ebook.setId(200L);
+            applyEntityDefaults(ebook);
+            ebookRow[0] = ebook;
+            return ebook;
+        });
+        when(bookEbookRepository.findById(200L)).thenAnswer(invocation -> Optional.of(ebookRow[0]));
+        when(bookEbookRepository.save(any(BookEbook.class))).thenAnswer(invocation -> {
+            BookEbook ebook = invocation.getArgument(0);
+            applyEntityDefaults(ebook);
+            ebookRow[0] = ebook;
+            return ebook;
+        });
+        when(ebookObjectStorageService.upload(eq("ebooks/10/200/original.pdf"), eq(file))).thenReturn(metadata);
+
+        BookEbookUploadResponse response = service.uploadMainPdf(10L, file);
+
+        assertThat(response.ingestionStatus()).isEqualTo(EbookIngestionStatus.NOT_REQUESTED.name());
+        verify(ragIngestionAsyncProcessor, never()).requestIngestionAsync(200L);
     }
 
     private void applyEntityDefaults(BookEbook ebook) {
