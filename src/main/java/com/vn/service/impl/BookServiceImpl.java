@@ -66,7 +66,6 @@ public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final BookMapper bookMapper;
-    private final com.vn.repository.BookReviewRepository bookReviewRepository;
 
     // Tìm kiếm sách theo nhiều tiêu chí, có phân trang và sắp xếp
     @Override
