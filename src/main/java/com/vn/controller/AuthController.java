@@ -75,8 +75,7 @@ public class AuthController implements AuthApiDocs {
             HttpServletResponse response) {
 
         if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.errorWithTrace("UNAUTHORIZED", "Không tìm thấy refresh token", null));
+            throw new AppException(ErrorCode.MISSING_REFRESH_TOKEN);
         }
 
         AuthResult authResult = authService.refreshToken(refreshToken);

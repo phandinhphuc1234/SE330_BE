@@ -36,13 +36,15 @@ Cập nhật 07/09/2026: Docker demo đã chỉ còn PostgreSQL, Redis và servi
 
 ## 3. Sửa xác thực và chuẩn hóa lỗi API
 
-- [ ] Phân biệt access token và refresh token; kiểm tra đúng loại ở từng endpoint/filter.
-- [ ] Kiểm tra trạng thái tài khoản khi xác thực JWT và làm mới token; rà soát thu hồi token khi khóa tài khoản/đăng xuất.
-- [ ] Chuẩn hóa lỗi 401/403 trong security filter bằng cùng contract lỗi của ứng dụng.
-- [ ] Đưa lỗi thiếu refresh token về xử lý tập trung; thống nhất `ErrorCode`, log và trace ID.
-- [ ] Bổ sung xử lý sai kiểu dữ liệu, thiếu header/file, content type không hỗ trợ và các lỗi validation còn thiếu.
-- [ ] Kiểm tra quyền MEMBER/LIBRARIAN/ADMIN và quyền sở hữu tài nguyên tại các API quan trọng.
-- [ ] Rà soát cookie, CORS, log và cấu hình demo để tránh đưa token/secret vào repo hoặc response.
+- [x] Phân biệt access token và refresh token; kiểm tra đúng loại ở từng endpoint/filter.
+- [x] Kiểm tra trạng thái tài khoản khi xác thực JWT và làm mới token; rà soát thu hồi token khi khóa tài khoản/đăng xuất.
+- [x] Chuẩn hóa lỗi 401/403 trong security filter bằng cùng contract lỗi của ứng dụng.
+- [x] Đưa lỗi thiếu refresh token về xử lý tập trung; thống nhất `ErrorCode`, log và trace ID.
+- [x] Bổ sung xử lý sai kiểu dữ liệu, thiếu header/file, content type không hỗ trợ và các lỗi validation còn thiếu.
+- [x] Kiểm tra quyền MEMBER/LIBRARIAN/ADMIN và quyền sở hữu tài nguyên tại các API quan trọng.
+- [x] Rà soát cookie, CORS, log và cấu hình demo để tránh đưa token/secret vào repo hoặc response.
+
+Hoàn thành 08/09/2026: JWT mới có claim loại token; refresh token hoặc token cũ không có claim này không còn dùng được cho Bearer API, vì vậy người dùng cần đăng nhập lại sau khi deploy. Filter xác thực lại trạng thái Member ở mỗi request; refresh của tài khoản không còn ACTIVE bị xóa khỏi Redis và từ chối. Security entry point/access denied trả `ApiResponse` có `traceId`; đồng thời thêm mapping 4xx còn thiếu. Reader ebook, payment và receipt chỉ nhận role MEMBER; ownership tiếp tục lấy từ principal và kiểm tra trong service. CORS/cookie đã chuyển sang biến môi trường với default local rõ ràng. Kiểm thử: 183 tests, 0 failures/errors; Docker service healthy, `GET /api/members/me` không token trả `401 UNAUTHORIZED`, Bearer rác trả `401 INVALID_OR_EXPIRED_TOKEN` theo `ApiResponse`, và preflight từ `http://localhost:3000` trả đủ CORS headers.
 
 ## 4. Hoàn thiện nghiệp vụ và API hiện có
 

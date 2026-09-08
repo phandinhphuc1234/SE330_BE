@@ -1,5 +1,6 @@
 package com.vn.security;
 
+import com.vn.exception.ErrorCode;
 import com.vn.logging.LogEvent;
 import com.vn.logging.LogResult;
 import com.vn.service.RedisTokenService;
@@ -28,6 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final MemberUserDetailsService memberUserDetailsService;
     private final RedisTokenService redisTokenService;
+    private final SecurityErrorResponseWriter securityErrorResponseWriter;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -46,15 +48,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // 2. Kiểm tra token có bị blacklist không (đã logout)
         if (redisTokenService.isBlacklisted(token)) {
-            filterChain.doFilter(request, response);
+            securityErrorResponseWriter.write(response, ErrorCode.INVALID_OR_EXPIRED_TOKEN);
             return;
         }
 
-        // 3. Validate token
-        // Nếu token không hợp lệ → bỏ qua việc xác thực ở filter này,
-// cho request đi tiếp để Spring Security xử lý theo cấu hình authorizeHttpRequests
-        if (!jwtService.isValid(token)) {
-            filterChain.doFilter(request, response);
+        // 3. Chỉ access token mới có thể xác thực request API.
+        if (!jwtService.isAccessToken(token)) {
+            securityErrorResponseWriter.write(response, ErrorCode.INVALID_OR_EXPIRED_TOKEN);
             return;
         }
 
@@ -65,6 +65,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 MemberUserDetails userDetails = (MemberUserDetails) memberUserDetailsService.loadUserByUsername(email);
+                if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+                    log.warn("eventType={} result={} reason=ACCOUNT_INACTIVE method={} path={}",
+                            LogEvent.JWT_AUTHENTICATION,
+                            LogResult.FAILED,
+                            request.getMethod(),
+                            request.getServletPath());
+                    securityErrorResponseWriter.write(response, ErrorCode.ACCOUNT_INACTIVE);
+                    return;
+                }
 
                 // 5. Tạo authentication token và set vào SecurityContext
                 UsernamePasswordAuthenticationToken authToken =
@@ -82,6 +91,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         LogResult.FAILED,
                         request.getMethod(),
                         request.getServletPath());
+                securityErrorResponseWriter.write(response, ErrorCode.INVALID_OR_EXPIRED_TOKEN);
+                return;
             }
         }
 

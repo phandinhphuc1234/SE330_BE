@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +46,7 @@ public class PaymentController implements PaymentApiDocs {
     private final PaymentCallbackService paymentCallbackService;
 
     // Tạo transaction PENDING và trả provider paymentUrl; chưa cấp loan/quyền đọc ebook.
+    @PreAuthorize("hasRole('MEMBER')")
     @PostMapping
     @Override
     public ResponseEntity<ApiResponse<CreatePaymentResponse>> createPayment(
@@ -73,6 +75,7 @@ public class PaymentController implements PaymentApiDocs {
     }
 
     // Fallback cho local/sandbox khi IPN không về được qua tunnel; vẫn verify chữ ký VNPAY trước khi update DB.
+    @PreAuthorize("hasRole('MEMBER')")
     @PostMapping("/return/vnpay/confirm")
     @Override
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmVnpayReturn(
@@ -88,6 +91,7 @@ public class PaymentController implements PaymentApiDocs {
     }
 
     // Frontend gọi sau khi quay về từ provider để poll trạng thái payment theo id.
+    @PreAuthorize("hasRole('MEMBER')")
     @GetMapping("/{paymentId}")
     @Override
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
@@ -100,6 +104,7 @@ public class PaymentController implements PaymentApiDocs {
     }
 
     // paymentCode ổn định hơn cho redirect/polling vì nó chính là provider order id.
+    @PreAuthorize("hasRole('MEMBER')")
     @GetMapping("/by-code/{paymentCode}")
     @Override
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByCode(

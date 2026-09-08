@@ -1,6 +1,8 @@
 package com.vn.config;
 
+import com.vn.exception.ErrorCode;
 import com.vn.security.JwtAuthFilter;
+import com.vn.security.SecurityErrorResponseWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 //
@@ -27,6 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     // Inject JwtAuthFilter để thêm vào chuỗi filter
     private final JwtAuthFilter jwtAuthFilter;
+    private final SecurityErrorResponseWriter securityErrorResponseWriter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,6 +48,13 @@ public class SecurityConfig {
 
                 // 3. Stateless session (không lưu session trên server)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Security exceptions phát sinh trước controller vẫn theo ApiResponse.
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, ex) ->
+                                securityErrorResponseWriter.write(response, ErrorCode.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, ex) ->
+                                securityErrorResponseWriter.write(response, ErrorCode.ACCESS_DENIED)))
 
                 // 4. Phân quyền endpoint
                 .authorizeHttpRequests(auth -> auth
