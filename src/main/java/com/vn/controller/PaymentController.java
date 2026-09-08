@@ -17,7 +17,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -60,7 +60,10 @@ public class PaymentController implements PaymentApiDocs {
                 resolveClientIp(httpRequest),
                 request
         );
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/by-code/{paymentCode}")
+                        .buildAndExpand(payment.paymentCode())
+                        .toUri())
                 .body(ApiResponse.success("Tạo giao dịch thanh toán thành công", payment));
     }
 

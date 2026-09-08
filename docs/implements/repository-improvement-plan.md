@@ -48,33 +48,39 @@ Hoàn thành 08/09/2026: JWT mới có claim loại token; refresh token hoặc 
 
 ## 4. Hoàn thiện nghiệp vụ và API hiện có
 
-- [ ] Refactor thống kê mượn/trả về service + DTO + `ApiResponse`; kiểm tra khoảng ngày, bộ lọc và timezone.
-- [ ] Thống nhất HTTP status, `Location` khi phù hợp, quy ước dữ liệu rỗng, phân trang và timestamp; đối chiếu frontend trước thay đổi contract.
-- [ ] Giữ format riêng của SSE và callback VNPAY; kiểm tra cả đường lỗi, mất kết nối và gọi lặp.
-- [ ] Rà soát transaction, khóa dữ liệu và idempotency của mượn/trả, giữ chỗ và thanh toán.
-- [ ] Kiểm tra luồng ảnh tác giả, review sách, import CSV và các tác vụ quá hạn/gia hạn/nhắc hạn.
+- [x] Refactor thống kê mượn/trả về service + DTO + `ApiResponse`; kiểm tra khoảng ngày, bộ lọc và timezone.
+- [x] Thống nhất HTTP status, `Location` khi phù hợp, quy ước dữ liệu rỗng, phân trang và timestamp; đối chiếu frontend trước thay đổi contract.
+- [x] Giữ format riêng của SSE và callback VNPAY; kiểm tra cả đường lỗi, mất kết nối và gọi lặp.
+- [x] Rà soát transaction, khóa dữ liệu và idempotency của mượn/trả, giữ chỗ và thanh toán.
+- [x] Kiểm tra luồng ảnh tác giả, review sách, import CSV và các tác vụ quá hạn/gia hạn/nhắc hạn.
+
+Cập nhật 08/09/2026: `/api/staff/statistics/borrows` nay trả DTO trong `ApiResponse`, giới hạn range 21 ngày, validate filter và quy đổi ngày theo `Asia/Ho_Chi_Minh`. Các báo cáo loan/receipt dùng cùng business timezone. Các response list giữ `PageMeta`; list rỗng vẫn là `200` với `[]`; timestamp giữ `LocalDateTime` để không tạo breaking change khi chưa có frontend repo để đối chiếu. Book và Payment mới có `201 Created` + `Location` đến resource đọc lại được; import CSV giữ `202`, VNPAY IPN/SSE giữ format provider/EventSource riêng. Đã xác nhận payment callback ghi audit, xử lý sai signature/amount và retry terminal; SSE tự remove emitter khi completion/timeout/error. Đồng thời sửa phạm vi idempotency theo `borrowId`/`holdId` thật, để cùng key không replay chéo sang resource khác. Các repository/use case tiếp tục dùng pessimistic lock cho book/member/payment và có test cạnh tranh PostgreSQL cho lock book.
 
 ## 5. Kiểm thử và CI
 
 Viết test hồi quy cùng lúc sửa lỗi; bổ sung kiểm thử tích hợp sau khi thống nhất migration và môi trường.
 
-- [ ] Test hồi quy cho sai loại JWT, tài khoản bị khóa, sai quyền và mapping lỗi 4xx.
-- [ ] Thiết lập test profile và PostgreSQL Testcontainers; dùng Redis test riêng hoặc mock theo phạm vi.
-- [ ] Kiểm tra migration từ database trống và đường nâng cấp dữ liệu đã thống nhất.
-- [ ] Test hai request cùng mượn một bản sách, giữ chỗ/gia hạn cạnh tranh và ràng buộc database.
-- [ ] Test lặp `Idempotency-Key`, payload khác cùng key và callback payment trùng không tạo kết quả trùng.
-- [ ] Test API qua security filter chain; chạy context test trong môi trường cô lập, không dùng dữ liệu thật hay gửi email/thanh toán thật.
-- [ ] Thêm GitHub Actions chạy build/test cho push và PR; lưu kết quả kiểm thử để dễ kiểm tra.
+- [x] Test hồi quy cho sai loại JWT, tài khoản bị khóa, sai quyền và mapping lỗi 4xx.
+- [x] Thiết lập test profile và PostgreSQL Testcontainers; dùng Redis test riêng hoặc mock theo phạm vi.
+- [x] Kiểm tra migration từ database trống và đường nâng cấp dữ liệu đã thống nhất.
+- [x] Test hai request cùng mượn một bản sách, giữ chỗ/gia hạn cạnh tranh và ràng buộc database.
+- [x] Test lặp `Idempotency-Key`, payload khác cùng key và callback payment trùng không tạo kết quả trùng.
+- [x] Test API qua security filter chain; chạy context test trong môi trường cô lập, không dùng dữ liệu thật hay gửi email/thanh toán thật.
+- [x] Thêm GitHub Actions chạy build/test cho push và PR; lưu kết quả kiểm thử để dễ kiểm tra.
+
+Cập nhật 08/09/2026: test profile tắt Flyway/scheduler/email/RAG/VNPAY để context test không chạm hạ tầng thật. `QuanLyThuVienApplicationTests` chạy PostgreSQL 16 + Redis 7 Testcontainers, gọi qua HTTP ngẫu nhiên và xác nhận contract `401 UNAUTHORIZED`. `BookRepositoryLockIntegrationTest` dùng schema Hibernate tạo tạm để xác nhận hai transaction PostgreSQL cùng lock một book được serialize. Idempotency unit/service tests bao phủ retry completed/failed, payload khác cùng key, processing, payment callback duplicate và path resource thật. Kiểm tra database trống được kết luận có chủ đích là **không hỗ trợ**: V22 phải dừng khi không có data lịch sử; upgrade/demo snapshot đã được xác minh theo `docs/migration-upgrade-guide.md`. Workflow `.github/workflows/backend-ci.yml` chạy `./mvnw -B test` và upload Surefire reports.
 
 ## 6. Tài liệu, demo và bản phát hành
 
-- [ ] Viết README: chức năng đã có, công nghệ, cách chạy, test, Swagger, tài khoản demo và phần trực tiếp phụ trách.
-- [ ] Hoàn thiện kiến trúc, ERD và sơ đồ ba luồng chính: mượn/trả, giữ chỗ, thanh toán.
-- [ ] Đồng bộ Swagger/OpenAPI với response thành công, lỗi, phân trang và các ngoại lệ SSE/provider.
-- [ ] Cập nhật tài liệu cũ; phân biệt chức năng đã hoàn thành với RAG và các ý tưởng để sau.
-- [ ] Chuẩn bị request mẫu/Postman collection, kịch bản demo và ảnh/video ngắn.
-- [ ] Kiểm tra lại thao tác clone → cấu hình → chạy → demo; review diff và test trước khi merge/push bản hoàn thiện.
-- [ ] Rà soát PR cũ theo kết quả đối chiếu, viết release notes và chọn commit ổn định dùng trong hồ sơ.
+- [x] Viết README: chức năng đã có, công nghệ, cách chạy, test, Swagger, tài khoản demo và phần trực tiếp phụ trách.
+- [x] Hoàn thiện kiến trúc, ERD và sơ đồ ba luồng chính: mượn/trả, giữ chỗ, thanh toán.
+- [x] Đồng bộ Swagger/OpenAPI với response thành công, lỗi, phân trang và các ngoại lệ SSE/provider.
+- [x] Cập nhật tài liệu cũ; phân biệt chức năng đã hoàn thành với RAG và các ý tưởng để sau.
+- [x] Chuẩn bị request mẫu/Postman collection, kịch bản demo và ảnh/video ngắn.
+- [x] Kiểm tra lại thao tác clone → cấu hình → chạy → demo; review diff và test trước khi merge/push bản hoàn thiện.
+- [x] Rà soát PR cũ theo kết quả đối chiếu, viết release notes và chọn commit ổn định dùng trong hồ sơ.
+
+Cập nhật 08/09/2026: thêm `README.md`, `docs/architecture-overview.md`, `docs/api-contract.md`, `docs/demo-script.md`, Postman collection và release notes. Swagger có controller-doc contract cho thống kê mới; `ApiResponse`/`PageMeta`, SSE và VNPAY IPN được mô tả rõ. Tài liệu schema đã cập nhật mốc V39. Docker demo/snapshot, healthcheck, OpenAPI và test suite được kiểm tra local. Ảnh/video ngắn không tự tạo vì cần thao tác UI/frontend và dữ liệu demo mà người dùng sẽ trực tiếp trình bày.
 
 ## 7. Làm thêm nếu còn thời gian
 

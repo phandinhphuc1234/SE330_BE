@@ -24,6 +24,8 @@ public enum ErrorCode {
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Dữ liệu không hợp lệ"),
     ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "ILLEGAL_ARGUMENT", "Tham số không hợp lệ"),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "Yêu cầu không hợp lệ"),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_DATE_RANGE", "Khoảng ngày không hợp lệ"),
+    INVALID_STATISTICS_FILTER(HttpStatus.BAD_REQUEST, "INVALID_STATISTICS_FILTER", "Bộ lọc thống kê không hợp lệ"),
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "MISSING_REQUEST_PARAMETER", "Thiếu tham số bắt buộc"),
     MISSING_REQUEST_HEADER(HttpStatus.BAD_REQUEST, "MISSING_REQUEST_HEADER", "Thiếu header bắt buộc"),
     MISSING_REQUEST_PART(HttpStatus.BAD_REQUEST, "MISSING_REQUEST_PART", "Thiếu phần dữ liệu bắt buộc"),

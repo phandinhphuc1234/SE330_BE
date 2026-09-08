@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
@@ -29,6 +29,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 100;
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final EbookLoanRepository ebookLoanRepository;
 
@@ -169,9 +170,9 @@ public class StaffLoanServiceImpl implements StaffLoanService {
             if (!value.contains("T")) {
                 LocalDate date = LocalDate.parse(value);
                 if (endOfDayForDateOnly) {
-                    return date.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).minusNanos(1);
+                    return date.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant().minusNanos(1);
                 }
-                return date.atStartOfDay().toInstant(ZoneOffset.UTC);
+                return date.atStartOfDay(BUSINESS_ZONE).toInstant();
             }
             return Instant.parse(value);
         } catch (DateTimeParseException e) {

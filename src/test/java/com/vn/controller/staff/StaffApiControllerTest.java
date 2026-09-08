@@ -9,11 +9,15 @@ import com.vn.dto.staff.hold.response.StaffHoldResponse;
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
+import com.vn.dto.staff.statistics.response.StaffBorrowStatisticsDayResponse;
+import com.vn.dto.staff.statistics.response.StaffBorrowStatisticsResponse;
 import com.vn.exception.GlobalExceptionHandler;
 import com.vn.service.StaffDashboardService;
 import com.vn.service.StaffHoldService;
 import com.vn.service.StaffLoanService;
 import com.vn.service.StaffMemberService;
+import com.vn.service.StaffStatisticsService;
+import com.vn.controller.StaffStatisticsController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +54,9 @@ class StaffApiControllerTest {
     @Mock
     private StaffDashboardService staffDashboardService;
 
+    @Mock
+    private StaffStatisticsService staffStatisticsService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -59,7 +66,8 @@ class StaffApiControllerTest {
                         new StaffMemberController(staffMemberService),
                         new StaffLoanController(staffLoanService),
                         new StaffHoldController(staffHoldService),
-                        new StaffDashboardController(staffDashboardService)
+                        new StaffDashboardController(staffDashboardService),
+                        new StaffStatisticsController(staffStatisticsService)
                 )
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(new JacksonJsonHttpMessageConverter())
@@ -207,6 +215,48 @@ class StaffApiControllerTest {
         verify(staffDashboardService).getSummary();
     }
 
+    @Test
+    void getBorrowStatistics_shouldReturnStatisticsInApiResponse() throws Exception {
+        when(staffStatisticsService.getBorrowStatistics(
+                java.time.LocalDate.of(2026, 6, 1),
+                java.time.LocalDate.of(2026, 6, 2),
+                "title",
+                "Clean Code",
+                "Vietnamese"
+        )).thenReturn(borrowStatistics());
+
+        mockMvc.perform(get("/api/staff/statistics/borrows")
+                        .param("from", "2026-06-01")
+                        .param("to", "2026-06-02")
+                        .param("filterType", "title")
+                        .param("filterValue", "Clean Code")
+                        .param("language", "Vietnamese"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Lấy thống kê mượn/trả thành công"))
+                .andExpect(jsonPath("$.data.days[0].date").value("2026-06-01"))
+                .andExpect(jsonPath("$.data.days[0].borrowed").value(2))
+                .andExpect(jsonPath("$.data.totalBorrowed").value(2))
+                .andExpect(jsonPath("$.data.totalReturned").value(1))
+                .andExpect(jsonPath("$.data.netOnLoan").value(1));
+
+        verify(staffStatisticsService).getBorrowStatistics(
+                java.time.LocalDate.of(2026, 6, 1),
+                java.time.LocalDate.of(2026, 6, 2),
+                "title", "Clean Code", "Vietnamese"
+        );
+    }
+
+    @Test
+    void getBorrowStatistics_shouldReturnStandardBadRequestForInvalidDateFormat() throws Exception {
+        mockMvc.perform(get("/api/staff/statistics/borrows")
+                        .param("from", "2026/06/01")
+                        .param("to", "2026-06-02"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("METHOD_ARGUMENT_TYPE_MISMATCH"));
+    }
+
     private StaffMemberListItemResponse memberListItem() {
         return new StaffMemberListItemResponse(
                 2L,
@@ -303,6 +353,20 @@ class StaffApiControllerTest {
                 6,
                 7,
                 Instant.parse("2026-05-30T10:00:00Z")
+        );
+    }
+
+    private StaffBorrowStatisticsResponse borrowStatistics() {
+        return new StaffBorrowStatisticsResponse(
+                List.of(
+                        new StaffBorrowStatisticsDayResponse(java.time.LocalDate.of(2026, 6, 1), 2L, 1L),
+                        new StaffBorrowStatisticsDayResponse(java.time.LocalDate.of(2026, 6, 2), 0L, 0L)
+                ),
+                2L,
+                1L,
+                1L,
+                java.time.LocalDate.of(2026, 6, 1),
+                2L
         );
     }
 }

@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -100,7 +101,10 @@ public class BookController implements BookApiDocs {
     @Override
     public ResponseEntity<ApiResponse<BookDetailResponse>> createBook(@Valid @RequestBody CreateBookRequest request) {
         BookDetailResponse book = bookService.createBook(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/{bookId}")
+                        .buildAndExpand(book.id())
+                        .toUri())
                 .body(ApiResponse.success("Tạo sách thành công", book));
     }
     // Cập nhật thông tin sách

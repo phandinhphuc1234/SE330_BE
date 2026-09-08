@@ -2,7 +2,7 @@
 
 This document describes the PostgreSQL schema after applying Flyway migrations
 in `src/main/resources/db/migration`. Ebook storage, RAG ingestion metadata,
-and author image URL metadata are documented through `V38`.
+and author image URL metadata are documented through `V39`.
 
 Refresh tokens and idempotency records are not stored in PostgreSQL. Refresh
 tokens are stored in Redis, and idempotency state was moved from PostgreSQL to
