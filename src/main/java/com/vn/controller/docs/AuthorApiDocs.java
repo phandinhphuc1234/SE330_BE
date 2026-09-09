@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -51,6 +52,37 @@ public interface AuthorApiDocs {
             @Parameter(description = "Author ID", required = true) Long authorId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Author fields to update")
             UpdateAuthorRequest request
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Upload author image",
+            description = """
+                    Upload or replace an author's portrait image on Cloudinary.
+                    Supported file types: JPG, PNG, WEBP. Maximum size: 5MB.
+                    The response returns the updated author with imageUrl.
+                    Librarian and Admin can access this API.
+                    """
+    )
+    ResponseEntity<ApiResponse<AuthorResponse>> uploadAuthorImage(
+            @Parameter(description = "Author ID", required = true) Long authorId,
+            @Parameter(description = "Author image file", required = true) MultipartFile file
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Update author image",
+            description = """
+                    Replace an author's portrait image on Cloudinary.
+                    The new image is uploaded first, author metadata is updated in the database,
+                    then the old Cloudinary asset is deleted when possible.
+                    Supported file types: JPG, PNG, WEBP. Maximum size: 5MB.
+                    Librarian and Admin can access this API.
+                    """
+    )
+    ResponseEntity<ApiResponse<AuthorResponse>> updateAuthorImage(
+            @Parameter(description = "Author ID", required = true) Long authorId,
+            @Parameter(description = "New author image file", required = true) MultipartFile file
     );
 }
 

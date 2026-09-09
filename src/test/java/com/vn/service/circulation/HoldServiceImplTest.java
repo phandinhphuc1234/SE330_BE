@@ -258,7 +258,7 @@ class HoldServiceImplTest {
         when(idempotencyService.execute(
                 eq(99L),
                 eq("POST"),
-                eq("/api/staff/holds/{holdId}/checkout"),
+                eq("/api/staff/holds/700/checkout"),
                 eq("hold-key"),
                 eq(700L),
                 eq(BorrowResponse.class),

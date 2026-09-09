@@ -1,7 +1,10 @@
 package com.vn.entity;
 
+import com.vn.enums.ImageProvider;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,6 +37,16 @@ public class Author {
 
     @Column(columnDefinition = "TEXT")
     private String bio;
+
+    @Column(name = "image_url", length = 2048)
+    private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "image_provider", length = 50)
+    private ImageProvider imageProvider;
+
+    @Column(name = "image_public_id", length = 500)
+    private String imagePublicId;
 
     private Instant createdAt;
 

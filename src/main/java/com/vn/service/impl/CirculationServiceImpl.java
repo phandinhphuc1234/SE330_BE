@@ -70,7 +70,7 @@ public class CirculationServiceImpl implements CirculationService {
         return idempotencyService.execute(
                 actorId,
                 "PUT",
-                "/api/borrows/{borrowId}/extend",
+                "/api/borrows/" + borrowId + "/extend",
                 idempotencyKey,
                 request,
                 RenewBorrowResponse.class,
@@ -84,7 +84,7 @@ public class CirculationServiceImpl implements CirculationService {
         return idempotencyService.execute(
                 actorId,
                 "PUT",
-                "/api/staff/borrows/{borrowId}/extend",
+                "/api/staff/borrows/" + borrowId + "/extend",
                 idempotencyKey,
                 request,
                 RenewBorrowResponse.class,

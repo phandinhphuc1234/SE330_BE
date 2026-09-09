@@ -48,4 +48,26 @@ class EmailServiceImplTest {
         assertThat(contextCaptor.getValue().getVariable("verifyLink"))
                 .isEqualTo("http://localhost:8080/api/auth/verify-email?token=token-123");
     }
+
+    @Test
+    @DisplayName("Password-reset email renders a frontend reset URL")
+    void sendPasswordResetEmail_shouldUseConfiguredFrontendUrl() throws Exception {
+        JavaMailSender mailSender = mock(JavaMailSender.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+        MimeMessage message = new MimeMessage((jakarta.mail.Session) null);
+        when(mailSender.createMimeMessage()).thenReturn(message);
+        when(templateEngine.process(any(String.class), any(IContext.class))).thenReturn("<p>Hello</p>");
+        doAnswer(invocation -> null).when(mailSender).send(message);
+
+        EmailServiceImpl emailService = new EmailServiceImpl(mailSender, templateEngine);
+        ReflectionTestUtils.setField(emailService, "passwordResetBaseUrl", "http://localhost:3000/reset-password");
+        ReflectionTestUtils.setField(emailService, "fromEmail", "onboarding@resend.dev");
+
+        emailService.sendPasswordResetEmail(1L, "member@example.com", "Member", "token-123");
+
+        var contextCaptor = forClass(IContext.class);
+        verify(templateEngine).process(eq("password-reset"), contextCaptor.capture());
+        assertThat(contextCaptor.getValue().getVariable("resetLink"))
+                .isEqualTo("http://localhost:3000/reset-password?token=token-123");
+    }
 }

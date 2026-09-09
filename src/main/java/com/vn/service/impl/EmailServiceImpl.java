@@ -30,6 +30,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.verification.base-url}")
     private String baseUrl;
 
+    @Value("${app.password-reset.base-url}")
+    private String passwordResetBaseUrl;
+
     // Resend SMTP username is the credential value "resend"; the email From address is configured separately.
     @Value("${app.mail.from}")
     private String fromEmail;
@@ -77,6 +80,39 @@ public class EmailServiceImpl implements EmailService {
 
         return UriComponentsBuilder.fromUriString(normalizedBaseUrl)
                 .path("/api/auth/verify-email")
+                .queryParam("token", token)
+                .build()
+                .toUriString();
+    }
+
+    @Override
+    @Async
+    public void sendPasswordResetEmail(Long memberId, String toEmail, String fullName, String token) {
+        try {
+            Context context = new Context();
+            context.setVariable("fullName", fullName);
+            context.setVariable("resetLink", buildPasswordResetLink(token));
+
+            String htmlContent = templateEngine.process("password-reset", context);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Đặt lại mật khẩu - Hệ thống Quản lý Thư viện");
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+
+            log.info("eventType={} result={} memberId={} entityType=PASSWORD_RESET_EMAIL",
+                    LogEvent.PASSWORD_RESET_REQUEST, LogResult.SUCCESS, memberId);
+        } catch (MessagingException e) {
+            log.error("eventType={} result={} memberId={} entityType=PASSWORD_RESET_EMAIL reason={}",
+                    LogEvent.PASSWORD_RESET_REQUEST, LogResult.FAILED, memberId,
+                    e.getClass().getSimpleName(), e);
+        }
+    }
+
+    private String buildPasswordResetLink(String token) {
+        return UriComponentsBuilder.fromUriString(passwordResetBaseUrl.strip())
                 .queryParam("token", token)
                 .build()
                 .toUriString();

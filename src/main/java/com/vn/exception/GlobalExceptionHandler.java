@@ -9,15 +9,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
@@ -193,6 +197,54 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.errorWithTrace(
                         ErrorCode.DATA_INTEGRITY_VIOLATION.getCode(),
                         ErrorCode.DATA_INTEGRITY_VIOLATION.getMessage(),
+                        traceId
+                ));
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingRequestHeader(MissingRequestHeaderException ex) {
+        String traceId = getTraceId();
+        return ResponseEntity
+                .status(ErrorCode.MISSING_REQUEST_HEADER.getStatus())
+                .body(ApiResponse.errorWithTrace(
+                        ErrorCode.MISSING_REQUEST_HEADER.getCode(),
+                        "Thiếu header bắt buộc: " + ex.getHeaderName(),
+                        traceId
+                ));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingServletRequestPart(MissingServletRequestPartException ex) {
+        String traceId = getTraceId();
+        return ResponseEntity
+                .status(ErrorCode.MISSING_REQUEST_PART.getStatus())
+                .body(ApiResponse.errorWithTrace(
+                        ErrorCode.MISSING_REQUEST_PART.getCode(),
+                        "Thiếu phần dữ liệu bắt buộc: " + ex.getRequestPartName(),
+                        traceId
+                ));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String traceId = getTraceId();
+        return ResponseEntity
+                .status(ErrorCode.METHOD_ARGUMENT_TYPE_MISMATCH.getStatus())
+                .body(ApiResponse.errorWithTrace(
+                        ErrorCode.METHOD_ARGUMENT_TYPE_MISMATCH.getCode(),
+                        "Tham số '" + ex.getName() + "' không đúng định dạng",
+                        traceId
+                ));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
+        String traceId = getTraceId();
+        return ResponseEntity
+                .status(ErrorCode.UNSUPPORTED_MEDIA_TYPE.getStatus())
+                .body(ApiResponse.errorWithTrace(
+                        ErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode(),
+                        ErrorCode.UNSUPPORTED_MEDIA_TYPE.getMessage(),
                         traceId
                 ));
     }

@@ -147,7 +147,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResult refreshToken(String refreshToken) {
         // 1. Validate refresh token
-        if (!jwtService.isValid(refreshToken)) {
+        if (!jwtService.isRefreshToken(refreshToken)) {
             throw new AppException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
 
@@ -161,9 +161,19 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
 
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_OR_EXPIRED_TOKEN));
+        if (!member.getEmail().equals(email)) {
+            throw new AppException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
+        }
+        if (member.getStatus() != MemberStatus.ACTIVE) {
+            redisTokenService.deleteRefreshToken(userId);
+            throw new AppException(ErrorCode.ACCOUNT_INACTIVE);
+        }
+
         // 4. Rotate: tạo token mới, xóa token cũ và lưu token mới vào Redis
-        String newAccessToken = jwtService.generateAccessToken(email, userId);
-        String newRefreshToken = jwtService.generateRefreshToken(email, userId);
+        String newAccessToken = jwtService.generateAccessToken(member.getEmail(), userId);
+        String newRefreshToken = jwtService.generateRefreshToken(member.getEmail(), userId);
         redisTokenService.saveRefreshToken(userId, newRefreshToken, jwtService.getRefreshExpiry());
         // Sau khi log được tạo ra thành công
         log.info("eventType={} result={} memberId={} entityType=MEMBER entityId={}",

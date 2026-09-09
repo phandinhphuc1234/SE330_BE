@@ -8,10 +8,15 @@ import org.springframework.stereotype.Service;
 // bộ thư viện mã hóa built-in của Java, không cần thêm dependency nào.
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 
 @Service
 public class JwtService {
+
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "ACCESS";
+    private static final String REFRESH_TOKEN_TYPE = "REFRESH";
 
     private final SecretKey accessKey;
     private final long accessExpiry;
@@ -28,11 +33,11 @@ public class JwtService {
     }
 
     public String generateAccessToken(String email, Long userId) {
-        return buildToken(email, userId, accessExpiry);
+        return buildToken(email, userId, accessExpiry, ACCESS_TOKEN_TYPE);
     }
 
     public String generateRefreshToken(String email, Long userId) {
-        return buildToken(email, userId, refreshExpiry);
+        return buildToken(email, userId, refreshExpiry, REFRESH_TOKEN_TYPE);
     }
 
     public String extractEmail(String token) {
@@ -41,6 +46,11 @@ public class JwtService {
 
     public Long extractUserId(String token) {
         return getClaims(token).get("userId", Long.class);
+    }
+
+    public Instant extractIssuedAt(String token) {
+        Date issuedAt = getClaims(token).getIssuedAt();
+        return issuedAt == null ? null : issuedAt.toInstant();
     }
 
     public boolean isValid(String token) {
@@ -54,6 +64,14 @@ public class JwtService {
         }
     }
 
+    public boolean isAccessToken(String token) {
+        return isTokenOfType(token, ACCESS_TOKEN_TYPE);
+    }
+
+    public boolean isRefreshToken(String token) {
+        return isTokenOfType(token, REFRESH_TOKEN_TYPE);
+    }
+
     public long getAccessExpiry() {
         return accessExpiry;
     }
@@ -64,14 +82,23 @@ public class JwtService {
 
     // ── private ──────────────────────────────────────────
     // buildToken: Tạo JWT token với thông tin người dùng
-    private String buildToken(String email, Long userId, long expiry) {
+    private String buildToken(String email, Long userId, long expiry, String tokenType) {
         return Jwts.builder()
                 .subject(email)                          // 0.12.x: subject() thay vì setSubject()
                 .claim("userId", userId)
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(new Date())                    // 0.12.x: issuedAt() thay vì setIssuedAt()
                 .expiration(new Date(System.currentTimeMillis() + expiry))
                 .signWith(accessKey)                     // 0.12.x: chỉ cần key, tự suy ra algorithm
                 .compact();
+    }
+
+    private boolean isTokenOfType(String token, String expectedTokenType) {
+        try {
+            return expectedTokenType.equals(getClaims(token).get(TOKEN_TYPE_CLAIM, String.class));
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
     // getClaims: Giải mã JWT token và trả về claims

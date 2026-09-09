@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
@@ -185,9 +184,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
             if (!value.contains("T")) {
                 LocalDate date = LocalDate.parse(value);
                 if (endOfDayForDateOnly) {
-                    return date.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).minusNanos(1);
+                    return date.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant().minusNanos(1);
                 }
-                return date.atStartOfDay().toInstant(ZoneOffset.UTC);
+                return date.atStartOfDay(BUSINESS_ZONE).toInstant();
             }
             return Instant.parse(value);
         } catch (DateTimeParseException ex) {

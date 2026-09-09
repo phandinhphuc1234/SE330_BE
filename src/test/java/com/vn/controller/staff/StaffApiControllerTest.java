@@ -9,11 +9,18 @@ import com.vn.dto.staff.hold.response.StaffHoldResponse;
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
+import com.vn.dto.staff.member.response.MemberStatusUpdateResponse;
+import com.vn.security.MemberUserDetails;
+import com.vn.testsupport.TestDataFactory;
+import com.vn.dto.staff.statistics.response.StaffBorrowStatisticsDayResponse;
+import com.vn.dto.staff.statistics.response.StaffBorrowStatisticsResponse;
 import com.vn.exception.GlobalExceptionHandler;
 import com.vn.service.StaffDashboardService;
 import com.vn.service.StaffHoldService;
 import com.vn.service.StaffLoanService;
 import com.vn.service.StaffMemberService;
+import com.vn.service.StaffStatisticsService;
+import com.vn.controller.StaffStatisticsController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +31,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,6 +42,7 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,7 +61,15 @@ class StaffApiControllerTest {
     @Mock
     private StaffDashboardService staffDashboardService;
 
+    @Mock
+    private StaffStatisticsService staffStatisticsService;
+
     private MockMvc mockMvc;
+
+    @org.junit.jupiter.api.AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @BeforeEach
     void setUp() {
@@ -59,9 +78,11 @@ class StaffApiControllerTest {
                         new StaffMemberController(staffMemberService),
                         new StaffLoanController(staffLoanService),
                         new StaffHoldController(staffHoldService),
-                        new StaffDashboardController(staffDashboardService)
+                        new StaffDashboardController(staffDashboardService),
+                        new StaffStatisticsController(staffStatisticsService)
                 )
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setMessageConverters(new JacksonJsonHttpMessageConverter())
                 .build();
     }
@@ -207,6 +228,73 @@ class StaffApiControllerTest {
         verify(staffDashboardService).getSummary();
     }
 
+    @Test
+    void getBorrowStatistics_shouldReturnStatisticsInApiResponse() throws Exception {
+        when(staffStatisticsService.getBorrowStatistics(
+                java.time.LocalDate.of(2026, 6, 1),
+                java.time.LocalDate.of(2026, 6, 2),
+                "title",
+                "Clean Code",
+                "Vietnamese"
+        )).thenReturn(borrowStatistics());
+
+        mockMvc.perform(get("/api/staff/statistics/borrows")
+                        .param("from", "2026-06-01")
+                        .param("to", "2026-06-02")
+                        .param("filterType", "title")
+                        .param("filterValue", "Clean Code")
+                        .param("language", "Vietnamese"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Lấy thống kê mượn/trả thành công"))
+                .andExpect(jsonPath("$.data.days[0].date").value("2026-06-01"))
+                .andExpect(jsonPath("$.data.days[0].borrowed").value(2))
+                .andExpect(jsonPath("$.data.totalBorrowed").value(2))
+                .andExpect(jsonPath("$.data.totalReturned").value(1))
+                .andExpect(jsonPath("$.data.netOnLoan").value(1));
+
+        verify(staffStatisticsService).getBorrowStatistics(
+                java.time.LocalDate.of(2026, 6, 1),
+                java.time.LocalDate.of(2026, 6, 2),
+                "title", "Clean Code", "Vietnamese"
+        );
+    }
+
+    @Test
+    void updateMemberStatus_shouldReturnAuditAwareStatusResponse() throws Exception {
+        MemberUserDetails admin = new MemberUserDetails(TestDataFactory.activeMember(1L));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                admin, null, admin.getAuthorities()
+        ));
+        when(staffMemberService.updateMemberStatus(
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.eq(2L),
+                org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new MemberStatusUpdateResponse(
+                        2L, com.vn.enums.MemberStatus.ACTIVE, com.vn.enums.MemberStatus.BANNED,
+                        "Overdue policy", Instant.parse("2026-09-08T00:00:00Z")
+                ));
+
+        mockMvc.perform(patch("/api/staff/members/{memberId}/status", 2L)
+                        .contentType("application/json")
+                        .content("{\"status\":\"BANNED\",\"reason\":\"Overdue policy\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.memberId").value(2))
+                .andExpect(jsonPath("$.data.previousStatus").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.newStatus").value("BANNED"));
+    }
+
+    @Test
+    void getBorrowStatistics_shouldReturnStandardBadRequestForInvalidDateFormat() throws Exception {
+        mockMvc.perform(get("/api/staff/statistics/borrows")
+                        .param("from", "2026/06/01")
+                        .param("to", "2026-06-02"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("METHOD_ARGUMENT_TYPE_MISMATCH"));
+    }
+
     private StaffMemberListItemResponse memberListItem() {
         return new StaffMemberListItemResponse(
                 2L,
@@ -303,6 +391,20 @@ class StaffApiControllerTest {
                 6,
                 7,
                 Instant.parse("2026-05-30T10:00:00Z")
+        );
+    }
+
+    private StaffBorrowStatisticsResponse borrowStatistics() {
+        return new StaffBorrowStatisticsResponse(
+                List.of(
+                        new StaffBorrowStatisticsDayResponse(java.time.LocalDate.of(2026, 6, 1), 2L, 1L),
+                        new StaffBorrowStatisticsDayResponse(java.time.LocalDate.of(2026, 6, 2), 0L, 0L)
+                ),
+                2L,
+                1L,
+                1L,
+                java.time.LocalDate.of(2026, 6, 1),
+                2L
         );
     }
 }

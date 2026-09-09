@@ -27,6 +27,11 @@ public record BookEbookManagementResponse(
         BigDecimal accessFee,
         String currency,
         Integer accessDurationDays,
+        String ingestionStatus,
+        String ragDocumentId,
+        Long ragJobId,
+        String ingestionLastError,
+        Instant indexingRequestedAt,
         Instant createdAt,
         Instant updatedAt
 ) {

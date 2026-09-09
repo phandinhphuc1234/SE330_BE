@@ -2,15 +2,21 @@ package com.vn.service.impl;
 
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.internal.StaffMemberStats;
+import com.vn.dto.staff.member.request.UpdateMemberStatusRequest;
+import com.vn.dto.staff.member.response.MemberStatusUpdateResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
 import com.vn.entity.Member;
+import com.vn.entity.MemberStatusAudit;
 import com.vn.enums.BorrowStatus;
 import com.vn.enums.MemberStatus;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.mapper.StaffMemberMapper;
 import com.vn.repository.MemberRepository;
+import com.vn.repository.MemberStatusAuditRepository;
+import com.vn.security.JwtService;
+import com.vn.service.RedisTokenService;
 import com.vn.service.StaffLoanService;
 import com.vn.service.StaffMemberService;
 import com.vn.service.impl.staff.member.StaffMemberStatsLoader;
@@ -37,6 +43,9 @@ public class StaffMemberServiceImpl implements StaffMemberService {
     private final StaffLoanService staffLoanService;
     private final StaffMemberStatsLoader statsLoader;
     private final StaffMemberMapper staffMemberMapper;
+    private final MemberStatusAuditRepository memberStatusAuditRepository;
+    private final RedisTokenService redisTokenService;
+    private final JwtService jwtService;
 
     // Tìm member theo filter của staff, sau đó load thống kê phụ theo batch và map sang response.
     @Override
@@ -95,6 +104,43 @@ public class StaffMemberServiceImpl implements StaffMemberService {
         return staffLoanService.searchMemberLoans(memberId, status, openOnly, overdue, page, size);
     }
 
+    @Override
+    @Transactional
+    public MemberStatusUpdateResponse updateMemberStatus(Long actorMemberId,
+                                                         Long memberId,
+                                                         UpdateMemberStatusRequest request) {
+        if (actorMemberId.equals(memberId)) {
+            throw new AppException(ErrorCode.CANNOT_CHANGE_OWN_STATUS);
+        }
+        if (request.status() == MemberStatus.PENDING_VERIFICATION) {
+            throw new AppException(ErrorCode.INVALID_MEMBER_STATUS_TRANSITION);
+        }
+
+        Member member = memberRepository.findLockedById(memberId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        MemberStatus previousStatus = member.getStatus();
+        if (previousStatus == request.status()) {
+            throw new AppException(ErrorCode.INVALID_MEMBER_STATUS_TRANSITION);
+        }
+
+        Instant changedAt = Instant.now();
+        String reason = normalizeReason(request.reason());
+        member.setStatus(request.status());
+        memberStatusAuditRepository.save(MemberStatusAudit.builder()
+                .memberId(member.getId())
+                .actorMemberId(actorMemberId)
+                .previousStatus(previousStatus)
+                .newStatus(request.status())
+                .reason(reason)
+                .createdAt(changedAt)
+                .build());
+
+        // Revoke active/refresh tokens both when locking and when reactivating a
+        // member, so an older token can never become valid again after reactivation.
+        redisTokenService.revokeAllSessions(member.getId(), jwtService.getRefreshExpiry());
+        return new MemberStatusUpdateResponse(member.getId(), previousStatus, request.status(), reason, changedAt);
+    }
+
     // Parse status query param về enum của domain, trả lỗi chuẩn nếu client truyền sai.
     private MemberStatus parseMemberStatus(String status) {
         if (status == null || status.isBlank()) {
@@ -140,5 +186,12 @@ public class StaffMemberServiceImpl implements StaffMemberService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String normalizeReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            return null;
+        }
+        return reason.trim();
     }
 }

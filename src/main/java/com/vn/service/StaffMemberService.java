@@ -3,6 +3,8 @@ package com.vn.service;
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
+import com.vn.dto.staff.member.request.UpdateMemberStatusRequest;
+import com.vn.dto.staff.member.response.MemberStatusUpdateResponse;
 import org.springframework.data.domain.Page;
 
 public interface StaffMemberService {
@@ -21,4 +23,8 @@ public interface StaffMemberService {
                                            Boolean overdue,
                                            int page,
                                            int size);
+
+    MemberStatusUpdateResponse updateMemberStatus(Long actorMemberId,
+                                                   Long memberId,
+                                                   UpdateMemberStatusRequest request);
 }

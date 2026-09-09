@@ -5,6 +5,8 @@ import com.vn.entity.Author;
 import com.vn.mapper.AuthorMapper;
 import com.vn.repository.AuthorRepository;
 import com.vn.service.impl.AuthorServiceImpl;
+import com.vn.service.storage.MediaStorageService;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,11 +32,17 @@ class AuthorServiceImplTest {
     @Mock
     private AuthorMapper authorMapper;
 
+    @Mock
+    private MediaStorageService mediaStorageService;
+
+    @Mock
+    private TransactionTemplate transactionTemplate;
+
     private AuthorServiceImpl authorService;
 
     @BeforeEach
     void setUp() {
-        authorService = new AuthorServiceImpl(authorRepository, authorMapper);
+        authorService = new AuthorServiceImpl(authorRepository, authorMapper, mediaStorageService, transactionTemplate);
     }
 
     @Test
@@ -91,6 +99,6 @@ class AuthorServiceImplTest {
     }
 
     private AuthorResponse response(Long id, String name) {
-        return new AuthorResponse(id, name, "Bio", null, null);
+        return new AuthorResponse(id, name, "Bio", null, null, null, null);
     }
 }

@@ -6,6 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateReviewRequest(
-        @NotNull @Min(1) @Max(5) Integer rating,
-        @Size(max = 2000) String content
-) {}
+        @NotNull(message = "Rating là bắt buộc")
+        @Min(value = 1, message = "Rating phải từ 1 đến 5")
+        @Max(value = 5, message = "Rating phải từ 1 đến 5")
+        Integer rating,
+
+        @Size(max = 2000, message = "Nội dung đánh giá không được vượt quá 2000 ký tự")
+        String content
+) {
+}

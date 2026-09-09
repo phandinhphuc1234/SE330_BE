@@ -9,6 +9,7 @@ import com.vn.entity.EbookReadingSession;
 import com.vn.enums.BookEbookStatus;
 import com.vn.enums.EbookLoanStatus;
 import com.vn.enums.EbookReadingSessionStatus;
+import com.vn.enums.MediaProvider;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.repository.BookEbookRepository;
@@ -19,6 +20,7 @@ import com.vn.service.storage.MediaDeliveryType;
 import com.vn.service.storage.MediaResourceType;
 import com.vn.service.storage.MediaSignedUrlResult;
 import com.vn.service.storage.MediaStorageService;
+import com.vn.service.storage.ebook.EbookObjectStorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +47,7 @@ class EbookReaderSessionServiceImplTest {
     private EbookReadingSessionRepository readingSessionRepository;
     private EbookReadingSessionTokenService tokenService;
     private MediaStorageService mediaStorageService;
+    private EbookObjectStorageService ebookObjectStorageService;
     private StringRedisTemplate redisTemplate;
     private ValueOperations<String, String> valueOperations;
     private EbookReaderSessionServiceImpl service;
@@ -56,6 +59,7 @@ class EbookReaderSessionServiceImplTest {
         readingSessionRepository = mock(EbookReadingSessionRepository.class);
         tokenService = mock(EbookReadingSessionTokenService.class);
         mediaStorageService = mock(MediaStorageService.class);
+        ebookObjectStorageService = mock(EbookObjectStorageService.class);
         redisTemplate = mock(StringRedisTemplate.class);
         valueOperations = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -65,6 +69,7 @@ class EbookReaderSessionServiceImplTest {
                 readingSessionRepository,
                 tokenService,
                 mediaStorageService,
+                ebookObjectStorageService,
                 redisTemplate
         );
     }
@@ -136,6 +141,34 @@ class EbookReaderSessionServiceImplTest {
     }
 
     @Test
+    void getSignedContentShouldPresignSeaweedObject() {
+        Instant sessionExpiresAt = Instant.now().plusSeconds(900);
+        Instant loanExpiresAt = Instant.now().plusSeconds(3600);
+        BookEbook ebook = ebook();
+        ebook.setProvider(MediaProvider.SEAWEEDFS);
+        ebook.setPublicId(null);
+        ebook.setBucketName("library-private");
+        ebook.setObjectKey("ebooks/501/1001/original.pdf");
+
+        when(tokenService.hashToken("raw-token")).thenReturn("hashed-token");
+        when(valueOperations.get("reading_session:hashed-token"))
+                .thenReturn("""
+                        {"sessionId":7001,"memberId":10,"bookId":501,"bookEbookId":1001,"loanId":3001,
+                        "sessionExpiresAt":"%s","loanExpiresAt":"%s","status":"ACTIVE"}
+                        """.formatted(sessionExpiresAt, loanExpiresAt));
+        when(ebookLoanRepository.findById(3001L)).thenReturn(Optional.of(loan(loanExpiresAt)));
+        when(bookEbookRepository.findByIdAndBookId(1001L, 501L)).thenReturn(Optional.of(ebook));
+        when(ebookObjectStorageService.createReadUrl(eq("library-private"),
+                eq("ebooks/501/1001/original.pdf"), any()))
+                .thenReturn("http://localhost:8333/library-private/ebooks/501/1001/original.pdf?signed=true");
+
+        EbookSignedContentResponse response = service.getSignedContent(10L, 501L, "raw-token");
+
+        assertThat(response.signedUrl()).contains("localhost:8333/library-private");
+        verify(mediaStorageService, never()).generateSignedUrl(any());
+    }
+
+    @Test
     void getSignedContentShouldRejectClosedSessionFromDbFallback() {
         EbookReadingSession closedSession = readingSession(EbookReadingSessionStatus.CLOSED, Instant.now().plusSeconds(900));
         when(tokenService.hashToken("raw-token")).thenReturn("hashed-token");
@@ -156,6 +189,7 @@ class EbookReaderSessionServiceImplTest {
         ebook.setId(1001L);
         ebook.setBook(book);
         ebook.setStatus(BookEbookStatus.ACTIVE);
+        ebook.setProvider(MediaProvider.CLOUDINARY);
         ebook.setPublicId("pdf/9780132350884/main.pdf");
         ebook.setResourceType(MediaResourceType.RAW);
         ebook.setDeliveryType(MediaDeliveryType.AUTHENTICATED);

@@ -5,7 +5,7 @@ import java.time.Instant;
 
 /**
  * Response an toàn cho trang public/member render ebook.
- * Không trả Cloudinary publicId, signed URL hoặc URL PDF trực tiếp.
+ * Không trả object key, signed URL hoặc URL PDF trực tiếp.
  */
 public record BookEbookPublicResponse(
         Long bookEbookId,

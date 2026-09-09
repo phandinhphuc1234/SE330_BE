@@ -1,5 +1,6 @@
 package com.vn.service.impl;
 
+import com.vn.config.RagServiceProperties;
 import com.vn.dto.ebook.request.UpdateBookEbookRequest;
 import com.vn.dto.ebook.response.BookEbookManagementResponse;
 import com.vn.dto.ebook.response.BookEbookPublicResponse;
@@ -7,6 +8,7 @@ import com.vn.dto.ebook.response.BookEbookUploadResponse;
 import com.vn.entity.Book;
 import com.vn.entity.BookEbook;
 import com.vn.enums.BookEbookStatus;
+import com.vn.enums.EbookIngestionStatus;
 import com.vn.enums.EbookAccessType;
 import com.vn.enums.MediaProvider;
 import com.vn.exception.AppException;
@@ -14,15 +16,12 @@ import com.vn.exception.ErrorCode;
 import com.vn.repository.BookEbookRepository;
 import com.vn.repository.BookRepository;
 import com.vn.service.BookEbookService;
-import com.vn.service.ebook.EbookCloudinaryPublicIdBuilder;
 import com.vn.service.ebook.EbookPdfValidator;
-import com.vn.service.storage.MediaCategory;
-import com.vn.service.storage.MediaDeleteCommand;
+import com.vn.service.impl.ebook.EbookRagIngestionAsyncProcessor;
 import com.vn.service.storage.MediaDeliveryType;
 import com.vn.service.storage.MediaResourceType;
-import com.vn.service.storage.MediaStorageService;
-import com.vn.service.storage.MediaUploadCommand;
-import com.vn.service.storage.MediaUploadResult;
+import com.vn.service.storage.ebook.EbookObjectStorageService;
+import com.vn.service.storage.ebook.EbookObjectStorageService.EbookObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,8 +31,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Locale;
-import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,9 +44,10 @@ public class BookEbookServiceImpl implements BookEbookService {
 
     private final BookRepository bookRepository;
     private final BookEbookRepository bookEbookRepository;
-    private final MediaStorageService mediaStorageService;
-    private final EbookCloudinaryPublicIdBuilder publicIdBuilder;
+    private final EbookObjectStorageService ebookObjectStorageService;
     private final EbookPdfValidator ebookPdfValidator;
+    private final EbookRagIngestionAsyncProcessor ragIngestionAsyncProcessor;
+    private final RagServiceProperties ragServiceProperties;
     private final TransactionTemplate transactionTemplate;
 
     @Override
@@ -54,23 +55,27 @@ public class BookEbookServiceImpl implements BookEbookService {
         Book book = getActiveBook(bookId);
         ebookPdfValidator.validate(file);
 
-        // publicId cố định theo ISBN để Cloudinary lưu đúng folder pdf/{isbn}/main.pdf.
-        String publicId = publicIdBuilder.buildMainPdfPublicId(book);
-        BookEbook existingEbook = bookEbookRepository
-                .findByProviderAndPublicId(MediaProvider.CLOUDINARY, publicId)
-                .orElse(null);
+        PreparedEbook prepared = transactionTemplate.execute(status -> prepareEbookStorageRow(book));
+        if (prepared == null) {
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
 
-        // Upload lên Cloudinary trước, chỉ ghi DB sau khi provider trả metadata hợp lệ.
-        MediaUploadResult uploadResult = uploadAuthenticatedPdf(book, file, publicId);
+        String objectKey = "ebooks/%d/%d/original.pdf".formatted(bookId, prepared.ebookId());
+        EbookObjectMetadata metadata = ebookObjectStorageService.upload(objectKey, file);
+        BookEbook savedEbook;
         try {
-            BookEbook savedEbook = transactionTemplate.execute(status ->
-                    saveUploadedEbook(book, existingEbook, uploadResult)
+            savedEbook = transactionTemplate.execute(status ->
+                    saveUploadedEbook(prepared.ebookId(), metadata)
             );
-            return toResponse(savedEbook);
         } catch (RuntimeException e) {
-            cleanupOnlyWhenThisWasANewCloudinaryAsset(publicId, existingEbook);
+            cleanupOnlyWhenThisWasANewObject(metadata, prepared.wasNew());
             throw e;
         }
+
+        BookEbook ebookWithScheduledIngestion = ragServiceProperties.enabled()
+                ? scheduleRagIngestion(savedEbook)
+                : savedEbook;
+        return toResponse(ebookWithScheduledIngestion);
     }
 
     @Override
@@ -122,20 +127,48 @@ public class BookEbookServiceImpl implements BookEbookService {
         return toManagementResponse(bookEbookRepository.save(ebook));
     }
 
-    private BookEbook saveUploadedEbook(Book book, BookEbook existingEbook, MediaUploadResult uploadResult) {
-        // Nếu publicId đã tồn tại, cập nhật metadata row cũ vì Cloudinary đã overwrite cùng asset.
-        BookEbook ebook = existingEbook != null ? existingEbook : new BookEbook();
-        ebook.setBook(book);
-        ebook.setProvider(MediaProvider.CLOUDINARY);
-        ebook.setPublicId(uploadResult.publicId());
+    private PreparedEbook prepareEbookStorageRow(Book book) {
+        BookEbook ebook = bookEbookRepository.findFirstByBookIdOrderByIdDesc(book.getId()).orElse(null);
+        boolean wasNew = ebook == null;
+        if (wasNew) {
+            ebook = new BookEbook();
+            ebook.setBook(book);
+            ebook.setProvider(MediaProvider.SEAWEEDFS);
+            ebook.setBucketName("pending");
+            ebook.setObjectKey("pending/" + UUID.randomUUID());
+            ebook.setResourceType(MediaResourceType.RAW);
+            ebook.setDeliveryType(MediaDeliveryType.PRIVATE);
+            ebook.setFormat(PDF_FORMAT);
+            ebook.setStatus(BookEbookStatus.FAILED);
+        }
+        BookEbook saved = bookEbookRepository.saveAndFlush(ebook);
+        return new PreparedEbook(saved.getId(), wasNew);
+    }
+
+    private BookEbook saveUploadedEbook(Long ebookId, EbookObjectMetadata metadata) {
+        BookEbook ebook = bookEbookRepository.findById(ebookId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        ebook.setProvider(MediaProvider.SEAWEEDFS);
+        ebook.setPublicId(null);
+        ebook.setBucketName(metadata.bucket());
+        ebook.setObjectKey(metadata.objectKey());
         ebook.setResourceType(MediaResourceType.RAW);
-        ebook.setDeliveryType(MediaDeliveryType.AUTHENTICATED);
-        ebook.setFormat(resolveFormat(uploadResult));
-        ebook.setMimeType(uploadResult.mimeType());
-        ebook.setOriginalFilename(truncate(uploadResult.originalFilename(), 255));
-        ebook.setVersion(uploadResult.version());
-        ebook.setSizeBytes(uploadResult.sizeBytes());
+        ebook.setDeliveryType(MediaDeliveryType.PRIVATE);
+        ebook.setFormat(PDF_FORMAT);
+        ebook.setMimeType(metadata.contentType());
+        ebook.setOriginalFilename(truncate(metadata.originalFilename(), 255));
+        ebook.setVersion(null);
+        ebook.setSizeBytes(metadata.fileSizeBytes());
+        ebook.setChecksum(null);
+        ebook.setChecksumSha256(metadata.checksumSha256());
         ebook.setStatus(BookEbookStatus.ACTIVE);
+        ebook.setIngestionStatus(ragServiceProperties.enabled()
+                ? EbookIngestionStatus.QUEUED
+                : EbookIngestionStatus.NOT_REQUESTED);
+        ebook.setRagDocumentId(null);
+        ebook.setRagJobId(null);
+        ebook.setIngestionLastError(null);
+        ebook.setIndexingRequestedAt(ragServiceProperties.enabled() ? Instant.now() : null);
 
         if (ebook.getMaxConcurrentLoans() == null) {
             ebook.setMaxConcurrentLoans(5);
@@ -147,43 +180,39 @@ public class BookEbookServiceImpl implements BookEbookService {
         return bookEbookRepository.save(ebook);
     }
 
-    private MediaUploadResult uploadAuthenticatedPdf(Book book, MultipartFile file, String publicId) {
-        // RAW + AUTHENTICATED là phần quan trọng để PDF không public như ảnh bìa.
-        return mediaStorageService.upload(new MediaUploadCommand(
-                file,
-                MediaResourceType.RAW,
-                MediaCategory.BOOK_PDF,
-                publicId,
-                MediaDeliveryType.AUTHENTICATED,
-                true,
-                Map.of(
-                        "category", MediaCategory.BOOK_PDF.name(),
-                        "bookId", String.valueOf(book.getId())
-                ),
-                Map.of(
-                        "category", MediaCategory.BOOK_PDF.name(),
-                        "bookId", String.valueOf(book.getId()),
-                        "isbn", book.getIsbn() == null ? "" : book.getIsbn()
-                )
-        ));
+    private BookEbook scheduleRagIngestion(BookEbook ebook) {
+        try {
+            ragIngestionAsyncProcessor.requestIngestionAsync(ebook.getId());
+            return ebook;
+        } catch (RuntimeException exception) {
+            log.warn("Could not schedule RAG ingestion for ebookId={} objectKey={}",
+                    ebook.getId(), ebook.getObjectKey(), exception);
+            BookEbook failed = transactionTemplate.execute(status ->
+                    markIngestionFailed(ebook.getId(), ErrorCode.INTERNAL_SERVER_ERROR.getCode())
+            );
+            return failed != null ? failed : ebook;
+        }
     }
 
-    private void cleanupOnlyWhenThisWasANewCloudinaryAsset(String publicId, BookEbook existingEbook) {
-        if (existingEbook != null) {
-            // Không xóa asset khi overwrite DB fail, vì đó có thể là ebook đang được quản lý trước đó.
-            log.warn("Could not persist overwritten ebook metadata. Keeping Cloudinary asset publicId={} to avoid deleting an existing ebook.", publicId);
+    private BookEbook markIngestionFailed(Long ebookId, String errorCode) {
+        BookEbook ebook = bookEbookRepository.findById(ebookId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        ebook.setIngestionStatus(EbookIngestionStatus.FAILED);
+        ebook.setIngestionLastError(truncate(errorCode, 1000));
+        ebook.setIndexingRequestedAt(Instant.now());
+        return bookEbookRepository.save(ebook);
+    }
+
+    private void cleanupOnlyWhenThisWasANewObject(EbookObjectMetadata metadata, boolean wasNew) {
+        if (!wasNew) {
+            log.warn("Could not persist overwritten ebook metadata. Keeping S3 object key={} to avoid deleting an existing ebook.", metadata.objectKey());
             return;
         }
 
         try {
-            mediaStorageService.delete(new MediaDeleteCommand(
-                    publicId,
-                    MediaResourceType.RAW,
-                    MediaDeliveryType.AUTHENTICATED,
-                    true
-            ));
+            ebookObjectStorageService.delete(metadata.bucket(), metadata.objectKey());
         } catch (RuntimeException cleanupFailure) {
-            log.warn("Could not cleanup newly uploaded ebook publicId={}", publicId, cleanupFailure);
+            log.warn("Could not cleanup newly uploaded ebook objectKey={}", metadata.objectKey(), cleanupFailure);
         }
     }
 
@@ -234,14 +263,6 @@ public class BookEbookServiceImpl implements BookEbookService {
         return normalized;
     }
 
-    private String resolveFormat(MediaUploadResult uploadResult) {
-        if (StringUtils.hasText(uploadResult.format())) {
-            return uploadResult.format().toLowerCase(Locale.ROOT);
-        }
-
-        return PDF_FORMAT;
-    }
-
     private String truncate(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {
             return value;
@@ -255,7 +276,7 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getId(),
                 ebook.getBook().getId(),
                 ebook.getProvider().name(),
-                ebook.getPublicId(),
+                storageIdentifier(ebook),
                 ebook.getResourceType().name(),
                 ebook.getDeliveryType().name(),
                 ebook.getFormat(),
@@ -269,7 +290,10 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getAccessType().name(),
                 ebook.getAccessFee(),
                 ebook.getCurrency(),
-                ebook.getAccessDurationDays()
+                ebook.getAccessDurationDays(),
+                ebook.getIngestionStatus().name(),
+                ebook.getRagDocumentId(),
+                ebook.getRagJobId()
         );
     }
 
@@ -299,7 +323,7 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getId(),
                 ebook.getBook().getId(),
                 ebook.getProvider().name(),
-                ebook.getPublicId(),
+                storageIdentifier(ebook),
                 ebook.getResourceType().name(),
                 ebook.getDeliveryType().name(),
                 ebook.getFormat(),
@@ -307,7 +331,7 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getOriginalFilename(),
                 ebook.getVersion(),
                 ebook.getSizeBytes(),
-                ebook.getChecksum(),
+                ebook.getChecksumSha256() != null ? ebook.getChecksumSha256() : ebook.getChecksum(),
                 ebook.getStatus().name(),
                 ebook.getMaxConcurrentLoans(),
                 ebook.getLoanDurationDays(),
@@ -315,8 +339,20 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getAccessFee(),
                 ebook.getCurrency(),
                 ebook.getAccessDurationDays(),
+                ebook.getIngestionStatus().name(),
+                ebook.getRagDocumentId(),
+                ebook.getRagJobId(),
+                ebook.getIngestionLastError(),
+                ebook.getIndexingRequestedAt(),
                 ebook.getCreatedAt(),
                 ebook.getUpdatedAt()
         );
+    }
+
+    private String storageIdentifier(BookEbook ebook) {
+        return StringUtils.hasText(ebook.getObjectKey()) ? ebook.getObjectKey() : ebook.getPublicId();
+    }
+
+    private record PreparedEbook(Long ebookId, boolean wasNew) {
     }
 }

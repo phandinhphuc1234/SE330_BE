@@ -2,7 +2,10 @@ package com.vn.controller;
 
 import com.vn.controller.docs.AuthApiDocs;
 import com.vn.dto.auth.request.LoginRequest;
+import com.vn.dto.auth.request.ChangePasswordRequest;
+import com.vn.dto.auth.request.ForgotPasswordRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
+import com.vn.dto.auth.request.ResetPasswordRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.auth.response.AuthResult;
@@ -12,6 +15,7 @@ import com.vn.exception.ErrorCode;
 import com.vn.security.MemberUserDetails;
 import com.vn.security.cookie.RefreshTokenCookieService;
 import com.vn.service.AuthService;
+import com.vn.service.PasswordManagementService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController implements AuthApiDocs {
     // Call các service cần thiết 
     private final AuthService authService;
+    private final PasswordManagementService passwordManagementService;
     private final RefreshTokenCookieService refreshTokenCookieService;
 
     // ── POST /api/auth/register ──
@@ -75,8 +80,7 @@ public class AuthController implements AuthApiDocs {
             HttpServletResponse response) {
 
         if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.errorWithTrace("UNAUTHORIZED", "Không tìm thấy refresh token", null));
+            throw new AppException(ErrorCode.MISSING_REFRESH_TOKEN);
         }
 
         AuthResult authResult = authService.refreshToken(refreshToken);
@@ -96,6 +100,38 @@ public class AuthController implements AuthApiDocs {
             @Valid @RequestBody ResendVerificationRequest request) {
         authService.resendVerificationEmail(request);
         return ResponseEntity.ok(ApiResponse.success("Email xác thực đã được gửi lại", null));
+    }
+
+    @PostMapping("/forgot-password")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordManagementService.requestPasswordReset(request);
+        // Deliberately generic so this public endpoint cannot enumerate emails.
+        return ResponseEntity.ok(ApiResponse.success("Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi.", null));
+    }
+
+    @PostMapping("/reset-password")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletResponse response) {
+        passwordManagementService.resetPassword(request);
+        refreshTokenCookieService.clearRefreshTokenCookie(response);
+        return ResponseEntity.ok(ApiResponse.success("Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.", null));
+    }
+
+    @PostMapping("/change-password")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal MemberUserDetails userDetails,
+            @Valid @RequestBody ChangePasswordRequest request,
+            HttpServletResponse response) {
+        if (userDetails == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        passwordManagementService.changePassword(userDetails.getMember().getId(), request);
+        refreshTokenCookieService.clearRefreshTokenCookie(response);
+        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.", null));
     }
 
     // ── POST /api/auth/logout ──

@@ -11,4 +11,5 @@ public record BookReviewResponse(
         String content,
         Instant createdAt,
         Instant updatedAt
-) {}
+) {
+}

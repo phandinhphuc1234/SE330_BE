@@ -17,9 +17,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -45,6 +46,7 @@ public class PaymentController implements PaymentApiDocs {
     private final PaymentCallbackService paymentCallbackService;
 
     // Tạo transaction PENDING và trả provider paymentUrl; chưa cấp loan/quyền đọc ebook.
+    @PreAuthorize("hasRole('MEMBER')")
     @PostMapping
     @Override
     public ResponseEntity<ApiResponse<CreatePaymentResponse>> createPayment(
@@ -58,7 +60,10 @@ public class PaymentController implements PaymentApiDocs {
                 resolveClientIp(httpRequest),
                 request
         );
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/by-code/{paymentCode}")
+                        .buildAndExpand(payment.paymentCode())
+                        .toUri())
                 .body(ApiResponse.success("Tạo giao dịch thanh toán thành công", payment));
     }
 
@@ -73,6 +78,7 @@ public class PaymentController implements PaymentApiDocs {
     }
 
     // Fallback cho local/sandbox khi IPN không về được qua tunnel; vẫn verify chữ ký VNPAY trước khi update DB.
+    @PreAuthorize("hasRole('MEMBER')")
     @PostMapping("/return/vnpay/confirm")
     @Override
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmVnpayReturn(
@@ -88,6 +94,7 @@ public class PaymentController implements PaymentApiDocs {
     }
 
     // Frontend gọi sau khi quay về từ provider để poll trạng thái payment theo id.
+    @PreAuthorize("hasRole('MEMBER')")
     @GetMapping("/{paymentId}")
     @Override
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
@@ -100,6 +107,7 @@ public class PaymentController implements PaymentApiDocs {
     }
 
     // paymentCode ổn định hơn cho redirect/polling vì nó chính là provider order id.
+    @PreAuthorize("hasRole('MEMBER')")
     @GetMapping("/by-code/{paymentCode}")
     @Override
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByCode(

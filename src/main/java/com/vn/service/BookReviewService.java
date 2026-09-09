@@ -14,11 +14,11 @@ public interface BookReviewService {
 
     BookReviewStatsResponse getBookReviewStats(Long bookId);
 
+    Optional<BookReviewResponse> getMyReview(Long bookId, Long memberId);
+
     BookReviewResponse createReview(Long bookId, Long memberId, CreateReviewRequest request);
 
     BookReviewResponse updateReview(Long bookId, Long memberId, UpdateReviewRequest request);
 
     void deleteReview(Long bookId, Long memberId);
-
-    Optional<BookReviewResponse> getMyReview(Long bookId, Long memberId);
 }

@@ -12,6 +12,7 @@ import com.vn.entity.EbookReadingSession;
 import com.vn.enums.BookEbookStatus;
 import com.vn.enums.EbookLoanStatus;
 import com.vn.enums.EbookReadingSessionStatus;
+import com.vn.enums.MediaProvider;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.repository.BookEbookRepository;
@@ -23,6 +24,7 @@ import com.vn.service.ebook.EbookReadingSessionTokenService;
 import com.vn.service.storage.MediaSignedUrlCommand;
 import com.vn.service.storage.MediaSignedUrlResult;
 import com.vn.service.storage.MediaStorageService;
+import com.vn.service.storage.ebook.EbookObjectStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -54,6 +56,7 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
     private final EbookReadingSessionRepository readingSessionRepository;
     private final EbookReadingSessionTokenService tokenService;
     private final MediaStorageService mediaStorageService;
+    private final EbookObjectStorageService ebookObjectStorageService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
@@ -116,13 +119,17 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
             throw new AppException(ErrorCode.READING_SESSION_NOT_ACTIVE);
         }
 
-        // Business service chỉ gọi storage abstraction; chi tiết ký URL nằm ở CloudinaryStorageService.
+        Duration ttl = Duration.between(now, expiresAt);
+        if (ebook.getProvider() == MediaProvider.SEAWEEDFS) {
+            String signedUrl = ebookObjectStorageService.createReadUrl(
+                    ebook.getBucketName(), ebook.getObjectKey(), ttl
+            );
+            return new EbookSignedContentResponse(signedUrl, expiresAt, now);
+        }
+
+        // Legacy Cloudinary rows remain readable during migration to SeaweedFS.
         MediaSignedUrlResult signedUrl = mediaStorageService.generateSignedUrl(new MediaSignedUrlCommand(
-                ebook.getPublicId(),
-                ebook.getResourceType(),
-                ebook.getDeliveryType(),
-                ebook.getFormat(),
-                expiresAt
+                ebook.getPublicId(), ebook.getResourceType(), ebook.getDeliveryType(), ebook.getFormat(), expiresAt
         ));
         return new EbookSignedContentResponse(signedUrl.signedUrl(), signedUrl.expiresAt(), now);
     }

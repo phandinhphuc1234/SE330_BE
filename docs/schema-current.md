@@ -1,7 +1,8 @@
 # Current Database Schema
 
-This document describes the PostgreSQL schema after applying all Flyway
-migrations in `src/main/resources/db/migration` up to `V27`.
+This document describes the PostgreSQL schema after applying Flyway migrations
+in `src/main/resources/db/migration`. Ebook storage, RAG ingestion metadata,
+and author image URL metadata are documented through `V42`.
 
 Refresh tokens and idempotency records are not stored in PostgreSQL. Refresh
 tokens are stored in Redis, and idempotency state was moved from PostgreSQL to
@@ -12,7 +13,10 @@ Redis by `V20__drop_idempotency_records.sql`.
 The current schema supports:
 
 - Catalog: authors, categories, books, book images, physical book copies
-- Members and authentication: members, email verification tokens
+- Ebooks: protected PDF metadata, SeaweedFS object references, access policy,
+  and RAG ingestion tracking
+- Members and authentication: members, email verification tokens, hashed
+  password-reset tokens and account-status audit records
 - Circulation: borrow records, holds/reservations, renewal data
 - Finance: fine configuration and payment records
 - Operations: audit logs, notifications, notification queue, system settings,
@@ -40,6 +44,9 @@ Stores book authors.
 | `id` | `BIGSERIAL` | No | | Primary key |
 | `name` | `VARCHAR(100)` | No | | Unique |
 | `bio` | `TEXT` | Yes | | |
+| `image_url` | `VARCHAR(2048)` | Yes | | Optional author portrait/profile image URL |
+| `image_provider` | `VARCHAR(50)` | Yes | | Author image storage provider, currently `CLOUDINARY` |
+| `image_public_id` | `VARCHAR(500)` | Yes | | Cloudinary public ID for replacing/deleting the author image |
 | `created_at` | `TIMESTAMP` | No | `NOW()` | |
 | `updated_at` | `TIMESTAMP` | No | `NOW()` | |
 
@@ -47,6 +54,13 @@ Constraints:
 
 - `PRIMARY KEY (id)`
 - `uq_author_name UNIQUE (name)`
+- `chk_authors_image_provider CHECK (image_provider IS NULL OR image_provider IN ('CLOUDINARY'))`
+
+Migration notes:
+
+- `V38` adds optional `image_url` for author portrait/profile images.
+- `V39` adds Cloudinary metadata for author images: `image_provider` and
+  `image_public_id`, plus a partial unique index on `image_public_id`.
 
 ### `categories`
 
@@ -177,6 +191,96 @@ Migration notes:
 - Current book read APIs expose structured `coverImage` URLs. Book create/update
   APIs no longer accept `imageUrl`; cover files are managed through
   `POST /api/books/{bookId}/cover` and `PUT /api/books/{bookId}/cover`.
+
+### `book_ebooks`
+
+Stores protected ebook PDF metadata for catalog books. The PDF binary is stored
+outside PostgreSQL. New ebook uploads use SeaweedFS through the S3-compatible
+API; PostgreSQL stores only the bucket/object key and file metadata.
+
+| Column | Type | Null | Default | Notes |
+|---|---:|---:|---:|---|
+| `id` | `BIGSERIAL` | No | | Primary key |
+| `book_id` | `BIGINT` | No | | FK to `books(id)`, `ON DELETE CASCADE` |
+| `provider` | `VARCHAR(50)` | No | `'CLOUDINARY'` | `CLOUDINARY` for legacy rows, `SEAWEEDFS` for new S3 ebook PDFs |
+| `public_id` | `VARCHAR(500)` | Yes | | Legacy Cloudinary identifier; null for SeaweedFS rows |
+| `bucket_name` | `VARCHAR(255)` | Yes | | SeaweedFS/S3 bucket, usually `library-private` |
+| `object_key` | `VARCHAR(1000)` | Yes | | SeaweedFS/S3 object key, currently `ebooks/{bookId}/{ebookId}/original.pdf` |
+| `resource_type` | `VARCHAR(30)` | No | `'RAW'` | Currently `RAW` |
+| `delivery_type` | `VARCHAR(30)` | No | `'AUTHENTICATED'` | `PRIVATE` for SeaweedFS rows |
+| `format` | `VARCHAR(30)` | Yes | | Usually `pdf` |
+| `mime_type` | `VARCHAR(100)` | Yes | | Usually `application/pdf` |
+| `original_filename` | `VARCHAR(255)` | Yes | | Original filename from upload request |
+| `version` | `BIGINT` | Yes | | Legacy provider version field |
+| `size_bytes` | `BIGINT` | Yes | | Uploaded PDF size; must be non-negative when present |
+| `checksum` | `VARCHAR(128)` | Yes | | Legacy checksum field |
+| `checksum_sha256` | `VARCHAR(64)` | Yes | | SHA-256 checksum of the uploaded PDF, lowercase hex |
+| `status` | `VARCHAR(30)` | No | `'ACTIVE'` | `ACTIVE`, `INACTIVE`, `FAILED`, `DELETED` |
+| `max_concurrent_loans` | `INT` | No | `5` | Max concurrent active ebook loans |
+| `loan_duration_days` | `INT` | No | `14` | Default ebook loan duration |
+| `access_type` | `VARCHAR(30)` | No | `'FREE'` | `FREE` or `PAID` |
+| `access_fee` | `DECIMAL(12,2)` | No | `0` | Must be `0` for free ebooks and positive for paid ebooks |
+| `currency` | `VARCHAR(10)` | No | `'VND'` | |
+| `access_duration_days` | `INT` | No | `14` | Reader access duration after borrowing/payment |
+| `ingestion_status` | `VARCHAR(30)` | No | `'NOT_REQUESTED'` | RAG ingestion state for the uploaded PDF |
+| `rag_document_id` | `VARCHAR(100)` | Yes | | Document ID returned by RAG, for example `doc_ebook_55` |
+| `rag_job_id` | `BIGINT` | Yes | | RAG ingestion job ID returned by `/internal/ingestions` |
+| `ingestion_last_error` | `VARCHAR(1000)` | Yes | | Last Library-side error while requesting RAG ingestion |
+| `indexing_requested_at` | `TIMESTAMP WITH TIME ZONE` | Yes | | Time Library requested RAG ingestion |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+| `updated_at` | `TIMESTAMP` | No | `NOW()` | |
+
+Allowed `ingestion_status` values used by the application:
+
+- `NOT_REQUESTED`
+- `QUEUED`
+- `PROCESSING`
+- `PARSED`
+- `CHUNKED`
+- `INDEXED`
+- `FAILED`
+
+Constraints:
+
+- `PRIMARY KEY (id)`
+- `fk_book_ebooks_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE`
+- `chk_book_ebooks_provider CHECK (provider IN ('CLOUDINARY', 'SEAWEEDFS'))`
+- `chk_book_ebooks_resource_type CHECK (resource_type IN ('RAW'))`
+- `chk_book_ebooks_delivery_type CHECK (delivery_type IN ('UPLOAD', 'AUTHENTICATED', 'PRIVATE'))`
+- `chk_book_ebooks_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'FAILED', 'DELETED'))`
+- `chk_book_ebooks_size_bytes_non_negative CHECK (size_bytes IS NULL OR size_bytes >= 0)`
+- `chk_book_ebooks_max_concurrent_loans_positive CHECK (max_concurrent_loans > 0)`
+- `chk_book_ebooks_loan_duration_days_positive CHECK (loan_duration_days > 0)`
+- `chk_book_ebooks_access_type CHECK (access_type IN ('FREE', 'PAID'))`
+- `chk_book_ebooks_access_fee_non_negative CHECK (access_fee >= 0)`
+- `chk_book_ebooks_currency_not_blank CHECK (length(trim(currency)) > 0)`
+- `chk_book_ebooks_access_duration_days_positive CHECK (access_duration_days > 0)`
+- `chk_book_ebooks_access_fee_matches_type CHECK ((access_type = 'PAID' AND access_fee > 0) OR (access_type = 'FREE' AND access_fee = 0))`
+- `chk_book_ebooks_storage_reference CHECK ((provider = 'CLOUDINARY' AND public_id IS NOT NULL) OR (provider = 'SEAWEEDFS' AND bucket_name IS NOT NULL AND object_key IS NOT NULL))`
+
+Indexes:
+
+- `idx_book_ebooks_book_status ON book_ebooks(book_id, status)`
+- `idx_book_ebooks_status ON book_ebooks(status)`
+- `idx_book_ebooks_access_type_status ON book_ebooks(access_type, status)`
+- `uq_book_ebooks_provider_public_id UNIQUE ON book_ebooks(provider, public_id)`
+- `uq_book_ebooks_bucket_object_key UNIQUE ON book_ebooks(bucket_name, object_key) WHERE bucket_name IS NOT NULL AND object_key IS NOT NULL`
+
+Migration notes:
+
+- `V28` created `book_ebooks` for protected ebook PDF metadata.
+- `V29` added ebook access policy fields: `access_type`, `access_fee`,
+  `currency`, and `access_duration_days`.
+- `V30` simplified ebook access policy to `FREE` or `PAID`.
+- `V35` added SeaweedFS/S3 storage columns: `bucket_name`, `object_key`, and
+  `checksum_sha256`; it also allowed `provider = 'SEAWEEDFS'`, made
+  `public_id` nullable, and added the bucket/object unique index.
+- `V37` added RAG ingestion tracking columns: `ingestion_status`,
+  `rag_document_id`, `rag_job_id`, `ingestion_last_error`, and
+  `indexing_requested_at`.
+- For the current RAG contract, SeaweedFS ebook PDFs must use bucket
+  `library-private` and object key `ebooks/{bookId}/{ebookId}/original.pdf`.
+  PostgreSQL should store the bucket/key, not a full storage URL.
 
 ### `members`
 
@@ -593,6 +697,44 @@ Indexes:
 - `idx_email_token_active ON email_verifications(token) WHERE is_used = FALSE`
 - `idx_email_expiry ON email_verifications(expires_at)`
 
+### `password_reset_tokens`
+
+Stores only SHA-256 hashes of one-time password-reset tokens; raw tokens are
+sent by email and are never persisted.
+
+| Column | Type | Null | Default | Notes |
+|---|---:|---:|---:|---|
+| `id` | `BIGSERIAL` | No | | Primary key |
+| `member_id` | `BIGINT` | No | | FK to `members(id)`, `ON DELETE CASCADE` |
+| `token_hash` | `VARCHAR(64)` | No | | Unique lowercase SHA-256 hex |
+| `expires_at` | `TIMESTAMP` | No | | Must be after `created_at` |
+| `used_at` | `TIMESTAMP` | Yes | | Set when a reset is consumed or superseded |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+
+Indexes: `uq_password_reset_tokens_token_hash` and partial
+`idx_password_reset_tokens_member_active (member_id, expires_at DESC) WHERE used_at IS NULL`.
+
+Migration notes: `V40` creates the table; forward-only `V42` changes the
+original fixed-width hash column to `VARCHAR(64)` so Hibernate schema validation
+matches the mapping.
+
+### `member_status_audits`
+
+Stores each administrative account-status change.
+
+| Column | Type | Null | Default | Notes |
+|---|---:|---:|---:|---|
+| `id` | `BIGSERIAL` | No | | Primary key |
+| `member_id` | `BIGINT` | No | | Target member FK |
+| `actor_member_id` | `BIGINT` | No | | Admin actor FK |
+| `previous_status` | `VARCHAR(30)` | No | | Previous `MemberStatus` |
+| `new_status` | `VARCHAR(30)` | No | | Different target status |
+| `reason` | `VARCHAR(500)` | Yes | | Optional administrative reason |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+
+Both status columns are constrained to the four Java `MemberStatus` values and
+must differ. Indexes support lookup by target/actor then newest change.
+
 ### `job_execution_logs`
 
 Stores scheduled/background job execution history.
@@ -712,6 +854,7 @@ idempotency state in Redis instead of PostgreSQL.
 - `book_authors.book_id` -> `books.id`
 - `book_authors.author_id` -> `authors.id`
 - `book_images.book_id` -> `books.id`
+- `book_ebooks.book_id` -> `books.id`
 - `book_copies.book_id` -> `books.id`
 - `book_copies.deleted_by` -> `members.id`
 - `borrow_records.member_id` -> `members.id`
@@ -728,6 +871,9 @@ idempotency state in Redis instead of PostgreSQL.
 - `notification_queue.member_id` -> `members.id`
 - `notification_queue.notification_id` -> `notifications.id`
 - `email_verifications.member_id` -> `members.id`
+- `password_reset_tokens.member_id` -> `members.id`
+- `member_status_audits.member_id` -> `members.id`
+- `member_status_audits.actor_member_id` -> `members.id`
 - `auto_renewal_attempts.borrow_record_id` -> `borrow_records.id`
 - `auto_renewal_attempts.member_id` -> `members.id`
 - `auto_renewal_attempts.book_copy_id` -> `book_copies.id`
@@ -740,6 +886,15 @@ idempotency state in Redis instead of PostgreSQL.
   it was dropped by `V5`.
 - `borrow_records` references `book_copies`, not `books`.
 - `books.total_copies` and `books.available_copies` can be `0`.
+- Ebook PDFs are stored outside PostgreSQL. For SeaweedFS rows, use
+  `book_ebooks.bucket_name` and `book_ebooks.object_key`; do not store full
+  object storage URLs in the database.
+- RAG ingestion starts from the `book_ebooks` storage reference. The Library
+  service uploads the PDF, records metadata, and schedules ingestion
+  asynchronously; RAG reads the PDF from SeaweedFS and performs
+  parsing/chunking/indexing.
+- `book_ebooks.checksum_sha256` is a file integrity fingerprint for the PDF,
+  not a download token or encrypted file content.
 - `book_copies.barcode` is protected by both the original unique constraint and
   the case-insensitive unique index `uq_book_copies_barcode_lower`.
 - A member can have only one active hold for the same book because of

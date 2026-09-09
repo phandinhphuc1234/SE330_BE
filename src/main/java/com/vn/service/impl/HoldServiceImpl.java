@@ -134,7 +134,7 @@ public class HoldServiceImpl implements HoldService {
         return idempotencyService.execute(
                 actorId,
                 "POST",
-                "/api/staff/holds/{holdId}/checkout",
+                "/api/staff/holds/" + holdId + "/checkout",
                 idempotencyKey,
                 holdId,
                 BorrowResponse.class,

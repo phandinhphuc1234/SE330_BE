@@ -1,0 +1,95 @@
+{
+  "info": {
+    "name": "QuanLyThuVien demo",
+    "description": "Backend demo requests. Configure baseUrl, then run Login to set accessToken.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/actuator/health"
+      }
+    },
+    {
+      "name": "Login librarian",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "pm.test('login succeeds', () => pm.expect(response.success).to.eql(true));",
+              "pm.collectionVariables.set('accessToken', response.data.accessToken);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"librarian@library.local\",\n  \"password\": \"Password123\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      }
+    },
+    {
+      "name": "Staff borrow statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/staff/statistics/borrows?from=2026-09-01&to=2026-09-07"
+      }
+    },
+    {
+      "name": "Unauthorized contract",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "pm.test('uses standard 401 ApiResponse', () => {",
+              "  pm.expect(pm.response.code).to.eql(401);",
+              "  pm.expect(response.success).to.eql(false);",
+              "  pm.expect(response.code).to.eql('UNAUTHORIZED');",
+              "  pm.expect(response.traceId).to.be.a('string').and.not.empty;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/members/me"
+      }
+    }
+  ]
+}

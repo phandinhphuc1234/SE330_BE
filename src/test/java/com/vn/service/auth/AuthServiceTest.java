@@ -281,7 +281,7 @@ class AuthServiceTest {
 
     @Test
     void refreshToken_shouldThrowInvalidOrExpiredToken_whenJwtInvalid() {
-        when(jwtService.isValid("invalid-refresh-token")).thenReturn(false);
+        when(jwtService.isRefreshToken("invalid-refresh-token")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshToken("invalid-refresh-token"))
                 .isInstanceOfSatisfying(AppException.class, ex ->
@@ -292,7 +292,7 @@ class AuthServiceTest {
 
     @Test
     void refreshToken_shouldThrowInvalidOrExpiredToken_whenRedisTokenMissing() {
-        when(jwtService.isValid("refresh-token")).thenReturn(true);
+        when(jwtService.isRefreshToken("refresh-token")).thenReturn(true);
         when(jwtService.extractUserId("refresh-token")).thenReturn(1L);
         when(jwtService.extractEmail("refresh-token")).thenReturn("member1@example.com");
         when(redisTokenService.getRefreshToken(1L)).thenReturn(null);
@@ -306,7 +306,7 @@ class AuthServiceTest {
 
     @Test
     void refreshToken_shouldThrowInvalidOrExpiredToken_whenRedisTokenDoesNotMatch() {
-        when(jwtService.isValid("refresh-token")).thenReturn(true);
+        when(jwtService.isRefreshToken("refresh-token")).thenReturn(true);
         when(jwtService.extractUserId("refresh-token")).thenReturn(1L);
         when(jwtService.extractEmail("refresh-token")).thenReturn("member1@example.com");
         when(redisTokenService.getRefreshToken(1L)).thenReturn("another-refresh-token");
@@ -320,10 +320,12 @@ class AuthServiceTest {
 
     @Test
     void refreshToken_shouldRotateTokens_whenRefreshTokenMatchesRedis() {
-        when(jwtService.isValid("old-refresh-token")).thenReturn(true);
+        Member member = TestDataFactory.activeMember(1L);
+        when(jwtService.isRefreshToken("old-refresh-token")).thenReturn(true);
         when(jwtService.extractUserId("old-refresh-token")).thenReturn(1L);
         when(jwtService.extractEmail("old-refresh-token")).thenReturn("member1@example.com");
         when(redisTokenService.getRefreshToken(1L)).thenReturn("old-refresh-token");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(jwtService.generateAccessToken("member1@example.com", 1L)).thenReturn("new-access-token");
         when(jwtService.generateRefreshToken("member1@example.com", 1L)).thenReturn("new-refresh-token");
         when(jwtService.getAccessExpiry()).thenReturn(900000L);
@@ -334,6 +336,34 @@ class AuthServiceTest {
         assertThat(result.authResponse().accessToken()).isEqualTo("new-access-token");
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         verify(redisTokenService).saveRefreshToken(1L, "new-refresh-token", 604800000L);
+    }
+
+    @Test
+    void refreshToken_shouldRejectAccessTokenBeforeRedisLookup() {
+        when(jwtService.isRefreshToken("access-token")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.refreshToken("access-token"))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.INVALID_OR_EXPIRED_TOKEN.getCode()));
+
+        verify(redisTokenService, never()).getRefreshToken(anyLong());
+    }
+
+    @Test
+    void refreshToken_shouldRevokeTokenAndRejectInactiveMember() {
+        Member member = TestDataFactory.bannedMember(1L);
+        when(jwtService.isRefreshToken("refresh-token")).thenReturn(true);
+        when(jwtService.extractUserId("refresh-token")).thenReturn(1L);
+        when(jwtService.extractEmail("refresh-token")).thenReturn("member1@example.com");
+        when(redisTokenService.getRefreshToken(1L)).thenReturn("refresh-token");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> authService.refreshToken("refresh-token"))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.ACCOUNT_INACTIVE.getCode()));
+
+        verify(redisTokenService).deleteRefreshToken(1L);
+        verify(jwtService, never()).generateAccessToken(anyString(), anyLong());
     }
 
     @Test

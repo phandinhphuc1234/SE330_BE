@@ -2,6 +2,7 @@ package com.vn.service.impl.importer;
 
 import com.vn.service.impl.importer.job.BookImportAsyncProcessor;
 import com.vn.service.impl.importer.job.BookImportJobTracker;
+import com.vn.service.impl.importer.job.BookImportSseService;
 
 import com.vn.dto.catalog.response.BookImportJobResponse;
 import com.vn.entity.BookImportJob;
@@ -11,6 +12,7 @@ import com.vn.service.BookImportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,6 +28,7 @@ public class BookImportServiceImpl implements BookImportService {
 
     private final BookImportJobTracker jobTracker;
     private final BookImportAsyncProcessor asyncProcessor;
+    private final BookImportSseService sseService;
 
     // Chức năng: nhận upload CSV, lưu file tạm và trả jobId để frontend polling tiến độ.
     @Override
@@ -41,6 +44,11 @@ public class BookImportServiceImpl implements BookImportService {
     @Override
     public BookImportJobResponse getImportJob(UUID jobId) {
         return jobTracker.getJobResponse(jobId);
+    }
+
+    @Override
+    public SseEmitter streamImportJobEvents(UUID jobId) {
+        return sseService.subscribe(jobId, jobTracker.getJobResponse(jobId));
     }
 
     private void validateFile(MultipartFile file) {

@@ -4,6 +4,9 @@ import com.vn.dto.common.ApiResponse;
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
+import com.vn.dto.staff.member.request.UpdateMemberStatusRequest;
+import com.vn.dto.staff.member.response.MemberStatusUpdateResponse;
+import com.vn.security.MemberUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -45,5 +48,15 @@ public interface StaffMemberApiDocs {
             @Parameter(description = "When true, only overdue loans are returned") Boolean overdue,
             int page,
             int size
+    );
+
+    @Operation(
+            summary = "Update member account status",
+            description = "Admin changes a member to ACTIVE, INACTIVE or BANNED. The system locks the member row, writes an audit entry, and revokes every existing session. An admin cannot change their own status."
+    )
+    ResponseEntity<ApiResponse<MemberStatusUpdateResponse>> updateMemberStatus(
+            Long memberId,
+            MemberUserDetails userDetails,
+            UpdateMemberStatusRequest request
     );
 }

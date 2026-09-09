@@ -26,7 +26,11 @@ public class BookMapper {
         return toBookSummaryResponse(book, primaryImage, 0.0, 0L);
     }
 
-    public BookSummaryResponse toBookSummaryResponse(Book book, BookImage primaryImage, Double averageRating, Long totalReviews) {
+    public BookSummaryResponse toBookSummaryResponse(
+            Book book,
+            BookImage primaryImage,
+            Double averageRating,
+            Long totalReviews) {
         BookCoverImageResponse coverImage = bookImageMapper.toCoverImageResponse(primaryImage);
         return new BookSummaryResponse(
                 book.getId(),
@@ -50,7 +54,11 @@ public class BookMapper {
         return toBookDetailResponse(book, primaryImage, 0.0, 0L);
     }
 
-    public BookDetailResponse toBookDetailResponse(Book book, BookImage primaryImage, Double averageRating, Long totalReviews) {
+    public BookDetailResponse toBookDetailResponse(
+            Book book,
+            BookImage primaryImage,
+            Double averageRating,
+            Long totalReviews) {
         BookCoverImageResponse coverImage = bookImageMapper.toCoverImageResponse(primaryImage);
         return new BookDetailResponse(
                 book.getId(),

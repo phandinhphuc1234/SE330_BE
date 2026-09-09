@@ -13,6 +13,7 @@ import com.vn.service.EbookReaderSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/ebooks")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('MEMBER')")
 public class EbookReaderController implements EbookReaderApiDocs {
 
     private static final String X_READING_SESSION = "X-Reading-Session";

@@ -7,4 +7,5 @@ public record BookReviewStatsResponse(
         Double averageRating,
         Long totalReviews,
         Map<Integer, Long> ratingDistribution
-) {}
+) {
+}

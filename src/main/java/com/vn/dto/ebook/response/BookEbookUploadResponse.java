@@ -21,6 +21,9 @@ public record BookEbookUploadResponse(
         String accessType,
         BigDecimal accessFee,
         String currency,
-        Integer accessDurationDays
+        Integer accessDurationDays,
+        String ingestionStatus,
+        String ragDocumentId,
+        Long ragJobId
 ) {
 }

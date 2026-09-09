@@ -17,6 +17,8 @@ public interface BookEbookRepository extends JpaRepository<BookEbook, Long> {
     // publicId được build cố định theo pdf/{isbn}/main.pdf nên upload lại sẽ update metadata row hiện có.
     Optional<BookEbook> findByProviderAndPublicId(MediaProvider provider, String publicId);
 
+    Optional<BookEbook> findFirstByBookIdOrderByIdDesc(Long bookId);
+
     // Public catalog chỉ lấy ebook ACTIVE mới nhất của một đầu sách để render trạng thái đọc/mượn.
     @EntityGraph(attributePaths = {"book"})
     Optional<BookEbook> findFirstByBookIdAndStatusOrderByIdDesc(Long bookId, BookEbookStatus status);

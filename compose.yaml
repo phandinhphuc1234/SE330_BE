@@ -1,14 +1,13 @@
 services:
   postgres:
     image: postgres:16
-    container_name: postgres_db
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,10 +18,9 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis_cache
     restart: always
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:${REDIS_PORT}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -34,10 +32,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: quanlythuvien:local
-    container_name: library_service
     restart: always
-    env_file:
-      - .env
     environment:
       # Spring datasource
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?timezone=Asia/Ho_Chi_Minh
@@ -55,10 +50,25 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-onboarding@resend.dev}
 
-      # Cloudinary
+      # Cloudinary - public images only
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+
+      # Optional RAG integration. The standard demo does not need a RAG service.
+      RAG_ENABLED: ${RAG_ENABLED:-false}
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-api:8000}
+      RAG_INTERNAL_API_KEY: ${RAG_INTERNAL_API_KEY:-}
+
+      # Optional external S3-compatible storage for ebook flows.
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://host.docker.internal:8333}
+      # Browser-facing endpoint used in presigned URLs. Use HTTPS storage domain on VPS.
+      OBJECT_STORAGE_PUBLIC_ENDPOINT: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:-http://localhost:8333}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-admin}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-secret}
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
+      LIBRARY_EBOOK_BUCKET: ${LIBRARY_EBOOK_BUCKET:-library-private}
+      LIBRARY_TEMP_BUCKET: ${LIBRARY_TEMP_BUCKET:-library-temp}
 
       # VNPAY sandbox
       VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
@@ -75,47 +85,52 @@ services:
 
       # App config
       APP_VERIFICATION_BASE_URL: ${APP_VERIFICATION_BASE_URL:-http://localhost:8080}
+      APP_PASSWORD_RESET_BASE_URL: ${APP_PASSWORD_RESET_BASE_URL:-http://localhost:3000/reset-password}
+      PASSWORD_RESET_TOKEN_EXPIRY_MINUTES: ${PASSWORD_RESET_TOKEN_EXPIRY_MINUTES:-30}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-true}
+      # Set true only behind HTTPS; keep the value aligned with the frontend's site policy.
+      REFRESH_TOKEN_SECURE: ${REFRESH_TOKEN_SECURE:-false}
+      REFRESH_TOKEN_SAME_SITE: ${REFRESH_TOKEN_SAME_SITE:-Lax}
       APP_ENV: local
 
     ports:
-      - "8080:8080"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:${LIBRARY_APP_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin_ui
+    profiles: ["tools"]
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
-      - "5050:80"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:5050:80"
     depends_on:
       postgres:
         condition: service_healthy
 
   prometheus:
     image: prom/prometheus:v3.0.1
-    container_name: prometheus_monitoring
+    profiles: ["monitoring"]
     restart: always
     ports:
-      - "9090:9090"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     depends_on:
       - library-service
-
   grafana:
     image: grafana/grafana:11.4.0
-    container_name: grafana_monitoring
+    profiles: ["monitoring"]
     restart: always
     ports:
-      - "3001:3000"
+      - "${LIBRARY_BIND_ADDRESS:-127.0.0.1}:3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
@@ -131,3 +146,7 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+
+networks:
+  default:
+    name: library-internal-net

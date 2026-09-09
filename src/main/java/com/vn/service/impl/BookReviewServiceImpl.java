@@ -13,11 +13,14 @@ import com.vn.mapper.BookReviewMapper;
 import com.vn.repository.BookRepository;
 import com.vn.repository.BookReviewRepository;
 import com.vn.repository.MemberRepository;
+import com.vn.repository.projection.BookReviewStatsProjection;
+import com.vn.repository.projection.RatingDistributionProjection;
 import com.vn.service.BookReviewService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ import java.util.Optional;
 public class BookReviewServiceImpl implements BookReviewService {
 
     private static final int MAX_PAGE_SIZE = 100;
+    private static final String UNIQUE_REVIEW_CONSTRAINT = "uq_book_reviews_book_member";
 
     private final BookReviewRepository bookReviewRepository;
     private final BookRepository bookRepository;
@@ -40,42 +44,52 @@ public class BookReviewServiceImpl implements BookReviewService {
 
     @Override
     public Page<BookReviewResponse> getBookReviews(Long bookId, int page, int size) {
+        requireActiveBook(bookId);
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        Pageable pageable = PageRequest.of(safePage, safeSize);
-        Page<BookReview> reviews = bookReviewRepository.findByBookIdOrderByCreatedAtDesc(bookId, pageable);
-        return reviews.map(bookReviewMapper::toResponse);
+        return bookReviewRepository
+                .findByBookIdOrderByCreatedAtDesc(bookId, PageRequest.of(safePage, safeSize))
+                .map(bookReviewMapper::toResponse);
     }
 
     @Override
     public BookReviewStatsResponse getBookReviewStats(Long bookId) {
-        Double averageRating = bookReviewRepository.findAverageRatingByBookId(bookId);
-        long totalReviews = bookReviewRepository.countByBookId(bookId);
-        List<Object[]> distribution = bookReviewRepository.findRatingDistributionByBookId(bookId);
+        requireActiveBook(bookId);
+        BookReviewStatsProjection stats = bookReviewRepository.findReviewStatsByBookIds(List.of(bookId))
+                .stream()
+                .findFirst()
+                .orElse(null);
 
-        Map<Integer, Long> ratingDistribution = new LinkedHashMap<>();
-        for (int i = 1; i <= 5; i++) {
-            ratingDistribution.put(i, 0L);
+        Map<Integer, Long> distribution = new LinkedHashMap<>();
+        for (int rating = 1; rating <= 5; rating++) {
+            distribution.put(rating, 0L);
         }
-        for (Object[] row : distribution) {
-            Integer rating = (Integer) row[0];
-            Long count = (Long) row[1];
-            ratingDistribution.put(rating, count);
+        for (RatingDistributionProjection row : bookReviewRepository.findRatingDistributionByBookId(bookId)) {
+            distribution.put(row.getRating(), row.getTotal());
         }
 
-        return new BookReviewStatsResponse(bookId, averageRating, totalReviews, ratingDistribution);
+        return new BookReviewStatsResponse(
+                bookId,
+                stats == null || stats.getAverageRating() == null ? 0.0 : stats.getAverageRating(),
+                stats == null || stats.getTotalReviews() == null ? 0L : stats.getTotalReviews(),
+                distribution
+        );
+    }
+
+    @Override
+    public Optional<BookReviewResponse> getMyReview(Long bookId, Long memberId) {
+        requireActiveBook(bookId);
+        return bookReviewRepository.findByBookIdAndMemberId(bookId, memberId)
+                .map(bookReviewMapper::toResponse);
     }
 
     @Override
     @Transactional
     public BookReviewResponse createReview(Long bookId, Long memberId, CreateReviewRequest request) {
-        Book book = bookRepository.findByIdAndDeletedAtIsNull(bookId)
-                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
-
-        if (bookReviewRepository.findByBookIdAndMemberId(bookId, memberId).isPresent()) {
+        Book book = requireActiveBook(bookId);
+        if (bookReviewRepository.existsByBookIdAndMemberId(bookId, memberId)) {
             throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS);
         }
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
@@ -85,36 +99,50 @@ public class BookReviewServiceImpl implements BookReviewService {
                 .rating(request.rating())
                 .content(request.content())
                 .build();
-
-        BookReview savedReview = bookReviewRepository.save(review);
-        return bookReviewMapper.toResponse(savedReview);
+        try {
+            return bookReviewMapper.toResponse(bookReviewRepository.saveAndFlush(review));
+        } catch (DataIntegrityViolationException exception) {
+            if (hasConstraint(exception, UNIQUE_REVIEW_CONSTRAINT)) {
+                throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            }
+            throw exception;
+        }
     }
 
     @Override
     @Transactional
     public BookReviewResponse updateReview(Long bookId, Long memberId, UpdateReviewRequest request) {
-        BookReview review = bookReviewRepository.findByBookIdAndMemberId(bookId, memberId)
-                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
-
+        BookReview review = findOwnedReview(bookId, memberId);
         review.setRating(request.rating());
         review.setContent(request.content());
-
-        BookReview savedReview = bookReviewRepository.save(review);
-        return bookReviewMapper.toResponse(savedReview);
+        return bookReviewMapper.toResponse(bookReviewRepository.save(review));
     }
 
     @Override
     @Transactional
     public void deleteReview(Long bookId, Long memberId) {
-        BookReview review = bookReviewRepository.findByBookIdAndMemberId(bookId, memberId)
-                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
-
-        bookReviewRepository.delete(review);
+        bookReviewRepository.delete(findOwnedReview(bookId, memberId));
     }
 
-    @Override
-    public Optional<BookReviewResponse> getMyReview(Long bookId, Long memberId) {
+    private Book requireActiveBook(Long bookId) {
+        return bookRepository.findByIdAndDeletedAtIsNull(bookId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+
+    private BookReview findOwnedReview(Long bookId, Long memberId) {
         return bookReviewRepository.findByBookIdAndMemberId(bookId, memberId)
-                .map(bookReviewMapper::toResponse);
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+    }
+
+    private boolean hasConstraint(Throwable throwable, String constraintName) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException violation
+                    && constraintName.equalsIgnoreCase(violation.getConstraintName())) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

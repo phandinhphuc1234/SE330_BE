@@ -1,6 +1,8 @@
 package com.vn.config;
 
+import com.vn.exception.ErrorCode;
 import com.vn.security.JwtAuthFilter;
+import com.vn.security.SecurityErrorResponseWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 //
@@ -27,6 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     // Inject JwtAuthFilter để thêm vào chuỗi filter
     private final JwtAuthFilter jwtAuthFilter;
+    private final SecurityErrorResponseWriter securityErrorResponseWriter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,40 +47,60 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
 
                 // 3. Stateless session (không lưu session trên server)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Security exceptions phát sinh trước controller vẫn theo ApiResponse.
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, ex) ->
+                                securityErrorResponseWriter.write(response, ErrorCode.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, ex) ->
+                                securityErrorResponseWriter.write(response, ErrorCode.ACCESS_DENIED)))
 
                 // 4. Phân quyền endpoint
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập không cần đăng nhập
                         .requestMatchers("/").permitAll()
                         // Các request không cấn bảo vệ
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/resend-verification").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh",
+                                "/api/auth/resend-verification", "/api/auth/forgot-password", "/api/auth/reset-password")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify-email").permitAll()
-                        // Catalog public read endpoints, gồm metadata ebook an toàn để render trang sách.
-                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/books/*/ebook", "/api/authors", "/api/categories").permitAll()
-                        // Book review public read endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/books/*/reviews", "/api/books/*/reviews/stats").permitAll()
+                        // Catalog public read endpoints, gồm metadata ebook an toàn để render trang
+                        // sách.
+                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/books/*/ebook",
+                                "/api/authors", "/api/categories")
+                        .permitAll()
                         // Monitoring endpoints used by local Prometheus/Grafana setup.
-                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus")
+                        .permitAll()
                         // Cho phép truy cập swagger-ui và api-docs không cần đăng nhập
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**")
+                        .permitAll()
                         // VNPAY IPN là server-to-server callback public; bảo mật bằng vnp_SecureHash.
                         .requestMatchers(HttpMethod.GET, "/api/payments/ipn/vnpay").permitAll()
                         // Payment create APIs require a logged-in member.
                         .requestMatchers(HttpMethod.POST, "/api/payments").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/payments/return/vnpay/confirm").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/receipts", "/api/payments/receipts/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/receipts", "/api/payments/receipts/*")
+                        .authenticated()
                         .requestMatchers("/api/admin/payments", "/api/admin/payments/**").authenticated()
                         // Các API cần được đăng nhập
                         .requestMatchers(HttpMethod.GET, "/api/payments/*", "/api/payments/by-code/*").authenticated()
                         // Ebook loans
                         .requestMatchers("/api/ebook-loans", "/api/ebook-loans/**").authenticated()
-                        // Secure ebook reader session APIs require a logged-in member and X-Reading-Session where applicable.
+                        // Secure ebook reader session APIs require a logged-in member and
+                        // X-Reading-Session where applicable.
                         .requestMatchers("/api/ebooks/**").authenticated()
+                        // Catalog public read endpoints, gồm metadata ebook an toàn để render trang
+                        // sách.
+                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/books/*/ebook",
+                                "/api/authors", "/api/categories")
+                        .permitAll()
+                        // Book review public read endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/books/*/reviews", "/api/books/*/reviews/stats")
+                        .permitAll()
                         // Tất cả request còn lại phải authenticated
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
 
                 // 5. Thêm JwtAuthFilter trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -91,4 +114,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

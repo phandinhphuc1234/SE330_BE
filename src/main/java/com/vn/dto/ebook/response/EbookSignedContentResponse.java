@@ -4,7 +4,7 @@ import java.time.Instant;
 
 // Signed URL ngắn hạn để frontend fetch PDF rồi render bằng PDF.js.
 public record EbookSignedContentResponse(
-        // URL Cloudinary đã ký, frontend dùng để fetch PDF as ArrayBuffer.
+        // URL object storage đã ký, frontend dùng để fetch PDF as ArrayBuffer.
         String signedUrl,
         // Hạn dùng URL theo backend, lấy min(5 phút, session còn lại, loan còn lại).
         Instant expiresAt,
