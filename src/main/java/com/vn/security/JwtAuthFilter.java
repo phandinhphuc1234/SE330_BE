@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 
 // Filter chạy trước mọi request để validate JWT
 // Flow: Extract token → Check blacklist → Validate → Set SecurityContext
@@ -58,7 +59,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 4. Extract email từ token và tìm member
+        // 4. Password change/reset or an administrative status change revokes all
+        // tokens issued before its Redis epoch, including an old access token.
+        Long userId = jwtService.extractUserId(token);
+        Instant issuedAt = jwtService.extractIssuedAt(token);
+        if (redisTokenService.isSessionRevokedAfter(userId, issuedAt)) {
+            securityErrorResponseWriter.write(response, ErrorCode.INVALID_OR_EXPIRED_TOKEN);
+            return;
+        }
+
+        // 5. Extract email từ token và tìm member
         String email = jwtService.extractEmail(token);
 
         // Chỉ set context nếu chưa có ai authenticated
@@ -111,6 +121,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         || "/api/auth/login".equals(path)
                         || "/api/auth/refresh".equals(path)
                         || "/api/auth/resend-verification".equals(path)
+                        || "/api/auth/forgot-password".equals(path)
+                        || "/api/auth/reset-password".equals(path)
         )) || ("GET".equals(method) && (
                 "/api/auth/verify-email".equals(path)
                         || "/api/payments/ipn/vnpay".equals(path)

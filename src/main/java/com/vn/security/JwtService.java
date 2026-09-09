@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 // bộ thư viện mã hóa built-in của Java, không cần thêm dependency nào.
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 
 @Service
@@ -45,6 +46,11 @@ public class JwtService {
 
     public Long extractUserId(String token) {
         return getClaims(token).get("userId", Long.class);
+    }
+
+    public Instant extractIssuedAt(String token) {
+        Date issuedAt = getClaims(token).getIssuedAt();
+        return issuedAt == null ? null : issuedAt.toInstant();
     }
 
     public boolean isValid(String token) {

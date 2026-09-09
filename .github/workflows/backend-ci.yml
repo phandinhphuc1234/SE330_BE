@@ -25,8 +25,8 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Run unit and integration tests
-        run: ./mvnw -B test
+      - name: Run unit/integration tests and coverage report
+        run: ./mvnw -B verify
 
       - name: Upload Surefire reports
         if: ${{ always() }}
@@ -34,5 +34,14 @@ jobs:
         with:
           name: surefire-reports
           path: target/surefire-reports
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload JaCoCo coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco
           if-no-files-found: warn
           retention-days: 14

@@ -2,7 +2,7 @@
 
 ## Nguyên tắc an toàn
 
-Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệu trước khi đối chiếu lịch sử Flyway và tạo backup. Mọi migration mới trong source hiện tại đều là migration chỉ tiến (`V35` đến `V39`).
+Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệu trước khi đối chiếu lịch sử Flyway và tạo backup. Mọi migration mới trong source hiện tại đều là migration chỉ tiến (`V35` đến `V42`).
 
 ## Chuỗi migration hiện tại
 
@@ -12,6 +12,9 @@ Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệ
 | V36 | Tạo `book_reviews`, gồm foreign key, unique review mỗi member/sách, check rating/content và index |
 | V37 | Bổ sung metadata theo dõi RAG cho ebook |
 | V38-V39 | Bổ sung ảnh tác giả và metadata Cloudinary |
+| V40 | Tạo password-reset token chỉ lưu SHA-256 hash |
+| V41 | Tạo audit thay đổi trạng thái member |
+| V42 | Đưa `password_reset_tokens.token_hash` về `VARCHAR(64)` để khớp Hibernate mapping |
 
 Do lịch sử GitHub từng có một file khác cũng mang version `V35` để tạo review, source hiện tại cố ý chỉ giữ V35 storage và V36 review. Đây là chuỗi migration chuẩn của local và phải được giữ nguyên byte-for-byte nếu database local đã ghi nhận checksum.
 
@@ -27,7 +30,7 @@ FROM flyway_schema_history
 ORDER BY installed_rank;
 ```
 
-- Nếu database dừng ở V34: có thể migrate theo source hiện tại; Flyway sẽ chạy V35 storage, V36 review, rồi V37-V39.
+- Nếu database dừng ở V34: có thể migrate theo source hiện tại; Flyway sẽ chạy V35 storage, V36 review, rồi V37-V42.
 - Nếu đã có `V35__move_ebook_storage_metadata_to_s3.sql` và `V36__create_book_reviews.sql`: chỉ cần đối chiếu checksum, không đổi các file migration đã chạy.
 - Nếu history có `V35__create_book_reviews.sql`: dừng lại. Không chạy `clean`, không sửa checksum và không chạy `repair` để ép qua. Cần đối chiếu schema thật của `book_reviews` và lập kế hoạch migration riêng theo database đó.
 

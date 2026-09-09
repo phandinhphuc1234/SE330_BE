@@ -68,7 +68,7 @@ Viết test hồi quy cùng lúc sửa lỗi; bổ sung kiểm thử tích hợp
 - [x] Test API qua security filter chain; chạy context test trong môi trường cô lập, không dùng dữ liệu thật hay gửi email/thanh toán thật.
 - [x] Thêm GitHub Actions chạy build/test cho push và PR; lưu kết quả kiểm thử để dễ kiểm tra.
 
-Cập nhật 08/09/2026: test profile tắt Flyway/scheduler/email/RAG/VNPAY để context test không chạm hạ tầng thật. `QuanLyThuVienApplicationTests` chạy PostgreSQL 16 + Redis 7 Testcontainers, gọi qua HTTP ngẫu nhiên và xác nhận contract `401 UNAUTHORIZED`. `BookRepositoryLockIntegrationTest` dùng schema Hibernate tạo tạm để xác nhận hai transaction PostgreSQL cùng lock một book được serialize. Idempotency unit/service tests bao phủ retry completed/failed, payload khác cùng key, processing, payment callback duplicate và path resource thật. Kiểm tra database trống được kết luận có chủ đích là **không hỗ trợ**: V22 phải dừng khi không có data lịch sử; upgrade/demo snapshot đã được xác minh theo `docs/migration-upgrade-guide.md`. Workflow `.github/workflows/backend-ci.yml` chạy `./mvnw -B test` và upload Surefire reports.
+Cập nhật 08/09/2026: test profile tắt Flyway/scheduler/email/RAG/VNPAY để context test không chạm hạ tầng thật. `QuanLyThuVienApplicationTests` chạy PostgreSQL 16 + Redis 7 Testcontainers, gọi qua HTTP ngẫu nhiên và xác nhận contract `401 UNAUTHORIZED`. `BookRepositoryLockIntegrationTest` dùng schema Hibernate tạo tạm để xác nhận hai transaction PostgreSQL cùng lock một book được serialize. Idempotency unit/service tests bao phủ retry completed/failed, payload khác cùng key, processing, payment callback duplicate và path resource thật. Kiểm tra database trống được kết luận có chủ đích là **không hỗ trợ**: V22 phải dừng khi không có data lịch sử; upgrade/demo snapshot đã được xác minh theo `docs/migration-upgrade-guide.md`. Workflow `.github/workflows/backend-ci.yml` chạy `./mvnw -B verify` và upload Surefire/JaCoCo reports.
 
 ## 6. Tài liệu, demo và bản phát hành
 
@@ -80,13 +80,25 @@ Cập nhật 08/09/2026: test profile tắt Flyway/scheduler/email/RAG/VNPAY đ�
 - [x] Kiểm tra lại thao tác clone → cấu hình → chạy → demo; review diff và test trước khi merge/push bản hoàn thiện.
 - [x] Rà soát PR cũ theo kết quả đối chiếu, viết release notes và chọn commit ổn định dùng trong hồ sơ.
 
-Cập nhật 08/09/2026: thêm `README.md`, `docs/architecture-overview.md`, `docs/api-contract.md`, `docs/demo-script.md`, Postman collection và release notes. Swagger có controller-doc contract cho thống kê mới; `ApiResponse`/`PageMeta`, SSE và VNPAY IPN được mô tả rõ. Tài liệu schema đã cập nhật mốc V39. Docker demo/snapshot, healthcheck, OpenAPI và test suite được kiểm tra local. Ảnh/video ngắn không tự tạo vì cần thao tác UI/frontend và dữ liệu demo mà người dùng sẽ trực tiếp trình bày.
+Cập nhật 08/09/2026: thêm `README.md`, `docs/architecture-overview.md`, `docs/api-contract.md`, `docs/demo-script.md`, Postman collection và release notes. Swagger có controller-doc contract cho thống kê mới; `ApiResponse`/`PageMeta`, SSE và VNPAY IPN được mô tả rõ. Tài liệu schema đã cập nhật mốc V42. Docker demo/snapshot, healthcheck, OpenAPI và test suite được kiểm tra local. Ảnh/video ngắn không tự tạo vì cần thao tác UI/frontend và dữ liệu demo mà người dùng sẽ trực tiếp trình bày.
 
 ## 7. Làm thêm nếu còn thời gian
 
-- [ ] Đổi mật khẩu và quên/đặt lại mật khẩu, kèm giới hạn tần suất và vô hiệu hóa token phù hợp.
-- [ ] API quản lý trạng thái thành viên theo phân quyền, kèm ghi nhận thao tác.
-- [ ] Bổ sung đo hiệu năng/coverage cho luồng quan trọng và cập nhật số liệu đã đo vào README.
+- [x] Đổi mật khẩu và quên/đặt lại mật khẩu, kèm giới hạn tần suất và vô hiệu hóa token phù hợp.
+- [x] API quản lý trạng thái thành viên theo phân quyền, kèm ghi nhận thao tác.
+- [x] Bổ sung đo hiệu năng/coverage cho luồng quan trọng và cập nhật số liệu đã đo vào README.
+
+Cập nhật 08/09/2026: quên mật khẩu trả response chung để chống enumeration,
+rate limit Redis theo SHA-256 email (60 giây/lần, tối đa 5 lần/24 giờ), reset
+token 32 bytes chỉ lưu hash và hết hạn sau 30 phút. Đổi/reset mật khẩu tạo mốc
+revoke session trong Redis nên access token cũ không thể hợp lệ lại sau khi tài
+khoản được kích hoạt. `PATCH /api/staff/members/{memberId}/status` chỉ dành cho
+ADMIN, khóa row, cấm tự đổi status/PENDING, ghi `member_status_audits` và revoke
+session mục tiêu. Đã chạy `mvnw.cmd verify`: 207 tests xanh, JaCoCo 52%
+instruction/50% line; CI upload report. Docker snapshot migrate forward đến V42
+và health UP. k6 warm baseline book detail (20 VUs x 20 giây) đạt 400/400 `200`,
+0% lỗi, avg 25.97 ms, p95 62.11 ms; cold-start first pass p95 572.2 ms được ghi
+nhận riêng, không che số liệu warm-up.
 
 ## Các điểm cần hỏi trước khi triển khai phần liên quan
 

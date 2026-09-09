@@ -7,6 +7,9 @@ public interface EmailService {
     // Gửi email xác nhận tài khoản
     void sendVerificationEmail(Long memberId, String toEmail, String fullName, String token);
 
+    // Gửi liên kết một lần để đặt lại mật khẩu; token thô không được lưu trong database.
+    void sendPasswordResetEmail(Long memberId, String toEmail, String fullName, String token);
+
     // Gửi email thông báo hệ thống đã tự động gia hạn sách thành công.
     void sendAutoRenewalSuccessEmail(Long memberId,
                                      String toEmail,

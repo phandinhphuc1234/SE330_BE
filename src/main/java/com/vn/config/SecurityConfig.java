@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/").permitAll()
                         // Các request không cấn bảo vệ
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh",
-                                "/api/auth/resend-verification")
+                                "/api/auth/resend-verification", "/api/auth/forgot-password", "/api/auth/reset-password")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify-email").permitAll()
                         // Catalog public read endpoints, gồm metadata ebook an toàn để render trang

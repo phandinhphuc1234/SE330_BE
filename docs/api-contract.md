@@ -47,6 +47,22 @@ security filter:
 `timestamp` đang giữ định dạng cũ `LocalDateTime` để không làm vỡ client hiện
 có. Chỉ đổi sang `Instant`/offset sau khi đối chiếu frontend consumer.
 
+## Mật khẩu, session và trạng thái thành viên
+
+- `POST /api/auth/forgot-password` luôn trả `200 ApiResponse` chung, dù email
+  không tồn tại hoặc đang bị giới hạn, để không lộ tài khoản. Mỗi email có
+  cooldown 60 giây và tối đa 5 yêu cầu trong 24 giờ; Redis chỉ giữ hash email.
+- `POST /api/auth/reset-password` nhận one-time token và mật khẩu mới. Token
+  chỉ lưu SHA-256 trong PostgreSQL, hết hạn sau 30 phút và bị đánh dấu đã dùng
+  cùng các token reset còn lại của tài khoản.
+- `POST /api/auth/change-password` cần Bearer access token và mật khẩu hiện
+  tại. Cả đổi và reset mật khẩu đều xóa refresh token, đặt mốc revoke session
+  trong Redis, và client phải đăng nhập lại.
+- `PATCH /api/staff/members/{memberId}/status` chỉ cho `ADMIN`, nhận
+  `ACTIVE`, `INACTIVE` hoặc `BANNED` cùng lý do tùy chọn. Thao tác khóa row,
+  ghi audit, revoke session của mục tiêu, không cho tự đổi status và không cho
+  ghi `PENDING_VERIFICATION` bằng API quản trị.
+
 ## Ngoại lệ contract có chủ đích
 
 - `GET /api/payments/ipn/vnpay`: trả `PaymentIpnResponse` với `RspCode` và

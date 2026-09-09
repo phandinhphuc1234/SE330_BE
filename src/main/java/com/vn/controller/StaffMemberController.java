@@ -6,16 +6,23 @@ import com.vn.dto.common.PageMeta;
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
+import com.vn.dto.staff.member.request.UpdateMemberStatusRequest;
+import com.vn.dto.staff.member.response.MemberStatusUpdateResponse;
+import com.vn.security.MemberUserDetails;
 import com.vn.service.StaffMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -68,6 +75,19 @@ public class StaffMemberController implements StaffMemberApiDocs {
                 "Lấy danh sách lượt mượn của bạn đọc thành công",
                 loans.getContent(),
                 PageMeta.from(loans)
+        ));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{memberId}/status")
+    public ResponseEntity<ApiResponse<MemberStatusUpdateResponse>> updateMemberStatus(
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal MemberUserDetails userDetails,
+            @Valid @RequestBody UpdateMemberStatusRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật trạng thái tài khoản thành công",
+                staffMemberService.updateMemberStatus(userDetails.getMember().getId(), memberId, request)
         ));
     }
 }

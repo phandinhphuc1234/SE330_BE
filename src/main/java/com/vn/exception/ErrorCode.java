@@ -20,6 +20,12 @@ public enum ErrorCode {
     EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT, "EMAIL_ALREADY_VERIFIED", "Tài khoản đã được xác nhận email"),
     EMAIL_RESEND_COOLDOWN(HttpStatus.TOO_MANY_REQUESTS, "EMAIL_RESEND_COOLDOWN", "Vui lòng chờ trước khi gửi lại email xác thực"),
     EMAIL_RESEND_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "EMAIL_RESEND_LIMIT_EXCEEDED", "Bạn đã vượt quá số lần gửi lại email xác thực trong ngày"),
+    INVALID_PASSWORD_RESET_TOKEN(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD_RESET_TOKEN", "Link đặt lại mật khẩu không hợp lệ hoặc đã được sử dụng"),
+    PASSWORD_RESET_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "PASSWORD_RESET_TOKEN_EXPIRED", "Link đặt lại mật khẩu đã hết hạn"),
+    PASSWORD_CONFIRMATION_MISMATCH(HttpStatus.BAD_REQUEST, "PASSWORD_CONFIRMATION_MISMATCH", "Xác nhận mật khẩu mới không khớp"),
+    PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "PASSWORD_SAME_AS_CURRENT", "Mật khẩu mới phải khác mật khẩu hiện tại"),
+    INVALID_MEMBER_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "INVALID_MEMBER_STATUS_TRANSITION", "Trạng thái tài khoản không hợp lệ cho thao tác quản trị"),
+    CANNOT_CHANGE_OWN_STATUS(HttpStatus.FORBIDDEN, "CANNOT_CHANGE_OWN_STATUS", "Không thể tự thay đổi trạng thái tài khoản của chính mình"),
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Dữ liệu không hợp lệ"),
     ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "ILLEGAL_ARGUMENT", "Tham số không hợp lệ"),

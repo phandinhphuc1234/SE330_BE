@@ -15,12 +15,21 @@
   Actions lưu Surefire reports.
 - Bổ sung README, architecture/ERD/flow, API contract, demo script và Postman
   collection.
+- Thêm đổi/quên/đặt lại mật khẩu: reset token SHA-256 một lần, rate limit Redis
+  theo hash email, và revoke toàn bộ session sau đổi mật khẩu.
+- Thêm `ADMIN` cập nhật status tài khoản với pessimistic lock, audit
+  `member_status_audits` và revoke session; bổ sung Flyway V40–V42.
+- CI nay chạy `verify`, tạo và lưu JaCoCo report; thêm k6 baseline script có
+  cấu hình target/book qua biến môi trường.
 
 ## Xác minh local
 
-- `mvnw.cmd test`: 194 tests, 0 failures, 0 errors.
+- `mvnw.cmd verify`: 207 tests, 0 failures, 0 errors, 0 skipped; JaCoCo 52%
+  instruction / 50% line coverage.
 - Context/security test chạy bằng PostgreSQL 16 và Redis 7 Testcontainers.
-- Docker demo backend đã được kiểm tra health sau migration snapshot.
+- Docker demo backend đã apply V42 và health `UP` trên snapshot local.
+- k6 warm baseline (20 VUs, 20s, book 3105): 400 request `200`, 0% lỗi,
+  p95 62.11 ms; số liệu local, không phải benchmark production.
 
 ## Giới hạn đã biết
 

@@ -9,6 +9,9 @@ import com.vn.dto.staff.hold.response.StaffHoldResponse;
 import com.vn.dto.staff.loan.response.StaffLoanResponse;
 import com.vn.dto.staff.member.response.StaffMemberDetailResponse;
 import com.vn.dto.staff.member.response.StaffMemberListItemResponse;
+import com.vn.dto.staff.member.response.MemberStatusUpdateResponse;
+import com.vn.security.MemberUserDetails;
+import com.vn.testsupport.TestDataFactory;
 import com.vn.dto.staff.statistics.response.StaffBorrowStatisticsDayResponse;
 import com.vn.dto.staff.statistics.response.StaffBorrowStatisticsResponse;
 import com.vn.exception.GlobalExceptionHandler;
@@ -28,6 +31,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -36,6 +42,7 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,6 +66,11 @@ class StaffApiControllerTest {
 
     private MockMvc mockMvc;
 
+    @org.junit.jupiter.api.AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
@@ -70,6 +82,7 @@ class StaffApiControllerTest {
                         new StaffStatisticsController(staffStatisticsService)
                 )
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setMessageConverters(new JacksonJsonHttpMessageConverter())
                 .build();
     }
@@ -245,6 +258,31 @@ class StaffApiControllerTest {
                 java.time.LocalDate.of(2026, 6, 2),
                 "title", "Clean Code", "Vietnamese"
         );
+    }
+
+    @Test
+    void updateMemberStatus_shouldReturnAuditAwareStatusResponse() throws Exception {
+        MemberUserDetails admin = new MemberUserDetails(TestDataFactory.activeMember(1L));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                admin, null, admin.getAuthorities()
+        ));
+        when(staffMemberService.updateMemberStatus(
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.eq(2L),
+                org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new MemberStatusUpdateResponse(
+                        2L, com.vn.enums.MemberStatus.ACTIVE, com.vn.enums.MemberStatus.BANNED,
+                        "Overdue policy", Instant.parse("2026-09-08T00:00:00Z")
+                ));
+
+        mockMvc.perform(patch("/api/staff/members/{memberId}/status", 2L)
+                        .contentType("application/json")
+                        .content("{\"status\":\"BANNED\",\"reason\":\"Overdue policy\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.memberId").value(2))
+                .andExpect(jsonPath("$.data.previousStatus").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.newStatus").value("BANNED"));
     }
 
     @Test

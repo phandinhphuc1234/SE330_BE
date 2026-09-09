@@ -1,7 +1,10 @@
 package com.vn.controller.docs;
 
 import com.vn.dto.auth.request.LoginRequest;
+import com.vn.dto.auth.request.ChangePasswordRequest;
+import com.vn.dto.auth.request.ForgotPasswordRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
+import com.vn.dto.auth.request.ResetPasswordRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.auth.response.AuthResponse;
@@ -72,6 +75,18 @@ public interface AuthApiDocs {
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Email to resend verification to")
             ResendVerificationRequest request
     );
+
+    @SecurityRequirements
+    @Operation(summary = "Request password reset", description = "Always returns a generic response. Per-email cooldown and daily limits are applied without exposing whether an account exists.")
+    ResponseEntity<ApiResponse<Void>> forgotPassword(ForgotPasswordRequest request);
+
+    @SecurityRequirements
+    @Operation(summary = "Reset password", description = "Consumes a one-time password-reset token, sets a new password, and revokes every existing session.")
+    ResponseEntity<ApiResponse<Void>> resetPassword(ResetPasswordRequest request, HttpServletResponse response);
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(summary = "Change password", description = "Validates the current password, changes it, and revokes every existing session.")
+    ResponseEntity<ApiResponse<Void>> changePassword(MemberUserDetails userDetails, ChangePasswordRequest request, HttpServletResponse response);
 
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(

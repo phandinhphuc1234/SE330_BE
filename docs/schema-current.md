@@ -2,7 +2,7 @@
 
 This document describes the PostgreSQL schema after applying Flyway migrations
 in `src/main/resources/db/migration`. Ebook storage, RAG ingestion metadata,
-and author image URL metadata are documented through `V39`.
+and author image URL metadata are documented through `V42`.
 
 Refresh tokens and idempotency records are not stored in PostgreSQL. Refresh
 tokens are stored in Redis, and idempotency state was moved from PostgreSQL to
@@ -15,7 +15,8 @@ The current schema supports:
 - Catalog: authors, categories, books, book images, physical book copies
 - Ebooks: protected PDF metadata, SeaweedFS object references, access policy,
   and RAG ingestion tracking
-- Members and authentication: members, email verification tokens
+- Members and authentication: members, email verification tokens, hashed
+  password-reset tokens and account-status audit records
 - Circulation: borrow records, holds/reservations, renewal data
 - Finance: fine configuration and payment records
 - Operations: audit logs, notifications, notification queue, system settings,
@@ -696,6 +697,44 @@ Indexes:
 - `idx_email_token_active ON email_verifications(token) WHERE is_used = FALSE`
 - `idx_email_expiry ON email_verifications(expires_at)`
 
+### `password_reset_tokens`
+
+Stores only SHA-256 hashes of one-time password-reset tokens; raw tokens are
+sent by email and are never persisted.
+
+| Column | Type | Null | Default | Notes |
+|---|---:|---:|---:|---|
+| `id` | `BIGSERIAL` | No | | Primary key |
+| `member_id` | `BIGINT` | No | | FK to `members(id)`, `ON DELETE CASCADE` |
+| `token_hash` | `VARCHAR(64)` | No | | Unique lowercase SHA-256 hex |
+| `expires_at` | `TIMESTAMP` | No | | Must be after `created_at` |
+| `used_at` | `TIMESTAMP` | Yes | | Set when a reset is consumed or superseded |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+
+Indexes: `uq_password_reset_tokens_token_hash` and partial
+`idx_password_reset_tokens_member_active (member_id, expires_at DESC) WHERE used_at IS NULL`.
+
+Migration notes: `V40` creates the table; forward-only `V42` changes the
+original fixed-width hash column to `VARCHAR(64)` so Hibernate schema validation
+matches the mapping.
+
+### `member_status_audits`
+
+Stores each administrative account-status change.
+
+| Column | Type | Null | Default | Notes |
+|---|---:|---:|---:|---|
+| `id` | `BIGSERIAL` | No | | Primary key |
+| `member_id` | `BIGINT` | No | | Target member FK |
+| `actor_member_id` | `BIGINT` | No | | Admin actor FK |
+| `previous_status` | `VARCHAR(30)` | No | | Previous `MemberStatus` |
+| `new_status` | `VARCHAR(30)` | No | | Different target status |
+| `reason` | `VARCHAR(500)` | Yes | | Optional administrative reason |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+
+Both status columns are constrained to the four Java `MemberStatus` values and
+must differ. Indexes support lookup by target/actor then newest change.
+
 ### `job_execution_logs`
 
 Stores scheduled/background job execution history.
@@ -832,6 +871,9 @@ idempotency state in Redis instead of PostgreSQL.
 - `notification_queue.member_id` -> `members.id`
 - `notification_queue.notification_id` -> `notifications.id`
 - `email_verifications.member_id` -> `members.id`
+- `password_reset_tokens.member_id` -> `members.id`
+- `member_status_audits.member_id` -> `members.id`
+- `member_status_audits.actor_member_id` -> `members.id`
 - `auto_renewal_attempts.borrow_record_id` -> `borrow_records.id`
 - `auto_renewal_attempts.member_id` -> `members.id`
 - `auto_renewal_attempts.book_copy_id` -> `book_copies.id`
