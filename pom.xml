@@ -28,7 +28,7 @@
         <micrometer.version>1.16.7</micrometer.version>
         <httpcore5.version>5.4.3</httpcore5.version>
         <tomcat.version>11.0.25</tomcat.version>
-        <cloudinary.version>2.0.0</cloudinary.version>
+        <cloudinary.version>2.4.0</cloudinary.version>
         <aws.sdk.version>2.31.54</aws.sdk.version>
         <jacoco.version>0.8.12</jacoco.version>
     </properties>
