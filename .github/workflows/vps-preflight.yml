@@ -1,0 +1,50 @@
+name: VPS deployment preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Check production VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+
+    steps:
+      - name: Check out deployment files
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure pinned SSH identity
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/quanlythuvien_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Connect and synchronize deployment assets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15
+          )
+          remote="${VPS_USER}@${VPS_HOST}"
+          ssh "${ssh_args[@]}" "$remote" 'printf "SSH connection: OK\n"'
+          tar -C deploy -czf - . | ssh "${ssh_args[@]}" "$remote" \
+            'umask 077; mkdir -p "$HOME/apps/quanlythuvien"; tar -xzf - -C "$HOME/apps/quanlythuvien"'
+          ssh "${ssh_args[@]}" "$remote" 'bash ~/apps/quanlythuvien/scripts/preflight.sh --database'

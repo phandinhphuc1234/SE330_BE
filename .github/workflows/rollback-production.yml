@@ -1,0 +1,110 @@
+name: Roll back production image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_ref:
+        description: Immutable GHCR image reference ending in @sha256:...
+        required: true
+        type: string
+      confirmation:
+        description: Type ROLLBACK to continue
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  rollback:
+    name: Roll back production VPS
+    if: ${{ inputs.confirmation == 'ROLLBACK' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: quanlythuvien-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Validate requested image
+        env:
+          IMAGE_REF: ${{ inputs.image_ref }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$IMAGE_REF" =~ ^ghcr\.io/phandinhphuc1234/se330-be@sha256:[0-9a-f]{64}$ ]] || {
+            echo 'image_ref must be an immutable se330-be digest.' >&2
+            exit 1
+          }
+
+      - name: Check out deployment files
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure pinned SSH identity
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/quanlythuvien_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Synchronize deployment assets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15
+          )
+          remote="${VPS_USER}@${VPS_HOST}"
+          tar -C deploy -czf - . | ssh "${ssh_args[@]}" "$remote" \
+            'umask 077; mkdir -p "$HOME/apps/quanlythuvien"; tar -xzf - -C "$HOME/apps/quanlythuvien"'
+
+      - name: Authenticate VPS to GHCR and deploy selected image
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+          IMAGE_REF: ${{ inputs.image_ref }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+          )
+          remote="${VPS_USER}@${VPS_HOST}"
+          # Values intentionally expand on the runner before SSH.
+          # shellcheck disable=SC2029
+          printf '%s' "$GHCR_TOKEN" | ssh "${ssh_args[@]}" "$remote" \
+            "docker login ghcr.io -u '$GHCR_USER' --password-stdin"
+          # IMAGE_REF was validated above as an immutable digest.
+          # shellcheck disable=SC2029
+          ssh "${ssh_args[@]}" "$remote" \
+            "DEPLOY_COMMIT='manual-rollback' bash ~/apps/quanlythuvien/scripts/deploy.sh '$IMAGE_REF'"
+
+      - name: Publish rollback summary
+        env:
+          IMAGE_REF: ${{ inputs.image_ref }}
+        run: |
+          {
+            echo '## Production rollback'
+            echo "- Image: \`$IMAGE_REF\`"
+            echo '- Application health check: passed'
+            echo '- Database migrations were not rolled back'
+          } >> "$GITHUB_STEP_SUMMARY"

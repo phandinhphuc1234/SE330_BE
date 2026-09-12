@@ -1,5 +1,6 @@
 .git
 .gitignore
+.github
 .idea
 .windsurf
 .vscode
@@ -16,6 +17,7 @@ logs
 !.env.example
 
 docs
+deploy
 grafana
 prometheus
 skills
