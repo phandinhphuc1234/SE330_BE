@@ -36,3 +36,8 @@ build/
 .env
 .env.*
 !.env.example
+
+# Deployment runtime state and database backups never belong in Git.
+deploy/state/
+*.dump
+*.dump.sha256

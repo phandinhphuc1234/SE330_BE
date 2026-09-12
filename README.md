@@ -208,7 +208,7 @@ cũ, không phản ánh việc API catalog đã có cache.
 - [Schema PostgreSQL](docs/schema-current.md) và [chiến lược CSV import](docs/csv-import-strategy.md)
 - [Các flow circulation](docs/implements/circulation-flows/README.md)
 - [Error handling](skills/error-handling-guide.md) và [logging](skills/logging-guide.md)
-- [Monitoring](docs/monitoring-prometheus-grafana.md), [triển khai Nginx](docs/nginx-deployment-guide.md), [Resend](docs/resend-email-setup.md)
+- [CI/CD production một VPS](docs/ci-cd-deployment.md), [Monitoring](docs/monitoring-prometheus-grafana.md), [triển khai Nginx](docs/nginx-deployment-guide.md), [Resend](docs/resend-email-setup.md)
 - [Release notes](docs/release-notes-2026-09.md)
 
 Các tài liệu trong thư mục kế hoạch/spec mô tả cả hướng phát triển; dùng source,
