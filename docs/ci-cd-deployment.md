@@ -35,6 +35,7 @@ application version trước; khôi phục database là thao tác có chủ đí
 ## Thành phần trong repository
 
 - `.github/workflows/backend-ci.yml`: CI, build image và deploy tự động.
+- `.github/workflows/vps-bootstrap.yml`: cài Docker CE và Compose v2 thủ công.
 - `.github/workflows/vps-preflight.yml`: kiểm tra SSH/VPS/database thủ công.
 - `.github/workflows/rollback-production.yml`: deploy lại một image digest cũ.
 - `deploy/compose.production.yaml`: stack PostgreSQL, Redis và backend production.
@@ -77,9 +78,20 @@ PUBLIC_HEALTH_URL=https://api.library.example.com/actuator/health
 
 ## Chuẩn bị VPS lần đầu
 
-VPS cần Ubuntu, Docker Engine, Docker Compose v2, `flock`, tối thiểu 2 GiB dung
-lượng trống và một deploy user có quyền chạy Docker. Docker group có quyền gần
-tương đương root, vì vậy chỉ dùng tài khoản chuyên dụng và tắt SSH password.
+VPS cần Ubuntu/Debian, `flock`, tối thiểu 2 GiB dung lượng trống và một deploy
+user dùng SSH key. Docker group có quyền gần tương đương root, vì vậy chỉ dùng
+tài khoản chuyên dụng và tắt SSH password.
+
+Nếu máy chưa có Docker, chạy workflow thủ công sau trước:
+
+```text
+Bootstrap production VPS -> Run workflow
+```
+
+Workflow chỉ hỗ trợ Ubuntu/Debian, yêu cầu deploy user có passwordless `sudo`,
+cài Docker CE + Compose v2 từ apt repository chính thức, bật service khi boot và
+thêm deploy user vào group `docker`. Nếu phát hiện container package xung đột,
+workflow dừng để người vận hành xem xét thay vì tự gỡ package.
 
 Sau khi workflow đã nằm trên `main`, vào GitHub Actions và chạy:
 
