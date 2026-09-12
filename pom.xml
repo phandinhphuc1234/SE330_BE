@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.0.8</version>
         <relativePath/>
     </parent>
 
@@ -25,7 +25,9 @@
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>3.0.3</springdoc.version>
         <testcontainers.version>1.21.4</testcontainers.version>
-        <micrometer.version>1.16.5</micrometer.version>
+        <micrometer.version>1.16.7</micrometer.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
+        <tomcat.version>11.0.25</tomcat.version>
         <cloudinary.version>2.0.0</cloudinary.version>
         <aws.sdk.version>2.31.54</aws.sdk.version>
         <jacoco.version>0.8.12</jacoco.version>
