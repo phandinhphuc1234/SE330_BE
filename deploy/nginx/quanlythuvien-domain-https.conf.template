@@ -1,0 +1,124 @@
+# HTTPS entry point for the permanent API domain while retaining the temporary
+# IP HTTPS endpoint during the frontend migration.
+
+limit_req_zone $binary_remote_addr zone=quanlythuvien_auth_limit:10m rate=10r/m;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __PUBLIC_DOMAIN__ __PUBLIC_IP__;
+    server_tokens off;
+
+    # Keep port 80 available for ACME issuance and renewal.
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    # Use one canonical HTTPS host for every plain-HTTP request.
+    location / {
+        return 308 https://__PUBLIC_DOMAIN__$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name __PUBLIC_IP__;
+    server_tokens off;
+
+    ssl_certificate /etc/letsencrypt/live/__PUBLIC_IP__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__PUBLIC_IP__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:QuanLyThuVienTLS:10m;
+    ssl_session_tickets off;
+
+    client_max_body_size 110m;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+
+    location = /healthz {
+        proxy_pass http://127.0.0.1:8080/actuator/health;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    location ~ ^/(swagger-ui(?:/|$)|swagger-ui\.html$|api-docs(?:/|$)|v3/api-docs(?:/|$)|actuator(?:/|$)) {
+        return 404;
+    }
+
+    location = /api/auth/login {
+        limit_req zone=quanlythuvien_auth_limit burst=5 nodelay;
+        proxy_pass http://127.0.0.1:8080;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    location ~ ^/api/books/import-csv/[^/]+/events$ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 10m;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 120s;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name __PUBLIC_DOMAIN__;
+    server_tokens off;
+
+    ssl_certificate /etc/letsencrypt/live/__PUBLIC_DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__PUBLIC_DOMAIN__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:QuanLyThuVienTLS:10m;
+    ssl_session_tickets off;
+
+    client_max_body_size 110m;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+
+    location = /healthz {
+        proxy_pass http://127.0.0.1:8080/actuator/health;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    # Production documentation and the remaining Actuator surface stay private.
+    location ~ ^/(swagger-ui(?:/|$)|swagger-ui\.html$|api-docs(?:/|$)|v3/api-docs(?:/|$)|actuator(?:/|$)) {
+        return 404;
+    }
+
+    location = /api/auth/login {
+        limit_req zone=quanlythuvien_auth_limit burst=5 nodelay;
+        proxy_pass http://127.0.0.1:8080;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    location ~ ^/api/books/import-csv/[^/]+/events$ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 10m;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 120s;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+}

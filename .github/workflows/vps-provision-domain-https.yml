@@ -1,0 +1,133 @@
+name: Provision HTTPS for API domain
+
+on:
+  workflow_dispatch:
+    inputs:
+      public_domain:
+        description: Public API domain that already resolves to VPS_HOST
+        required: true
+        type: string
+      confirmation:
+        description: Type ENABLE_DOMAIN_HTTPS to issue the certificate and update Nginx
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quanlythuvien-production
+  cancel-in-progress: false
+
+jobs:
+  provision-domain-https:
+    name: Issue domain certificate and enable HTTPS
+    if: ${{ inputs.confirmation == 'ENABLE_DOMAIN_HTTPS' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+
+    steps:
+      - name: Check out deployment files
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate domain and public DNS
+        env:
+          PUBLIC_DOMAIN: ${{ inputs.public_domain }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$PUBLIC_DOMAIN" =~ ^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ ]] || {
+            echo 'public_domain must be a lowercase DNS hostname.' >&2
+            exit 1
+          }
+          [[ "$VPS_HOST" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || {
+            echo 'VPS_HOST must be an IPv4 address.' >&2
+            exit 1
+          }
+
+          dns_ready='false'
+          for attempt in {1..12}; do
+            if dig +short A "$PUBLIC_DOMAIN" @1.1.1.1 | grep -Fxq "$VPS_HOST"; then
+              dns_ready='true'
+              break
+            fi
+            echo "Waiting for public DNS propagation ($attempt/12)..."
+            sleep 5
+          done
+          [[ "$dns_ready" == 'true' ]] || {
+            echo "$PUBLIC_DOMAIN does not resolve to VPS_HOST on Cloudflare DNS." >&2
+            exit 1
+          }
+
+      - name: Configure pinned SSH identity
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/quanlythuvien_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Synchronize deployment assets and enable domain HTTPS
+        env:
+          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+          PUBLIC_DOMAIN: ${{ inputs.public_domain }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          [[ -n "$LETSENCRYPT_EMAIL" ]] || {
+            echo 'LETSENCRYPT_EMAIL secret is required.' >&2
+            exit 1
+          }
+
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15
+          )
+          remote="${VPS_USER}@${VPS_HOST}"
+          tar -C deploy -czf - . | ssh "${ssh_args[@]}" "$remote" \
+            'umask 077; mkdir -p "$HOME/apps/quanlythuvien"; tar -xzf - -C "$HOME/apps/quanlythuvien"'
+
+          public_domain_b64="$(printf '%s' "$PUBLIC_DOMAIN" | base64 -w 0)"
+          public_ip_b64="$(printf '%s' "$VPS_HOST" | base64 -w 0)"
+          certificate_email_b64="$(printf '%s' "$LETSENCRYPT_EMAIL" | base64 -w 0)"
+          ssh "${ssh_args[@]}" "$remote" \
+            "PUBLIC_DOMAIN=\$(printf '%s' '$public_domain_b64' | base64 -d) PUBLIC_IP=\$(printf '%s' '$public_ip_b64' | base64 -d) LETSENCRYPT_EMAIL=\$(printf '%s' '$certificate_email_b64' | base64 -d) bash ~/apps/quanlythuvien/scripts/provision-domain-https.sh"
+
+      - name: Verify domain HTTPS and canonical HTTP redirect
+        env:
+          PUBLIC_DOMAIN: ${{ inputs.public_domain }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -Eeuo pipefail
+          curl --fail --silent --show-error --max-time 15 --retry 10 \
+            --retry-all-errors --retry-delay 3 "https://${PUBLIC_DOMAIN}/healthz"
+          curl --fail --silent --show-error --max-time 15 \
+            "https://${VPS_HOST}/healthz"
+
+          headers="$(curl --silent --show-error --head "http://${PUBLIC_DOMAIN}/healthz")"
+          printf '%s\n' "$headers" | grep -Eq '^HTTP/[^ ]+ 308'
+          printf '%s\n' "$headers" | grep -Fiq "location: https://${PUBLIC_DOMAIN}/healthz"
+
+      - name: Publish HTTPS summary
+        env:
+          PUBLIC_DOMAIN: ${{ inputs.public_domain }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          {
+            echo '## API domain HTTPS enabled'
+            echo "- Canonical API: \`https://${PUBLIC_DOMAIN}\`"
+            echo "- Health: \`https://${PUBLIC_DOMAIN}/healthz\`"
+            echo "- Transitional IP endpoint retained: \`https://${VPS_HOST}\`"
+            echo '- HTTP to canonical HTTPS redirect: passed'
+            echo '- Certbot renewal dry-run: passed'
+          } >> "$GITHUB_STEP_SUMMARY"
