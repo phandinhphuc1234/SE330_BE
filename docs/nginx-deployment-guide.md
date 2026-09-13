@@ -327,3 +327,12 @@ NEXT_PUBLIC_API_URL=https://api-library.flashsale123.tech
 Sau đó cập nhật `PUBLIC_API_BASE_URL` bằng workflow provision runtime và redeploy
 frontend/backend. Swagger và phần Actuator không phải health vẫn bị Nginx trả 404
 trong production; đây là chủ đích giảm bề mặt tấn công.
+
+Các input runtime sau khi domain HTTPS đã sẵn sàng:
+
+```text
+api_scheme: https
+api_host: api-library.flashsale123.tech
+frontend_origin: https://library.flashsale123.tech
+confirmation: PROVISION
+```

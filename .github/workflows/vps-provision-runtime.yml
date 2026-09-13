@@ -11,6 +11,10 @@ on:
         options:
           - http
           - https
+      api_host:
+        description: Public API hostname; leave blank to use the VPS IP
+        required: false
+        type: string
       frontend_origin:
         description: Exact frontend origin allowed by CORS (no trailing slash)
         required: true
@@ -43,6 +47,7 @@ jobs:
         id: configuration
         env:
           API_SCHEME: ${{ inputs.api_scheme }}
+          API_HOST: ${{ inputs.api_host }}
           FRONTEND_ORIGIN: ${{ inputs.frontend_origin }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
@@ -59,15 +64,16 @@ jobs:
             echo 'frontend_origin cannot contain whitespace.' >&2
             exit 1
           }
-          [[ "$VPS_HOST" =~ ^[A-Za-z0-9.:%_-]+$ ]] || {
-            echo 'VPS_HOST is not a valid hostname or IP address.' >&2
+          api_host="${API_HOST:-$VPS_HOST}"
+          [[ "$api_host" =~ ^[A-Za-z0-9.:%_-]+$ ]] || {
+            echo 'api_host is not a valid hostname or IP address.' >&2
             exit 1
           }
 
           frontend_origin="${FRONTEND_ORIGIN%/}"
-          url_host="$VPS_HOST"
-          if [[ "$VPS_HOST" == *:* && "$VPS_HOST" != \[*\] ]]; then
-            url_host="[$VPS_HOST]"
+          url_host="$api_host"
+          if [[ "$api_host" == *:* && "$api_host" != \[*\] ]]; then
+            url_host="[$api_host]"
           fi
           api_base_url="${API_SCHEME}://${url_host}"
           {
