@@ -1,0 +1,143 @@
+name: Provision production runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_scheme:
+        description: Public API scheme; use http until HTTPS is configured
+        required: true
+        default: http
+        type: choice
+        options:
+          - http
+          - https
+      frontend_origin:
+        description: Exact frontend origin allowed by CORS (no trailing slash)
+        required: true
+        default: http://localhost:3000
+        type: string
+      confirmation:
+        description: Type PROVISION to create or update the VPS runtime file
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    name: Generate production runtime secrets
+    if: ${{ inputs.confirmation == 'PROVISION' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    concurrency:
+      group: quanlythuvien-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out deployment files
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate and prepare public URLs
+        id: configuration
+        env:
+          API_SCHEME: ${{ inputs.api_scheme }}
+          FRONTEND_ORIGIN: ${{ inputs.frontend_origin }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$API_SCHEME" == 'http' || "$API_SCHEME" == 'https' ]] || {
+            echo 'api_scheme must be http or https.' >&2
+            exit 1
+          }
+          [[ "$FRONTEND_ORIGIN" == http://* || "$FRONTEND_ORIGIN" == https://* ]] || {
+            echo 'frontend_origin must start with http:// or https://.' >&2
+            exit 1
+          }
+          [[ ! "$FRONTEND_ORIGIN" =~ [[:space:]] ]] || {
+            echo 'frontend_origin cannot contain whitespace.' >&2
+            exit 1
+          }
+          [[ "$VPS_HOST" =~ ^[A-Za-z0-9.:%_-]+$ ]] || {
+            echo 'VPS_HOST is not a valid hostname or IP address.' >&2
+            exit 1
+          }
+
+          frontend_origin="${FRONTEND_ORIGIN%/}"
+          url_host="$VPS_HOST"
+          if [[ "$VPS_HOST" == *:* && "$VPS_HOST" != \[*\] ]]; then
+            url_host="[$VPS_HOST]"
+          fi
+          api_base_url="${API_SCHEME}://${url_host}"
+          {
+            echo "api_base_url=$api_base_url"
+            echo "frontend_origin=$frontend_origin"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Configure pinned SSH identity
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/quanlythuvien_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Synchronize deployment assets and provision runtime
+        env:
+          PUBLIC_API_BASE_URL: ${{ steps.configuration.outputs.api_base_url }}
+          FRONTEND_ORIGIN: ${{ steps.configuration.outputs.frontend_origin }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15
+          )
+          remote="${VPS_USER}@${VPS_HOST}"
+          tar -C deploy -czf - . | ssh "${ssh_args[@]}" "$remote" \
+            'umask 077; mkdir -p "$HOME/apps/quanlythuvien"; tar -xzf - -C "$HOME/apps/quanlythuvien"'
+
+          api_base_url_b64="$(printf '%s' "$PUBLIC_API_BASE_URL" | base64 -w 0)"
+          frontend_origin_b64="$(printf '%s' "$FRONTEND_ORIGIN" | base64 -w 0)"
+          ssh "${ssh_args[@]}" "$remote" \
+            "PUBLIC_API_BASE_URL_B64='$api_base_url_b64' FRONTEND_ORIGIN_B64='$frontend_origin_b64' bash ~/apps/quanlythuvien/scripts/provision-runtime.sh"
+
+      - name: Validate provisioned runtime without starting the database
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+          )
+          ssh "${ssh_args[@]}" "${VPS_USER}@${VPS_HOST}" \
+            'bash ~/apps/quanlythuvien/scripts/preflight.sh'
+
+      - name: Publish provisioning summary
+        env:
+          PUBLIC_API_BASE_URL: ${{ steps.configuration.outputs.api_base_url }}
+          FRONTEND_ORIGIN: ${{ steps.configuration.outputs.frontend_origin }}
+        run: |
+          {
+            echo '## Production runtime provisioned'
+            echo "- API base URL: \`$PUBLIC_API_BASE_URL\`"
+            echo "- CORS frontend origin: \`$FRONTEND_ORIGIN\`"
+            echo '- Runtime secrets: generated or preserved on the VPS; values were not printed'
+            echo '- Database: not started or restored by this workflow'
+          } >> "$GITHUB_STEP_SUMMARY"
