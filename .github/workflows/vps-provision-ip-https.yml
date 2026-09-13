@@ -1,0 +1,102 @@
+name: Provision HTTPS for VPS IP
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type ENABLE_IP_HTTPS to issue a certificate and enable HTTPS
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quanlythuvien-production
+  cancel-in-progress: false
+
+jobs:
+  provision-https:
+    name: Issue IP certificate and enable HTTPS
+    if: ${{ inputs.confirmation == 'ENABLE_IP_HTTPS' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+
+    steps:
+      - name: Check out deployment files
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure pinned SSH identity
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/quanlythuvien_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Verify public HTTP before requesting the certificate
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -Eeuo pipefail
+          curl --fail --silent --show-error --max-time 15 --retry 6 \
+            --retry-all-errors --retry-delay 3 "http://${VPS_HOST}/healthz"
+
+      - name: Synchronize deployment assets and enable HTTPS
+        env:
+          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          [[ -n "$LETSENCRYPT_EMAIL" ]] || {
+            echo 'LETSENCRYPT_EMAIL secret is required.' >&2
+            exit 1
+          }
+
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15
+          )
+          remote="${VPS_USER}@${VPS_HOST}"
+          tar -C deploy -czf - . | ssh "${ssh_args[@]}" "$remote" \
+            'umask 077; mkdir -p "$HOME/apps/quanlythuvien"; tar -xzf - -C "$HOME/apps/quanlythuvien"'
+
+          public_host_b64="$(printf '%s' "$VPS_HOST" | base64 -w 0)"
+          certificate_email_b64="$(printf '%s' "$LETSENCRYPT_EMAIL" | base64 -w 0)"
+          ssh "${ssh_args[@]}" "$remote" \
+            "PUBLIC_HOST=\$(printf '%s' '$public_host_b64' | base64 -d) LETSENCRYPT_EMAIL=\$(printf '%s' '$certificate_email_b64' | base64 -d) bash ~/apps/quanlythuvien/scripts/provision-ip-https.sh"
+
+      - name: Verify HTTPS and HTTP redirect from the Internet
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -Eeuo pipefail
+          curl --fail --silent --show-error --max-time 15 --retry 10 \
+            --retry-all-errors --retry-delay 3 "https://${VPS_HOST}/healthz"
+
+          redirect_status="$(curl --silent --show-error --output /dev/null \
+            --write-out '%{http_code}' "http://${VPS_HOST}/healthz")"
+          [[ "$redirect_status" == '308' ]] || {
+            echo "Expected HTTP 308 redirect, got $redirect_status." >&2
+            exit 1
+          }
+
+      - name: Publish HTTPS summary
+        run: |
+          {
+            echo '## VPS IP HTTPS enabled'
+            echo '- Trusted HTTPS health endpoint: passed'
+            echo '- HTTP to HTTPS redirect: passed'
+            echo '- Certbot renewal dry-run: passed'
+            echo '- Nginx reload hook and renewal timer: enabled'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -227,6 +227,13 @@ HTTP chỉ dùng để xác nhận routing ban đầu; không gửi JWT, mật k
 thật qua kết nối này. Webroot `/var/www/certbot` đã được tạo sẵn để chuyển sang
 HTTPS bằng domain hoặc short-lived IP certificate sau đó.
 
+Khi TCP `80` và `443` đã mở trong cloud firewall, lưu email đăng ký certificate
+vào GitHub Secret `LETSENCRYPT_EMAIL`, rồi chạy workflow
+`Provision HTTPS for VPS IP` và nhập `ENABLE_IP_HTTPS`. Workflow yêu cầu Certbot
+5.4+, xin Let's Encrypt `shortlived` profile, chuyển HTTP sang redirect HTTPS,
+bật timer gia hạn và chạy renewal dry-run. Không đóng port `80`: webroot challenge
+vẫn cần cổng này trong những lần gia hạn tiếp theo.
+
 Khi đã có domain, sao chép virtual-host template và proxy snippet trong
 `deploy/nginx`, đổi domain/certificate rồi kiểm tra:
 
