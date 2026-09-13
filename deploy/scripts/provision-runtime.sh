@@ -187,12 +187,13 @@ else
   set_value REFRESH_TOKEN_SAME_SITE 'Lax'
 fi
 
-# Bước 17: email mẫu không được dùng để gửi thật; giữ địa chỉ .invalid cho đến
-# khi RESEND_API_KEY và MAIL_FROM production được cấu hình riêng.
+# Bước 17: email mẫu không được dùng để gửi thật; giữ địa chỉ .invalid và tắt
+# mail health indicator cho đến khi RESEND_API_KEY/MAIL_FROM được cấu hình riêng.
 mail_from="$(get_value MAIL_FROM)"
 if [[ -z "$mail_from" || "$mail_from" == *example.com* ]]; then
   set_value MAIL_FROM 'no-reply@localhost.invalid'
 fi
+ensure_setting MANAGEMENT_HEALTH_MAIL_ENABLED 'false'
 
 # Bước 18: kiểm tra lần cuối để không ghi file còn placeholder hoặc JWT quá ngắn.
 if grep -Eq '^[A-Z][A-Z0-9_]*=.*CHANGE_ME' "$working_file"; then

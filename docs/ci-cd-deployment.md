@@ -118,6 +118,11 @@ trị trống hoặc chứa `CHANGE_ME` mới được sinh. Vì vậy chạy l�
 đổi mật khẩu PostgreSQL ngoài ý muốn. Các URL public/CORS được cập nhật theo
 input mỗi lần chạy; khi đã cài HTTPS, chạy lại với `api_scheme=https`.
 
+Email là tích hợp tùy chọn. Khi chưa có `RESEND_API_KEY`, provisioning đặt
+`MANAGEMENT_HEALTH_MAIL_ENABLED=false` để SMTP không làm container bị đánh dấu
+unhealthy. Sau khi cấu hình email thật, có thể đổi biến này thành `true` để đưa
+SMTP vào healthcheck production.
+
 Sau đó vào GitHub Actions và chạy:
 
 ```text
