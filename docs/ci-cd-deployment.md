@@ -36,6 +36,7 @@ application version trước; khôi phục database là thao tác có chủ đí
 
 - `.github/workflows/backend-ci.yml`: CI, build image và deploy tự động.
 - `.github/workflows/vps-bootstrap.yml`: cài Docker CE và Compose v2 thủ công.
+- `.github/workflows/vps-provision-runtime.yml`: sinh runtime secret trực tiếp trên VPS.
 - `.github/workflows/vps-preflight.yml`: kiểm tra SSH/VPS/database thủ công.
 - `.github/workflows/rollback-production.yml`: deploy lại một image digest cũ.
 - `deploy/compose.production.yaml`: stack PostgreSQL, Redis và backend production.
@@ -93,20 +94,44 @@ cài Docker CE + Compose v2 từ apt repository chính thức, bật service khi
 thêm deploy user vào group `docker`. Nếu phát hiện container package xung đột,
 workflow dừng để người vận hành xem xét thay vì tự gỡ package.
 
-Sau khi workflow đã nằm trên `main`, vào GitHub Actions và chạy:
+Sau khi Docker đã được cài, chạy workflow:
+
+```text
+Provision production runtime -> Run workflow
+```
+
+Với giai đoạn chưa có domain/HTTPS, chọn:
+
+```text
+api_scheme=http
+frontend_origin=http://localhost:3000
+confirmation=PROVISION
+```
+
+Workflow đồng bộ deployment assets, sau đó chạy `provision-runtime.sh` trên
+VPS. Script sinh `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, secret
+phiên đọc ebook và object-storage credential bằng CSPRNG của OpenSSL. File được
+ghi nguyên tử với mode `600`; giá trị secret không xuất hiện trong Actions log.
+
+Provisioning là idempotent: secret hợp lệ đã tồn tại được giữ nguyên, chỉ giá
+trị trống hoặc chứa `CHANGE_ME` mới được sinh. Vì vậy chạy lại workflow không
+đổi mật khẩu PostgreSQL ngoài ý muốn. Các URL public/CORS được cập nhật theo
+input mỗi lần chạy; khi đã cài HTTPS, chạy lại với `api_scheme=https`.
+
+Sau đó vào GitHub Actions và chạy:
 
 ```text
 VPS deployment preflight -> Run workflow
 ```
 
-Lần đầu workflow sẽ:
+Workflow preflight sẽ:
 
 1. Xác nhận SSH host key và đăng nhập bằng private key.
 2. Đồng bộ thư mục `deploy` tới `$HOME/apps/quanlythuvien`.
-3. Tạo `$HOME/.config/quanlythuvien/backend.env` từ template.
-4. Dừng với lỗi có chủ đích để người vận hành điền secret thật.
+3. Kiểm tra `$HOME/.config/quanlythuvien/backend.env` đã được provision.
+4. Khởi động PostgreSQL/Redis và kiểm tra lịch sử Flyway V22.
 
-Trên VPS, sửa file vừa tạo:
+Nếu không dùng workflow provisioning, vẫn có thể sửa thủ công trên VPS:
 
 ```bash
 nano "$HOME/.config/quanlythuvien/backend.env"
