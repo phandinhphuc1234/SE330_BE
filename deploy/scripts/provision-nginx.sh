@@ -108,7 +108,9 @@ if command -v ufw >/dev/null 2>&1 && root_cmd ufw status | grep -q '^Status: act
 fi
 
 # Bước 12: kiểm tra đúng public entry point ngay trên VPS trước khi báo thành công.
-curl --fail --silent --show-error --max-time 10 \
+# Retry ngắn cho phép worker cũ hoàn tất trong lúc Nginx đang graceful reload.
+curl --fail --silent --show-error --max-time 10 --retry 6 \
+  --retry-all-errors --retry-delay 1 \
   -H "Host: $PUBLIC_HOST" http://127.0.0.1/healthz >/dev/null || \
   fail 'Nginx health proxy did not return success.'
 

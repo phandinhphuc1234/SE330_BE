@@ -239,6 +239,11 @@ Chỉ public TCP `80/443` và cổng SSH đã chọn. Backend bind
 `127.0.0.1:8080`; PostgreSQL và Redis không publish host port. Nginx ghi đè
 `X-Forwarded-For` để backend không tin IP do client tự cung cấp.
 
+Nếu Nginx trả health thành công ngay trên VPS nhưng request từ Internet timeout,
+hãy mở inbound TCP `80` (và `443` khi bật HTTPS) trong firewall/security group
+của nhà cung cấp cloud. UFW trên VPS và Azure Network Security Group là hai lớp
+khác nhau; mở UFW không tự thay đổi rule của Azure.
+
 ## Kiểm tra sau deploy
 
 ```bash
