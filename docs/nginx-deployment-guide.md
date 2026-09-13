@@ -305,3 +305,25 @@ Nên thêm Nginx khi đã xác định:
 - VPS chạy một compose chung hay nhiều compose trên shared network.
 
 Việc trì hoãn cấu hình Nginx đến khi các thông tin trên rõ ràng giúp tránh hardcode domain và routing sai. Nhưng kiến trúc nên mặc định rằng production sẽ có một reverse proxy ở phía trước Spring Boot.
+
+## Chuyển từ HTTPS theo IP sang API domain
+
+Khi DNS `A` của API domain đã trỏ tới IPv4 trong secret `VPS_HOST`, chạy workflow
+`Provision HTTPS for API domain` với:
+
+```text
+public_domain: api-library.flashsale123.tech
+confirmation: ENABLE_DOMAIN_HTTPS
+```
+
+Workflow kiểm tra DNS, cấp certificate Let's Encrypt bằng HTTP-01, render Nginx
+cho domain và chạy thử tự động gia hạn. Endpoint HTTPS theo IP được giữ lại trong
+giai đoạn chuyển tiếp. Sau khi workflow đạt, đổi frontend sang:
+
+```text
+NEXT_PUBLIC_API_URL=https://api-library.flashsale123.tech
+```
+
+Sau đó cập nhật `PUBLIC_API_BASE_URL` bằng workflow provision runtime và redeploy
+frontend/backend. Swagger và phần Actuator không phải health vẫn bị Nginx trả 404
+trong production; đây là chủ đích giảm bề mặt tấn công.
