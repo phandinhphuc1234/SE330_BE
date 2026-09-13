@@ -218,8 +218,17 @@ phải dừng deploy và thực hiện kế hoạch khôi phục database riêng
 
 ## Nginx và firewall
 
-Sao chép virtual-host template và proxy snippet trong `deploy/nginx`, đổi
-domain/certificate rồi kiểm tra:
+Khi chưa có domain, chạy workflow `Provision Nginx HTTP entry point`, nhập
+`PROVISION_NGINX`. Workflow cài Nginx, dùng IP VPS làm `server_name`, public
+`http://<VPS_IP>/healthz` và giữ backend ở `127.0.0.1:8080`. Swagger cùng các
+endpoint Actuator còn lại bị chặn tại Nginx.
+
+HTTP chỉ dùng để xác nhận routing ban đầu; không gửi JWT, mật khẩu hoặc dữ liệu
+thật qua kết nối này. Webroot `/var/www/certbot` đã được tạo sẵn để chuyển sang
+HTTPS bằng domain hoặc short-lived IP certificate sau đó.
+
+Khi đã có domain, sao chép virtual-host template và proxy snippet trong
+`deploy/nginx`, đổi domain/certificate rồi kiểm tra:
 
 ```bash
 sudo nginx -t
@@ -237,7 +246,7 @@ docker compose --project-name quanlythuvien \
   --env-file "$HOME/.config/quanlythuvien/backend.env" \
   -f "$HOME/apps/quanlythuvien/compose.production.yaml" ps
 
-curl --fail https://api.library.example.com/actuator/health
+curl --fail https://api.library.example.com/healthz
 ```
 
 Không dùng `docker compose down -v` trên VPS vì lệnh đó xóa volume database.
