@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
+# Mục đích: kiểm tra VPS đã đủ điều kiện deploy hay chưa mà không thay application.
+# Tham số --database bật thêm bước khởi động PostgreSQL/Redis và kiểm tra Flyway.
+
+# Bước 1: bật chế độ Bash nghiêm ngặt để lỗi nào cũng làm preflight dừng ngay.
 set -Eeuo pipefail
 
+# Bước 2: xác định đường dẫn deployment và file runtime của production.
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 RUNTIME_ENV_FILE="${RUNTIME_ENV_FILE:-$HOME/.config/quanlythuvien/backend.env}"
 EXAMPLE_ENV_FILE="$DEPLOY_ROOT/runtime.env.example"
 CHECK_DATABASE="${1:-}"
 
+# Bước 3: chuẩn hóa log và cách thoát khi điều kiện kiểm tra không đạt.
 log() {
   printf '[preflight] %s\n' "$*"
 }
@@ -16,15 +22,22 @@ fail() {
   exit 1
 }
 
+# Bước 4: kiểm tra các công cụ bắt buộc và quyền truy cập Docker daemon của
+# tài khoản deploy hiện tại.
 command -v docker >/dev/null 2>&1 || fail 'Docker Engine is not installed or is not on PATH.'
 docker version >/dev/null 2>&1 || fail 'The deploy user cannot access the Docker daemon.'
 docker compose version >/dev/null 2>&1 || fail 'Docker Compose v2 is required.'
 command -v flock >/dev/null 2>&1 || fail 'flock is required (install util-linux).'
 command -v sha256sum >/dev/null 2>&1 || fail 'sha256sum is required.'
 
+# Bước 5: tạo các thư mục chỉ dành cho chủ sở hữu. Mode 700 nghĩa là chỉ owner
+# được mở/đọc/ghi bên trong; group và tài khoản khác không có quyền.
 mkdir -p "$(dirname -- "$RUNTIME_ENV_FILE")" "$HOME/backups/quanlythuvien" "$DEPLOY_ROOT/state"
 chmod 700 "$(dirname -- "$RUNTIME_ENV_FILE")" "$HOME/backups/quanlythuvien" "$DEPLOY_ROOT/state"
 
+# Bước 6: nếu chưa có backend.env thì tạo từ template với mode 600 rồi dừng để
+# tránh deploy bằng placeholder. Mode 600 cho owner đọc + sửa, người khác không
+# có quyền; owner vẫn xem được bằng cat/nano, còn root luôn có thể quản trị.
 if [[ ! -f "$RUNTIME_ENV_FILE" ]]; then
   install -m 600 "$EXAMPLE_ENV_FILE" "$RUNTIME_ENV_FILE"
   fail "Created $RUNTIME_ENV_FILE from the template. Replace CHANGE_ME values, then run preflight again."
@@ -32,6 +45,8 @@ fi
 
 chmod 600 "$RUNTIME_ENV_FILE"
 
+# Bước 7: xác nhận mọi biến production bắt buộc đã tồn tại, không rỗng và không
+# còn giá trị ví dụ như CHANGE_ME/example.com. Script không in giá trị secret.
 required_variables=(
   POSTGRES_DB
   POSTGRES_USER
@@ -57,21 +72,28 @@ for variable_name in "${required_variables[@]}"; do
   fi
 done
 
+# Bước 8: JWT secret cần tối thiểu 64 ký tự để không dùng khóa ký quá yếu.
 jwt_line="$(grep -E '^JWT_SECRET=' "$RUNTIME_ENV_FILE" | tail -n 1)"
 jwt_value="${jwt_line#*=}"
 if (( ${#jwt_value} < 64 )); then
   fail 'JWT_SECRET must contain at least 64 characters.'
 fi
 
+# Bước 9: yêu cầu tối thiểu 2 GiB trống để pull image, ghi log và tạo backup.
 available_kb="$(df -Pk "$HOME" | awk 'NR == 2 {print $4}')"
 if [[ -z "$available_kb" || "$available_kb" -lt 2097152 ]]; then
   fail 'At least 2 GiB of free disk space is required before deployment.'
 fi
 
+# Bước 10: nhờ Docker Compose parse toàn bộ cấu hình với runtime env. Lệnh config
+# chỉ kiểm tra cú pháp/substitution, không khởi động container.
 export RUNTIME_ENV_FILE
 APP_IMAGE='ghcr.io/phandinhphuc1234/se330-be:preflight' \
   docker compose --env-file "$RUNTIME_ENV_FILE" -f "$DEPLOY_ROOT/compose.production.yaml" config --quiet
 
+# Bước 11 (tùy chọn --database): khởi động riêng PostgreSQL/Redis rồi kiểm tra DB
+# có bảng lịch sử Flyway và migration V22 đã thành công. Điều này chặn database
+# rỗng hoặc snapshot sai lịch sử trước khi application được deploy.
 if [[ "$CHECK_DATABASE" == '--database' ]]; then
   export RUNTIME_ENV_FILE
   export APP_IMAGE='ghcr.io/phandinhphuc1234/se330-be:preflight'
@@ -97,8 +119,17 @@ if [[ "$CHECK_DATABASE" == '--database' ]]; then
   log 'Database snapshot and Flyway V22 check passed.'
 fi
 
+# Bước 12: chỉ báo thành công sau khi toàn bộ kiểm tra được chọn đều đạt.
 log 'SSH session is working.'
 log 'Docker Engine and Compose are available to the deploy user.'
 log 'Runtime environment file exists, is non-placeholder, and Compose is valid.'
 log 'Disk-space check passed.'
 log 'VPS preflight passed.'
+
+# FLOW TÓM TẮT:
+# kiểm tra công cụ/quyền -> bảo vệ thư mục và backend.env -> kiểm tra biến/JWT
+# -> kiểm tra dung lượng -> validate Compose -> tùy chọn kiểm tra DB/Flyway.
+#
+# VẤN ĐỀ GIẢI QUYẾT:
+# phát hiện sớm cấu hình thiếu, secret mẫu, VPS thiếu tài nguyên hoặc database sai
+# lịch sử; nhờ đó deployment dừng trước khi làm gián đoạn application đang chạy.
