@@ -141,4 +141,3 @@ jobs:
             echo '- Runtime secrets: generated or preserved on the VPS; values were not printed'
             echo '- Database: not started or restored by this workflow'
           } >> "$GITHUB_STEP_SUMMARY"
-
