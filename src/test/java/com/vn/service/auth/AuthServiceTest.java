@@ -3,6 +3,7 @@ package com.vn.service.auth;
 import com.vn.dto.auth.request.LoginRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
+import com.vn.dto.auth.request.VerifyEmailCodeRequest;
 import com.vn.dto.auth.response.AuthResult;
 import com.vn.entity.EmailVerification;
 import com.vn.entity.Member;
@@ -15,6 +16,7 @@ import com.vn.repository.EmailVerificationRepository;
 import com.vn.repository.MemberRepository;
 import com.vn.security.JwtService;
 import com.vn.service.EmailService;
+import com.vn.service.EmailVerificationCodeGenerator;
 import com.vn.service.EmailVerificationRateLimitService;
 import com.vn.service.RedisTokenService;
 import com.vn.service.impl.AuthServiceImpl;
@@ -60,6 +62,9 @@ class AuthServiceTest {
     private EmailVerificationRateLimitService emailVerificationRateLimitService;
 
     @Mock
+    private EmailVerificationCodeGenerator emailVerificationCodeGenerator;
+
+    @Mock
     private EmailService emailService;
 
     private AuthServiceImpl authService;
@@ -73,6 +78,7 @@ class AuthServiceTest {
                 jwtService,
                 redisTokenService,
                 emailVerificationRateLimitService,
+                emailVerificationCodeGenerator,
                 emailService,
                 new AuthMapper(),
                 new MemberMapper()
@@ -90,6 +96,8 @@ class AuthServiceTest {
 
         when(memberRepository.existsByEmail("user@example.com")).thenReturn(false);
         when(passwordEncoder.encode("Password123")).thenReturn("encoded-password");
+        when(emailVerificationCodeGenerator.generate()).thenReturn("123456789");
+        when(passwordEncoder.encode("123456789")).thenReturn("$2a$10$verification-code-hash");
         when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
             Member member = invocation.getArgument(0);
             member.setId(1L);
@@ -115,10 +123,10 @@ class AuthServiceTest {
 
         EmailVerification savedVerification = verificationCaptor.getValue();
         assertThat(savedVerification.getMember()).isSameAs(savedMember);
-        assertThat(savedVerification.getToken()).isNotBlank();
+        assertThat(savedVerification.getToken()).isEqualTo("$2a$10$verification-code-hash");
         assertThat(savedVerification.getExpiresAt()).isNotNull();
 
-        verify(emailService).sendVerificationEmail(1L, "user@example.com", "Nguyen Van A", savedVerification.getToken());
+        verify(emailService).sendVerificationEmail(1L, "user@example.com", "Nguyen Van A", "123456789");
         verify(emailVerificationRateLimitService).startCooldown(1L);
     }
 
@@ -280,6 +288,94 @@ class AuthServiceTest {
     }
 
     @Test
+    void verifyEmail_shouldRejectStoredCodeHash_asLegacyToken() {
+        String codeHash = "$2a$10$verification-code-hash";
+
+        assertThatThrownBy(() -> authService.verifyEmail(codeHash))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.INVALID_OR_EXPIRED_TOKEN.getCode()));
+
+        verify(verificationRepository, never()).findByTokenAndIsUsedFalse(anyString());
+    }
+
+    @Test
+    void verifyEmailCode_shouldActivateMember_whenCodeMatches() {
+        Member member = TestDataFactory.pendingMember(1L);
+        EmailVerification verification = TestDataFactory.activeEmailVerification(
+                10L, member, "$2a$10$verification-code-hash"
+        );
+        VerifyEmailCodeRequest request = new VerifyEmailCodeRequest("member1@example.com", "123456789");
+
+        when(memberRepository.findByEmail("member1@example.com")).thenReturn(Optional.of(member));
+        when(verificationRepository.findByMemberAndIsUsedFalse(member)).thenReturn(Optional.of(verification));
+        when(passwordEncoder.matches("123456789", "$2a$10$verification-code-hash")).thenReturn(true);
+
+        authService.verifyEmailCode(request);
+
+        assertThat(verification.getIsUsed()).isTrue();
+        assertThat(verification.getUsedAt()).isNotNull();
+        assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+        verify(emailVerificationRateLimitService).clear(1L);
+    }
+
+    @Test
+    void verifyEmailCode_shouldRecordFailure_whenCodeDoesNotMatch() {
+        Member member = TestDataFactory.pendingMember(1L);
+        EmailVerification verification = TestDataFactory.activeEmailVerification(
+                10L, member, "$2a$10$verification-code-hash"
+        );
+        VerifyEmailCodeRequest request = new VerifyEmailCodeRequest("member1@example.com", "000000000");
+
+        when(memberRepository.findByEmail("member1@example.com")).thenReturn(Optional.of(member));
+        when(verificationRepository.findByMemberAndIsUsedFalse(member)).thenReturn(Optional.of(verification));
+        when(passwordEncoder.matches("000000000", "$2a$10$verification-code-hash")).thenReturn(false);
+        when(emailVerificationRateLimitService.recordFailedVerificationAttempt(1L)).thenReturn(1L);
+
+        assertThatThrownBy(() -> authService.verifyEmailCode(request))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.INVALID_VERIFICATION_CODE.getCode()));
+
+        verify(emailVerificationRateLimitService).recordFailedVerificationAttempt(1L);
+        assertThat(member.getStatus()).isEqualTo(MemberStatus.PENDING_VERIFICATION);
+    }
+
+    @Test
+    void verifyEmailCode_shouldRejectFifthFailedAttempt() {
+        Member member = TestDataFactory.pendingMember(1L);
+        EmailVerification verification = TestDataFactory.activeEmailVerification(
+                10L, member, "$2a$10$verification-code-hash"
+        );
+        VerifyEmailCodeRequest request = new VerifyEmailCodeRequest("member1@example.com", "000000000");
+
+        when(memberRepository.findByEmail("member1@example.com")).thenReturn(Optional.of(member));
+        when(verificationRepository.findByMemberAndIsUsedFalse(member)).thenReturn(Optional.of(verification));
+        when(passwordEncoder.matches("000000000", "$2a$10$verification-code-hash")).thenReturn(false);
+        when(emailVerificationRateLimitService.recordFailedVerificationAttempt(1L)).thenReturn(5L);
+
+        assertThatThrownBy(() -> authService.verifyEmailCode(request))
+                .isInstanceOfSatisfying(AppException.class, ex -> assertThat(ex.getCode())
+                        .isEqualTo(ErrorCode.EMAIL_VERIFICATION_ATTEMPT_LIMIT_EXCEEDED.getCode()));
+    }
+
+    @Test
+    void verifyEmailCode_shouldRejectExpiredCode() {
+        Member member = TestDataFactory.pendingMember(1L);
+        EmailVerification verification = TestDataFactory.expiredEmailVerification(
+                10L, member, "$2a$10$verification-code-hash"
+        );
+        VerifyEmailCodeRequest request = new VerifyEmailCodeRequest("member1@example.com", "123456789");
+
+        when(memberRepository.findByEmail("member1@example.com")).thenReturn(Optional.of(member));
+        when(verificationRepository.findByMemberAndIsUsedFalse(member)).thenReturn(Optional.of(verification));
+
+        assertThatThrownBy(() -> authService.verifyEmailCode(request))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorCode.VERIFICATION_CODE_EXPIRED.getCode()));
+
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
+
+    @Test
     void refreshToken_shouldThrowInvalidOrExpiredToken_whenJwtInvalid() {
         when(jwtService.isRefreshToken("invalid-refresh-token")).thenReturn(false);
 
@@ -374,17 +470,20 @@ class AuthServiceTest {
 
         when(memberRepository.findByEmail("member1@example.com")).thenReturn(Optional.of(member));
         when(verificationRepository.findByMemberAndIsUsedFalse(member)).thenReturn(Optional.of(verification));
+        when(emailVerificationCodeGenerator.generate()).thenReturn("987654321");
+        when(passwordEncoder.encode("987654321")).thenReturn("$2a$10$new-verification-code-hash");
         when(verificationRepository.save(any(EmailVerification.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         authService.resendVerificationEmail(request);
 
-        assertThat(verification.getToken()).isNotEqualTo("old-token");
+        assertThat(verification.getToken()).isEqualTo("$2a$10$new-verification-code-hash");
         assertThat(verification.getExpiresAt()).isAfter(verification.getLastSentAt());
         assertThat(verification.getIsUsed()).isFalse();
         assertThat(verification.getUsedAt()).isNull();
 
         verify(verificationRepository).save(verification);
-        verify(emailService).sendVerificationEmail(1L, member.getEmail(), member.getFullName(), verification.getToken());
+        verify(emailVerificationRateLimitService).clearVerificationAttempts(1L);
+        verify(emailService).sendVerificationEmail(1L, member.getEmail(), member.getFullName(), "987654321");
         verify(emailVerificationRateLimitService).incrementResendCount(1L);
         verify(emailVerificationRateLimitService).startCooldown(1L);
     }
@@ -396,6 +495,8 @@ class AuthServiceTest {
 
         when(memberRepository.findByEmail("member1@example.com")).thenReturn(Optional.of(member));
         when(verificationRepository.findByMemberAndIsUsedFalse(member)).thenReturn(Optional.empty());
+        when(emailVerificationCodeGenerator.generate()).thenReturn("987654321");
+        when(passwordEncoder.encode("987654321")).thenReturn("$2a$10$new-verification-code-hash");
         when(verificationRepository.save(any(EmailVerification.class))).thenAnswer(invocation -> {
             EmailVerification verification = invocation.getArgument(0);
             verification.setId(10L);
@@ -409,11 +510,11 @@ class AuthServiceTest {
 
         EmailVerification verification = verificationCaptor.getValue();
         assertThat(verification.getMember()).isSameAs(member);
-        assertThat(verification.getToken()).isNotBlank();
+        assertThat(verification.getToken()).isEqualTo("$2a$10$new-verification-code-hash");
         assertThat(verification.getExpiresAt()).isNotNull();
         assertThat(verification.getIsUsed()).isFalse();
 
-        verify(emailService).sendVerificationEmail(1L, member.getEmail(), member.getFullName(), verification.getToken());
+        verify(emailService).sendVerificationEmail(1L, member.getEmail(), member.getFullName(), "987654321");
     }
 
     @Test

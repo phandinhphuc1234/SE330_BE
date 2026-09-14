@@ -49,6 +49,11 @@ có. Chỉ đổi sang `Instant`/offset sau khi đối chiếu frontend consumer
 
 ## Mật khẩu, session và trạng thái thành viên
 
+- `POST /api/auth/verify-email` nhận `email` và `code` gồm đúng 9 chữ số. Mã
+  hết hạn sau 10 phút, chỉ mã mới nhất có hiệu lực và database chỉ lưu BCrypt
+  hash. Sau 5 lần nhập sai, client phải gọi `POST /api/auth/resend-verification`
+  để nhận mã mới. `GET /api/auth/verify-email?token=...` chỉ được giữ để tương
+  thích với link đã phát hành trước khi chuyển sang mã số.
 - `POST /api/auth/forgot-password` luôn trả `200 ApiResponse` chung, dù email
   không tồn tại hoặc đang bị giới hạn, để không lộ tài khoản. Mỗi email có
   cooldown 60 giây và tối đa 5 yêu cầu trong 24 giờ; Redis chỉ giữ hash email.

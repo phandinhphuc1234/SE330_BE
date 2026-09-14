@@ -26,10 +26,6 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
-    // URL gốc để tạo link xác nhận, ví dụ: http://localhost:8080
-    @Value("${app.verification.base-url}")
-    private String baseUrl;
-
     @Value("${app.password-reset.base-url}")
     private String passwordResetBaseUrl;
 
@@ -41,15 +37,13 @@ public class EmailServiceImpl implements EmailService {
 //    @Async bảo Spring rằng:
 //    Method này đừng chạy trên request thread hiện tại. Hãy giao nó cho một thread khác trong executor.
     @Async
-    public void sendVerificationEmail(Long memberId, String toEmail, String fullName, String token) {
+    public void sendVerificationEmail(Long memberId, String toEmail, String fullName, String verificationCode) {
         try {
-            // 1. Tạo link xác nhận
-            String verifyLink = buildVerificationLink(token);
-
-            // 2. Chuẩn bị dữ liệu cho template
+            // Chỉ đưa mã rõ vào email. Database lưu bản BCrypt hash của mã này.
             Context context = new Context();
             context.setVariable("fullName", fullName);
-            context.setVariable("verifyLink", verifyLink);
+            context.setVariable("verificationCode", verificationCode);
+            context.setVariable("expiryMinutes", 10);
 
             // 3. Render HTML từ Thymeleaf template
             String htmlContent = templateEngine.process("email-verification", context);
@@ -59,7 +53,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Xác nhận tài khoản - Hệ thống Quản lý Thư viện");
+            helper.setSubject("Mã xác thực tài khoản - Hệ thống Quản lý Thư viện");
             helper.setText(htmlContent, true); // true = HTML
 
             mailSender.send(message);
@@ -71,20 +65,6 @@ public class EmailServiceImpl implements EmailService {
                     LogEvent.SEND_VERIFICATION_EMAIL, LogResult.FAILED, memberId, e.getClass().getSimpleName(), e);
         }
     }
-    // Tạo URL + endpoint verify + token
-    private String buildVerificationLink(String token) {
-        String normalizedBaseUrl = baseUrl.strip();
-        if (normalizedBaseUrl.endsWith("/")) {
-            normalizedBaseUrl = normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1);
-        }
-
-        return UriComponentsBuilder.fromUriString(normalizedBaseUrl)
-                .path("/api/auth/verify-email")
-                .queryParam("token", token)
-                .build()
-                .toUriString();
-    }
-
     @Override
     @Async
     public void sendPasswordResetEmail(Long memberId, String toEmail, String fullName, String token) {

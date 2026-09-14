@@ -3,6 +3,7 @@ package com.vn.service.impl;
 import com.vn.dto.auth.request.LoginRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
+import com.vn.dto.auth.request.VerifyEmailCodeRequest;
 import com.vn.dto.auth.response.AuthResult;
 import com.vn.entity.EmailVerification;
 import com.vn.entity.Member;
@@ -18,6 +19,7 @@ import com.vn.repository.MemberRepository;
 import com.vn.security.JwtService;
 import com.vn.service.AuthService;
 import com.vn.service.EmailService;
+import com.vn.service.EmailVerificationCodeGenerator;
 import com.vn.service.EmailVerificationRateLimitService;
 import com.vn.service.RedisTokenService;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
+
+    private static final long VERIFICATION_CODE_EXPIRY_MINUTES = 10;
 
     private final MemberRepository memberRepository;
     private final EmailVerificationRepository verificationRepository;
@@ -41,12 +44,13 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final RedisTokenService redisTokenService;
     private final EmailVerificationRateLimitService emailVerificationRateLimitService;
+    private final EmailVerificationCodeGenerator emailVerificationCodeGenerator;
     private final EmailService emailService;
     private final AuthMapper authMapper;
     private final MemberMapper memberMapper;
 
     // ================= REGISTER =================
-    // Flow: check email trùng → hash password → save member → tạo token → gửi email
+    // Flow: check email trùng → hash password → save member → tạo mã → gửi email
     @Override
     @Transactional
     public void register(RegistrationRequest request) {
@@ -61,15 +65,16 @@ public class AuthServiceImpl implements AuthService {
         // @PrePersist sẽ set: status=PENDING_VERIFICATION, role=MEMBER, maxBorrowLimit=5
         memberRepository.save(member);
 
-        // 3. Tạo email verification token (UUID, hết hạn sau 24h)
-        String token = UUID.randomUUID().toString();
-        Instant expiresAt = Instant.now().plus(24, ChronoUnit.HOURS);
-        EmailVerification verification = authMapper.toEmailVerification(member, token, expiresAt);
+        // 3. Chỉ gửi mã rõ qua email; database lưu BCrypt hash để tránh lộ mã.
+        String verificationCode = emailVerificationCodeGenerator.generate();
+        String codeHash = passwordEncoder.encode(verificationCode);
+        Instant expiresAt = Instant.now().plus(VERIFICATION_CODE_EXPIRY_MINUTES, ChronoUnit.MINUTES);
+        EmailVerification verification = authMapper.toEmailVerification(member, codeHash, expiresAt);
         // @PrePersist sẽ set: isUsed=false, createdAt=now
         verificationRepository.save(verification);
 
         // 4. Gửi email xác nhận (@Async — không block)
-        emailService.sendVerificationEmail(member.getId(), member.getEmail(), member.getFullName(), token);
+        emailService.sendVerificationEmail(member.getId(), member.getEmail(), member.getFullName(), verificationCode);
         emailVerificationRateLimitService.startCooldown(member.getId());
 
         log.info("eventType={} result={} memberId={} entityType=MEMBER entityId={}",
@@ -77,10 +82,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // ================= VERIFY EMAIL =================
-    // Flow: tìm token → check hạn → đánh dấu đã dùng → activate member
+    // Giữ endpoint token cũ để các link đã gửi trước khi chuyển sang mã số vẫn dùng được.
     @Override
     @Transactional
     public void verifyEmail(String token) {
+        // Bản ghi mới lưu BCrypt hash của mã. Hash không bao giờ được dùng như legacy token.
+        if (token.startsWith("$2")) {
+            throw new AppException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
+        }
+
         // 1. Tìm token chưa dùng (Tránh trường hợp gửi lại email)
         EmailVerification verification = verificationRepository
                 .findByTokenAndIsUsedFalse(token)
@@ -97,6 +107,50 @@ public class AuthServiceImpl implements AuthService {
 
         // 4. Kích hoạt tài khoản
         Member member = verification.getMember();
+        member.setStatus(MemberStatus.ACTIVE);
+        emailVerificationRateLimitService.clear(member.getId());
+
+        log.info("eventType={} result={} memberId={} entityType=EMAIL_VERIFICATION entityId={}",
+                LogEvent.VERIFY_EMAIL, LogResult.SUCCESS, member.getId(), verification.getId());
+    }
+
+    @Override
+    @Transactional
+    public void verifyEmailCode(VerifyEmailCodeRequest request) {
+        Member member = memberRepository.findByEmail(request.email().trim())
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_VERIFICATION_CODE));
+
+        if (member.getStatus() == MemberStatus.ACTIVE) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
+        if (member.getStatus() != MemberStatus.PENDING_VERIFICATION) {
+            throw new AppException(ErrorCode.ACCOUNT_INACTIVE);
+        }
+        if (emailVerificationRateLimitService.hasExceededVerificationAttemptLimit(member.getId())) {
+            throw new AppException(ErrorCode.EMAIL_VERIFICATION_ATTEMPT_LIMIT_EXCEEDED);
+        }
+
+        EmailVerification verification = verificationRepository.findByMemberAndIsUsedFalse(member)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_VERIFICATION_CODE));
+
+        if (verification.getExpiresAt().isBefore(Instant.now())) {
+            throw new AppException(ErrorCode.VERIFICATION_CODE_EXPIRED);
+        }
+
+        String storedSecret = verification.getToken();
+        boolean codeMatches = storedSecret != null
+                && storedSecret.startsWith("$2")
+                && passwordEncoder.matches(request.code(), storedSecret);
+        if (!codeMatches) {
+            long failedAttempts = emailVerificationRateLimitService.recordFailedVerificationAttempt(member.getId());
+            if (failedAttempts >= 5) {
+                throw new AppException(ErrorCode.EMAIL_VERIFICATION_ATTEMPT_LIMIT_EXCEEDED);
+            }
+            throw new AppException(ErrorCode.INVALID_VERIFICATION_CODE);
+        }
+
+        verification.setIsUsed(true);
+        verification.setUsedAt(Instant.now());
         member.setStatus(MemberStatus.ACTIVE);
         emailVerificationRateLimitService.clear(member.getId());
 
@@ -209,20 +263,22 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Instant now = Instant.now();
-        String newToken = UUID.randomUUID().toString();
-        Instant newExpiresAt = now.plus(24, ChronoUnit.HOURS);
+        String verificationCode = emailVerificationCodeGenerator.generate();
+        String newCodeHash = passwordEncoder.encode(verificationCode);
+        Instant newExpiresAt = now.plus(VERIFICATION_CODE_EXPIRY_MINUTES, ChronoUnit.MINUTES);
         EmailVerification verification = verificationRepository
                 .findByMemberAndIsUsedFalse(member)
-                .orElseGet(() -> authMapper.toEmailVerification(member, newToken, newExpiresAt));
+                .orElseGet(() -> authMapper.toEmailVerification(member, newCodeHash, newExpiresAt));
 
-        verification.setToken(newToken);
+        verification.setToken(newCodeHash);
         verification.setExpiresAt(newExpiresAt);
         verification.setIsUsed(false);
         verification.setUsedAt(null);
         verification.setLastSentAt(now);
 
         verificationRepository.save(verification);
-        emailService.sendVerificationEmail(member.getId(), member.getEmail(), member.getFullName(), newToken);
+        emailVerificationRateLimitService.clearVerificationAttempts(member.getId());
+        emailService.sendVerificationEmail(member.getId(), member.getEmail(), member.getFullName(), verificationCode);
         emailVerificationRateLimitService.incrementResendCount(member.getId());
         emailVerificationRateLimitService.startCooldown(member.getId());
 

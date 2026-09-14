@@ -6,6 +6,7 @@ import com.vn.dto.auth.request.ForgotPasswordRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
 import com.vn.dto.auth.request.ResetPasswordRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
+import com.vn.dto.auth.request.VerifyEmailCodeRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.auth.response.AuthResponse;
 import com.vn.security.MemberUserDetails;
@@ -40,6 +41,16 @@ public interface AuthApiDocs {
     )
     ResponseEntity<ApiResponse<Void>> verifyEmail(
             @Parameter(description = "Email verification token", required = true) String token
+    );
+
+    @SecurityRequirements
+    @Operation(
+            summary = "Verify email with code",
+            description = "Verify and activate a pending account using the 9-digit code sent by email."
+    )
+    ResponseEntity<ApiResponse<Void>> verifyEmailCode(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Registered email and 9-digit verification code")
+            VerifyEmailCodeRequest request
     );
 
     @SecurityRequirements

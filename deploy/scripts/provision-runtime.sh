@@ -172,7 +172,6 @@ ensure_setting OBJECT_STORAGE_PUBLIC_ENDPOINT 'http://127.0.0.1:8333'
 # phải secret, và được phép thay đổi khi chuyển từ IP HTTP sang HTTPS/domain.
 set_value CORS_ALLOWED_ORIGINS "$frontend_origin"
 set_value CORS_ALLOW_CREDENTIALS 'true'
-set_value APP_VERIFICATION_BASE_URL "$public_api_base_url"
 set_value APP_PASSWORD_RESET_BASE_URL "${frontend_origin}/reset-password"
 set_value VNPAY_RETURN_URL "${frontend_origin}/payment/vnpay-return"
 set_value VNPAY_IPN_URL "${public_api_base_url}/api/payments/ipn/vnpay"
