@@ -22,33 +22,28 @@
                     </tr>
                     <tr>
                         <td style="padding-bottom:24px; font-size:15px; color:#555; line-height:1.6;">
-                            Cảm ơn bạn đã đăng ký tài khoản. Vui lòng nhấn nút bên dưới để xác nhận email của bạn:
+                            Cảm ơn bạn đã đăng ký tài khoản. Nhập mã xác thực dưới đây để kích hoạt tài khoản:
                         </td>
                     </tr>
                     <tr>
                         <td align="center" style="padding-bottom:24px;">
-                            <a th:href="${verifyLink}"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               style="color:#ffffff !important; display:inline-block; background-color:#2563eb;
-                                      padding:14px 32px; border-radius:6px; text-decoration:none;
-                                      font-size:16px; font-weight:bold; line-height:100%;">
-                                Xác nhận email
-                            </a>
+                            <div th:text="${verificationCode}"
+                                 style="display:inline-block; background-color:#eef2ff; border:1px solid #c7d2fe;
+                                        color:#1e3a8a; padding:18px 24px; border-radius:8px;
+                                        font-size:30px; font-weight:bold; letter-spacing:8px; line-height:1;">
+                                123456789
+                            </div>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding-bottom:16px; font-size:13px; color:#999; line-height:1.5;">
-                            Nếu nút không mở được, hãy copy link này và dán vào trình duyệt:<br/>
-                            <a th:href="${verifyLink}" th:text="${verifyLink}"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               style="color:#2563eb; word-break:break-all;">http://localhost:8080/api/auth/verify-email?token=...</a>
+                            Không chia sẻ mã này với bất kỳ ai. Nhân viên thư viện sẽ không bao giờ hỏi mã xác thực của bạn.
                         </td>
                     </tr>
                     <tr>
                         <td style="padding-bottom:16px; font-size:13px; color:#999; line-height:1.5;">
-                            Link sẽ hết hạn sau 24 giờ. Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.
+                            Mã sẽ hết hạn sau <strong th:text="${expiryMinutes}">10</strong> phút. Chỉ mã được gửi gần nhất có hiệu lực.
+                            Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.
                         </td>
                     </tr>
                     <tr>

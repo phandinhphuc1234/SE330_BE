@@ -61,7 +61,7 @@ public class SecurityConfig {
                         // Cho phép truy cập không cần đăng nhập
                         .requestMatchers("/").permitAll()
                         // Các request không cấn bảo vệ
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh",
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/verify-email",
                                 "/api/auth/resend-verification", "/api/auth/forgot-password", "/api/auth/reset-password")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify-email").permitAll()

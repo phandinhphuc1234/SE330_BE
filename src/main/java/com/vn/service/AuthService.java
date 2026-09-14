@@ -3,6 +3,7 @@ package com.vn.service;
 import com.vn.dto.auth.request.LoginRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
+import com.vn.dto.auth.request.VerifyEmailCodeRequest;
 import com.vn.dto.auth.response.AuthResult;
 
 public interface AuthService {
@@ -12,6 +13,9 @@ public interface AuthService {
 
     // Xác nhận email qua token
     void verifyEmail(String token);
+
+    // Xác nhận email bằng mã một lần gồm 9 chữ số
+    void verifyEmailCode(VerifyEmailCodeRequest request);
 
     // Đăng nhập → trả access token, refresh token lưu riêng
     AuthResult login(LoginRequest request);

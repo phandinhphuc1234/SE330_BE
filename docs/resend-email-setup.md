@@ -230,7 +230,6 @@ Verified domain
 Sending access API key
 Environment variables trên server
 Không commit secret
-HTTPS base URL
 ```
 
 Ví dụ:
@@ -238,14 +237,12 @@ Ví dụ:
 ```text
 Domain: your-domain.com
 From: The Athenaeum <no-reply@your-domain.com>
-Verification base URL: https://api.your-domain.com
 ```
 
 Không nên dùng:
 
 ```text
 onboarding@resend.dev
-localhost base URL
 API key full access nếu chỉ cần gửi email
 ```
 
@@ -482,7 +479,6 @@ MAIL_PORT=587
 MAIL_USERNAME=resend
 MAIL_PASSWORD=re_xxxxxxxxxxxxxxxxxxxxxxxxx
 MAIL_FROM=The Athenaeum <no-reply@your-domain.com>
-APP_VERIFICATION_BASE_URL=https://api.your-domain.com
 ```
 
 Lưu ý:
@@ -528,21 +524,17 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
-    @Value("${app.verification.base-url}")
-    private String baseUrl;
-
     @Value("${app.mail.from}")
     private String fromEmail;
 
     @Override
     @Async
-    public void sendVerificationEmail(Long memberId, String toEmail, String fullName, String token) {
+    public void sendVerificationEmail(Long memberId, String toEmail, String fullName, String verificationCode) {
         try {
-            String verifyLink = baseUrl + "/api/auth/verify-email?token=" + token;
-
             Context context = new Context();
             context.setVariable("fullName", fullName);
-            context.setVariable("verifyLink", verifyLink);
+            context.setVariable("verificationCode", verificationCode);
+            context.setVariable("expiryMinutes", 10);
 
             String htmlContent = templateEngine.process("email-verification", context);
 
@@ -565,39 +557,23 @@ public class EmailServiceImpl implements EmailService {
 }
 ```
 
-## app.verification.base-url
+## Mã xác thực email hiện tại
 
-Hiện tại config:
+Hệ thống gửi mã số gồm đúng 9 chữ số, hết hạn sau 10 phút. Database chỉ lưu BCrypt hash của mã; mã rõ chỉ được đưa vào nội dung email. Vì không còn nhúng link vào email nên flow này không cần `APP_VERIFICATION_BASE_URL`.
 
-```properties
-app.verification.base-url=http://localhost:8080
+Frontend gửi mã về backend bằng:
+
+```http
+POST /api/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "code": "123456789"
+}
 ```
 
-Email verification link được tạo:
-
-```java
-String verifyLink = baseUrl + "/api/auth/verify-email?token=" + token;
-```
-
-Local:
-
-```env
-APP_VERIFICATION_BASE_URL=http://localhost:8080
-```
-
-Production:
-
-```env
-APP_VERIFICATION_BASE_URL=https://api.your-domain.com
-```
-
-Nên đổi `application.properties` thành:
-
-```properties
-app.verification.base-url=${APP_VERIFICATION_BASE_URL:http://localhost:8080}
-```
-
-Nếu không đổi, deploy production sẽ gửi link localhost, user click không dùng được.
+Chỉ mã mới nhất có hiệu lực. Sau 5 lần nhập sai, người dùng phải yêu cầu mã mới.
 
 ## Cấu hình production trên Render/Railway/Fly.io/VPS
 
@@ -609,7 +585,6 @@ MAIL_PORT=587
 MAIL_USERNAME=resend
 MAIL_PASSWORD=re_xxxxxxxxxxxxxxxxxxxxxxxxx
 MAIL_FROM=The Athenaeum <no-reply@your-domain.com>
-APP_VERIFICATION_BASE_URL=https://api.your-domain.com
 ```
 
 Không cần upload `.env` lên server nếu nền tảng có UI quản lý environment variables.
@@ -634,7 +609,6 @@ export MAIL_PORT=587
 export MAIL_USERNAME=resend
 export MAIL_PASSWORD=re_xxxxxxxxxxxxxxxxxxxxxxxxx
 export MAIL_FROM="The Athenaeum <no-reply@your-domain.com>"
-export APP_VERIFICATION_BASE_URL=https://api.your-domain.com
 ```
 
 ## Kiểm tra bằng flow thật
@@ -681,7 +655,6 @@ Theo Resend SMTP docs, email gửi qua SMTP sẽ hiển thị trong emails table
 
 ```env
 MAIL_FROM=The Athenaeum <no-reply@your-domain.com>
-APP_VERIFICATION_BASE_URL=https://api.your-domain.com
 ```
 
 3. Register bằng email thật:
@@ -690,7 +663,7 @@ APP_VERIFICATION_BASE_URL=https://api.your-domain.com
 your-real-email@gmail.com
 ```
 
-4. Click verification link trong email.
+4. Nhập mã 9 chữ số trong email tại trang `/check-email`.
 
 5. Kiểm tra member status trong DB:
 
@@ -785,19 +758,9 @@ MAIL_USERNAME=resend
 MAIL_PASSWORD=re_xxxxxxxxxxxxxxxxx
 ```
 
-### 5. Link verify vẫn là localhost khi deploy
+### 5. Mã xác thực không dùng được
 
-Sai production:
-
-```env
-APP_VERIFICATION_BASE_URL=http://localhost:8080
-```
-
-Đúng:
-
-```env
-APP_VERIFICATION_BASE_URL=https://api.your-domain.com
-```
+Kiểm tra người dùng đang nhập mã trong email mới nhất, mã chưa quá 10 phút và chưa nhập sai quá 5 lần. Nếu đã vượt giới hạn, dùng chức năng gửi lại để phát hành mã mới.
 
 ## Có nên dùng Resend Java SDK không?
 
@@ -967,7 +930,6 @@ Sau khi gửi email ổn:
 ```text
 Verify domain
 Set MAIL_FROM dùng domain thật
-Set APP_VERIFICATION_BASE_URL dùng HTTPS domain thật
 Dùng Sending access API key
 Rotate key nếu từng lộ trong local/log/Git
 Theo dõi Resend dashboard logs
@@ -1004,7 +966,6 @@ spring.mail.properties.mail.smtp.timeout=5000
 spring.mail.properties.mail.smtp.writetimeout=5000
 
 app.mail.from=${MAIL_FROM:The Athenaeum <onboarding@resend.dev>}
-app.verification.base-url=${APP_VERIFICATION_BASE_URL:http://localhost:8080}
 ```
 
 ### .env local smoke test
@@ -1015,7 +976,6 @@ MAIL_PORT=587
 MAIL_USERNAME=resend
 MAIL_PASSWORD=re_xxxxxxxxxxxxxxxxxxxxxxxxx
 MAIL_FROM=The Athenaeum <onboarding@resend.dev>
-APP_VERIFICATION_BASE_URL=http://localhost:8080
 ```
 
 ### .env production
@@ -1026,7 +986,6 @@ MAIL_PORT=587
 MAIL_USERNAME=resend
 MAIL_PASSWORD=re_xxxxxxxxxxxxxxxxxxxxxxxxx
 MAIL_FROM=The Athenaeum <no-reply@your-domain.com>
-APP_VERIFICATION_BASE_URL=https://api.your-domain.com
 ```
 
 ## Kết luận
@@ -1048,6 +1007,5 @@ Khi deploy thật, phần quan trọng nhất là:
 ```text
 Verify domain
 MAIL_FROM thuộc domain đã verify
-APP_VERIFICATION_BASE_URL là HTTPS URL thật
 RESEND API key nằm trong environment variables
 ```

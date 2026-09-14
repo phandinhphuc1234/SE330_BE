@@ -7,6 +7,7 @@ import com.vn.dto.auth.request.ForgotPasswordRequest;
 import com.vn.dto.auth.request.RegistrationRequest;
 import com.vn.dto.auth.request.ResetPasswordRequest;
 import com.vn.dto.auth.request.ResendVerificationRequest;
+import com.vn.dto.auth.request.VerifyEmailCodeRequest;
 import com.vn.dto.common.ApiResponse;
 import com.vn.dto.auth.response.AuthResult;
 import com.vn.dto.auth.response.AuthResponse;
@@ -51,6 +52,13 @@ public class AuthController implements AuthApiDocs {
     public ResponseEntity<ApiResponse<Void>> verifyEmail(
             @RequestParam String token) {
         authService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success("Xác nhận email thành công. Bạn có thể đăng nhập.", null));
+    }
+
+    @PostMapping("/verify-email")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> verifyEmailCode(@Valid @RequestBody VerifyEmailCodeRequest request) {
+        authService.verifyEmailCode(request);
         return ResponseEntity.ok(ApiResponse.success("Xác nhận email thành công. Bạn có thể đăng nhập.", null));
     }
 

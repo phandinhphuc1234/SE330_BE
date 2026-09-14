@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 class EmailServiceImplTest {
 
     @Test
-    @DisplayName("Verification email uses configured sender and renders a full verification URL")
+    @DisplayName("Verification email uses configured sender and renders a 9-digit code")
     void sendVerificationEmail_shouldUseConfiguredMailFromAddress() throws Exception {
         JavaMailSender mailSender = mock(JavaMailSender.class);
         TemplateEngine templateEngine = mock(TemplateEngine.class);
@@ -34,10 +34,9 @@ class EmailServiceImplTest {
         doAnswer(invocation -> null).when(mailSender).send(message);
 
         EmailServiceImpl emailService = new EmailServiceImpl(mailSender, templateEngine);
-        ReflectionTestUtils.setField(emailService, "baseUrl", " http://localhost:8080/ ");
         ReflectionTestUtils.setField(emailService, "fromEmail", "onboarding@resend.dev");
 
-        emailService.sendVerificationEmail(1L, "member@example.com", "Member", "token-123");
+        emailService.sendVerificationEmail(1L, "member@example.com", "Member", "123456789");
 
         Address[] from = message.getFrom();
         assertThat(from).hasSize(1);
@@ -45,8 +44,8 @@ class EmailServiceImplTest {
 
         var contextCaptor = forClass(IContext.class);
         verify(templateEngine).process(eq("email-verification"), contextCaptor.capture());
-        assertThat(contextCaptor.getValue().getVariable("verifyLink"))
-                .isEqualTo("http://localhost:8080/api/auth/verify-email?token=token-123");
+        assertThat(contextCaptor.getValue().getVariable("verificationCode")).isEqualTo("123456789");
+        assertThat(contextCaptor.getValue().getVariable("expiryMinutes")).isEqualTo(10);
     }
 
     @Test

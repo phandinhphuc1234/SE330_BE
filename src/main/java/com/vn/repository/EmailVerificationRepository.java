@@ -8,10 +8,10 @@ import java.util.Optional;
 
 public interface EmailVerificationRepository extends JpaRepository<EmailVerification, Long> {
 
-    // Tìm token xác thực email còn chưa dùng khi user bấm link verify.
+    // Chỉ dùng để tương thích với token trong link xác thực đã phát hành trước đây.
     Optional<EmailVerification> findByTokenAndIsUsedFalse(String token);
 
-    // Tìm token xác thực email còn hiệu lực của một member để resend hoặc kiểm soát rate limit.
+    // Tìm mã xác thực hiện hành của member; cột token lưu BCrypt hash của mã.
     Optional<EmailVerification> findByMemberAndIsUsedFalse(Member member);
 }
 

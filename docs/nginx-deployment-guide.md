@@ -75,7 +75,7 @@ https://api.library.example.com
 
 Spring Boot có thể đổi container, cổng nội bộ hoặc chạy nhiều instance mà frontend không cần thay đổi.
 
-Các biến như callback URL của VNPAY và verification URL cũng nên sử dụng domain public này.
+Các biến như callback URL của VNPAY và URL đặt lại mật khẩu cũng nên sử dụng domain public tương ứng.
 
 ### 4. Giới hạn request và rate limiting
 
