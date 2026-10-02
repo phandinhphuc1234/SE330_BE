@@ -21,6 +21,10 @@
     <properties>
         <java.version>21</java.version>
 
+        <!-- Override Spring Boot 4.0.8 BOMs with patched Jackson releases. -->
+        <jackson-2-bom.version>2.21.7</jackson-2-bom.version>
+        <jackson-bom.version>3.1.7</jackson-bom.version>
+
         <!-- Version khai báo rõ để tránh Maven không resolve được -->
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>3.0.3</springdoc.version>
