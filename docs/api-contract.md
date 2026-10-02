@@ -68,6 +68,18 @@ có. Chỉ đổi sang `Instant`/offset sau khi đối chiếu frontend consumer
   ghi audit, revoke session của mục tiêu, không cho tự đổi status và không cho
   ghi `PENDING_VERIFICATION` bằng API quản trị.
 
+## Vận hành email notification
+
+- `GET /api/admin/notification-deliveries` chỉ cho `ADMIN`, hỗ trợ lọc theo
+  `status`, `notificationType`, tìm theo event key/email/provider ID và phân
+  trang chuẩn `PageMeta`. Response che phần local của email và không trả payload
+  template.
+- `GET /api/admin/notification-deliveries/summary` trả tổng số queue theo từng
+  trạng thái, số đang chờ xử lý và số cần admin chú ý.
+- `POST /api/admin/notification-deliveries/{queueId}/retry` chỉ nhận queue
+  `DEAD`. Thao tác tạo delivery attempt/idempotency key mới và ghi audit; không
+  cho retry trực tiếp `BOUNCED` hoặc `COMPLAINED`.
+
 ## Ngoại lệ contract có chủ đích
 
 - `GET /api/payments/ipn/vnpay`: trả `PaymentIpnResponse` với `RspCode` và

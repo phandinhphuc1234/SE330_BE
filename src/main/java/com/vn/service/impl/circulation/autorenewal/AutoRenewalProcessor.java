@@ -1,12 +1,16 @@
 package com.vn.service.impl.circulation.autorenewal;
 
 import com.vn.dto.circulation.response.RenewBorrowResponse;
+import com.vn.entity.AutoRenewalAttempt;
 import com.vn.entity.BorrowRecord;
 import com.vn.enums.AutoRenewalResultCode;
+import com.vn.enums.NotificationTargetType;
+import com.vn.enums.NotificationType;
 import com.vn.logging.LogEvent;
 import com.vn.logging.LogResult;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.service.EmailService;
+import com.vn.service.NotificationQueueService;
+import com.vn.service.notification.EmailNotificationCommand;
 import com.vn.service.impl.circulation.policy.CirculationPolicyService;
 import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import com.vn.service.impl.circulation.usecase.RenewalUseCase;
@@ -17,6 +21,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +33,7 @@ public class AutoRenewalProcessor {
     private final CirculationSettingService circulationSettingService;
     private final RenewalUseCase renewalUseCase;
     private final AutoRenewalAttemptRecorder attemptRecorder;
-    private final EmailService emailService;
+    private final NotificationQueueService notificationQueueService;
 
     // Chức năng: xử lý một borrow trong transaction riêng để lỗi một record không làm fail cả job.
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -42,8 +47,7 @@ public class AutoRenewalProcessor {
 
         try {
             return processBorrow(borrow, jobLogId);
-        } catch (Exception e) {
-            attemptRecorder.recordFailure(borrow, jobLogId, Instant.now(), AutoRenewalResultCode.SYSTEM_ERROR);
+        } catch (RuntimeException e) {
             log.error("eventType={} result={} borrowId={} memberId={} reasonCode={}",
                     LogEvent.AUTO_RENEWAL_ATTEMPT,
                     LogResult.FAILED,
@@ -51,7 +55,10 @@ public class AutoRenewalProcessor {
                     borrow.getMember().getId(),
                     AutoRenewalResultCode.SYSTEM_ERROR,
                     e);
-            return AutoRenewalResult.failed(AutoRenewalResultCode.SYSTEM_ERROR);
+            // Leave the transactional proxy with an exception so the renewal,
+            // attempt and delivery request roll back atomically. The outer batch
+            // catches the error and continues with the next record.
+            throw e;
         }
     }
 
@@ -59,8 +66,9 @@ public class AutoRenewalProcessor {
         Instant attemptedAt = Instant.now();
         AutoRenewalResultCode validationResult = circulationPolicyService.validateAutoRenewal(borrow);
         if (validationResult != AutoRenewalResultCode.SUCCESS) {
-            attemptRecorder.recordFailure(borrow, jobLogId, attemptedAt, validationResult);
-            sendFailureEmailIfEnabled(borrow, validationResult);
+            AutoRenewalAttempt attempt = attemptRecorder.recordFailure(
+                    borrow, jobLogId, attemptedAt, validationResult);
+            enqueueFailureNotificationIfEnabled(borrow, attempt, validationResult);
             log.warn("eventType={} result={} borrowId={} memberId={} reasonCode={}",
                     LogEvent.AUTO_RENEWAL_ATTEMPT, LogResult.FAILED, borrow.getId(), borrow.getMember().getId(), validationResult);
             return AutoRenewalResult.failed(validationResult);
@@ -73,7 +81,7 @@ public class AutoRenewalProcessor {
                 circulationSettingService.getRenewalDaysDefault()
         );
 
-        attemptRecorder.recordSuccess(
+        AutoRenewalAttempt attempt = attemptRecorder.recordSuccess(
                 borrow,
                 jobLogId,
                 attemptedAt,
@@ -82,7 +90,7 @@ public class AutoRenewalProcessor {
                 renewCountBefore,
                 renewed.renewCount()
         );
-        sendSuccessEmailIfEnabled(borrow, oldDueDate, renewed);
+        enqueueSuccessNotificationIfEnabled(borrow, attempt, oldDueDate, renewed);
 
         log.info("eventType={} result={} borrowId={} memberId={} oldDueDate={} newDueDate={} renewCount={}",
                 LogEvent.AUTO_RENEWAL_ATTEMPT,
@@ -96,36 +104,64 @@ public class AutoRenewalProcessor {
         return AutoRenewalResult.succeeded();
     }
 
-    private void sendSuccessEmailIfEnabled(BorrowRecord borrow, Instant oldDueDate, RenewBorrowResponse renewed) {
+    private void enqueueSuccessNotificationIfEnabled(BorrowRecord borrow,
+                                                       AutoRenewalAttempt attempt,
+                                                       Instant oldDueDate,
+                                                       RenewBorrowResponse renewed) {
         if (!circulationSettingService.isAutoRenewNotifySuccessEnabled()) {
             return;
         }
-        emailService.sendAutoRenewalSuccessEmail(
-                borrow.getMember().getId(),
-                borrow.getMember().getEmail(),
-                borrow.getMember().getFullName(),
-                borrow.getBookCopy().getBook().getTitle(),
-                borrow.getBookCopy().getBarcode(),
-                oldDueDate,
-                renewed.newDueDate(),
-                renewed.renewCount(),
-                renewed.maxRenewals()
-        );
+        notificationQueueService.enqueueEmail(EmailNotificationCommand.builder()
+                .member(borrow.getMember())
+                .title("Gia hạn sách tự động thành công")
+                .content("Sách \"" + borrow.getBookCopy().getBook().getTitle()
+                        + "\" đã được gia hạn tự động.")
+                .notificationType(NotificationType.AUTO_RENEWAL_SUCCESS)
+                .targetType(NotificationTargetType.AUTO_RENEWAL_ATTEMPT)
+                .targetId(attempt.getId())
+                .eventKey("AUTO_RENEWAL_SUCCESS:AUTO_RENEWAL_ATTEMPT:" + attempt.getId() + ":EMAIL")
+                .templateCode("auto-renewal-success")
+                .payload(Map.of(
+                        "fullName", displayName(borrow),
+                        "bookTitle", borrow.getBookCopy().getBook().getTitle(),
+                        "barcode", borrow.getBookCopy().getBarcode(),
+                        "oldDueDate", oldDueDate.toString(),
+                        "newDueDate", renewed.newDueDate().toString(),
+                        "renewCount", renewed.renewCount(),
+                        "maxRenewals", renewed.maxRenewals()
+                ))
+                .build());
     }
 
-    private void sendFailureEmailIfEnabled(BorrowRecord borrow, AutoRenewalResultCode code) {
+    private void enqueueFailureNotificationIfEnabled(BorrowRecord borrow,
+                                                       AutoRenewalAttempt attempt,
+                                                       AutoRenewalResultCode code) {
         if (!circulationSettingService.isAutoRenewNotifyFailureEnabled()) {
             return;
         }
-        emailService.sendAutoRenewalFailureEmail(
-                borrow.getMember().getId(),
-                borrow.getMember().getEmail(),
-                borrow.getMember().getFullName(),
-                borrow.getBookCopy().getBook().getTitle(),
-                borrow.getBookCopy().getBarcode(),
-                borrow.getDueDate(),
-                code.name(),
-                code.defaultMessage()
-        );
+        notificationQueueService.enqueueEmail(EmailNotificationCommand.builder()
+                .member(borrow.getMember())
+                .title("Không thể tự động gia hạn sách")
+                .content("Sách \"" + borrow.getBookCopy().getBook().getTitle()
+                        + "\" không thể được gia hạn tự động.")
+                .notificationType(NotificationType.AUTO_RENEWAL_FAILURE)
+                .targetType(NotificationTargetType.AUTO_RENEWAL_ATTEMPT)
+                .targetId(attempt.getId())
+                .eventKey("AUTO_RENEWAL_FAILURE:AUTO_RENEWAL_ATTEMPT:" + attempt.getId() + ":EMAIL")
+                .templateCode("auto-renewal-failure")
+                .payload(Map.of(
+                        "fullName", displayName(borrow),
+                        "bookTitle", borrow.getBookCopy().getBook().getTitle(),
+                        "barcode", borrow.getBookCopy().getBarcode(),
+                        "dueDate", borrow.getDueDate().toString(),
+                        "reasonCode", code.name(),
+                        "reasonMessage", code.defaultMessage()
+                ))
+                .build());
+    }
+
+    private String displayName(BorrowRecord borrow) {
+        String fullName = borrow.getMember().getFullName();
+        return fullName == null || fullName.isBlank() ? "Bạn đọc" : fullName.strip();
     }
 }

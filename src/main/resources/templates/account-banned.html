@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tài khoản thư viện đã bị khóa</title>
+</head>
+<body>
+<p>Chào <span th:text="${fullName}">Bạn đọc</span>,</p>
+<p>Tài khoản thư viện của bạn đã bị quản trị viên khóa.</p>
+<ul>
+    <li><strong>Lý do:</strong> <span th:text="${reason}">Không có lý do được cung cấp</span></li>
+    <li><strong>Thời điểm:</strong> <span th:text="${changedAt}">thời điểm thay đổi</span></li>
+</ul>
+<p>Nếu cho rằng đây là nhầm lẫn, vui lòng liên hệ thư viện để được hỗ trợ.</p>
+</body>
+</html>

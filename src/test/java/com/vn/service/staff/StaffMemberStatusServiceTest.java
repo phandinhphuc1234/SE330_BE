@@ -12,9 +12,11 @@ import com.vn.repository.MemberRepository;
 import com.vn.repository.MemberStatusAuditRepository;
 import com.vn.security.JwtService;
 import com.vn.service.RedisTokenService;
+import com.vn.service.NotificationQueueService;
 import com.vn.service.StaffLoanService;
 import com.vn.service.impl.StaffMemberServiceImpl;
 import com.vn.service.impl.staff.member.StaffMemberStatsLoader;
+import com.vn.service.notification.EmailNotificationCommand;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,13 +44,14 @@ class StaffMemberStatusServiceTest {
     @Mock private MemberStatusAuditRepository memberStatusAuditRepository;
     @Mock private RedisTokenService redisTokenService;
     @Mock private JwtService jwtService;
+    @Mock private NotificationQueueService notificationQueueService;
 
     private StaffMemberServiceImpl service;
 
     @BeforeEach
     void setUp() {
         service = new StaffMemberServiceImpl(memberRepository, staffLoanService, statsLoader, staffMemberMapper,
-                memberStatusAuditRepository, redisTokenService, jwtService);
+                memberStatusAuditRepository, redisTokenService, jwtService, notificationQueueService);
     }
 
     @Test
@@ -56,6 +59,12 @@ class StaffMemberStatusServiceTest {
         Member member = TestDataFactory.activeMember(2L);
         when(memberRepository.findLockedById(2L)).thenReturn(Optional.of(member));
         when(jwtService.getRefreshExpiry()).thenReturn(604800000L);
+        when(memberStatusAuditRepository.save(org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(invocation -> {
+                    MemberStatusAudit audit = invocation.getArgument(0);
+                    audit.setId(44L);
+                    return audit;
+                });
 
         MemberStatusUpdateResponse response = service.updateMemberStatus(1L, 2L,
                 new UpdateMemberStatusRequest(MemberStatus.BANNED, "Repeated policy breach"));
@@ -67,6 +76,38 @@ class StaffMemberStatusServiceTest {
         verify(memberStatusAuditRepository).save(auditCaptor.capture());
         assertThat(auditCaptor.getValue().getActorMemberId()).isEqualTo(1L);
         assertThat(auditCaptor.getValue().getReason()).isEqualTo("Repeated policy breach");
+        ArgumentCaptor<EmailNotificationCommand> notificationCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(notificationCaptor.capture());
+        assertThat(notificationCaptor.getValue().eventKey())
+                .isEqualTo("ACCOUNT_BANNED:MEMBER_STATUS_AUDIT:44:EMAIL");
+        assertThat(notificationCaptor.getValue().payload())
+                .containsEntry("reason", "Repeated policy breach");
+        verify(redisTokenService).revokeAllSessions(2L, 604800000L);
+    }
+
+    @Test
+    void updateMemberStatus_shouldEnqueueReactivationNotification() {
+        Member member = TestDataFactory.activeMember(2L);
+        member.setStatus(MemberStatus.BANNED);
+        when(memberRepository.findLockedById(2L)).thenReturn(Optional.of(member));
+        when(jwtService.getRefreshExpiry()).thenReturn(604800000L);
+        when(memberStatusAuditRepository.save(org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(invocation -> {
+                    MemberStatusAudit audit = invocation.getArgument(0);
+                    audit.setId(45L);
+                    return audit;
+                });
+
+        service.updateMemberStatus(1L, 2L,
+                new UpdateMemberStatusRequest(MemberStatus.ACTIVE, "Appeal approved"));
+
+        ArgumentCaptor<EmailNotificationCommand> notificationCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(notificationCaptor.capture());
+        assertThat(notificationCaptor.getValue().eventKey())
+                .isEqualTo("ACCOUNT_REACTIVATED:MEMBER_STATUS_AUDIT:45:EMAIL");
+        assertThat(notificationCaptor.getValue().templateCode()).isEqualTo("account-reactivated");
         verify(redisTokenService).revokeAllSessions(2L, 604800000L);
     }
 
@@ -79,5 +120,6 @@ class StaffMemberStatusServiceTest {
 
         verify(memberRepository, never()).findLockedById(anyLong());
         verify(redisTokenService, never()).revokeAllSessions(anyLong(), anyLong());
+        verify(notificationQueueService, never()).enqueueEmail(org.mockito.ArgumentMatchers.any());
     }
 }

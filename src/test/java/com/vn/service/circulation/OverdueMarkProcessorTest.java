@@ -7,13 +7,16 @@ import com.vn.entity.Member;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.BorrowStatus;
 import com.vn.repository.BorrowRecordRepository;
+import com.vn.service.NotificationQueueService;
 import com.vn.service.impl.circulation.overdue.OverdueMarkProcessor;
 import com.vn.service.impl.circulation.overdue.OverdueMarkResult;
+import com.vn.service.notification.EmailNotificationCommand;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
@@ -29,12 +32,14 @@ class OverdueMarkProcessorTest {
 
     @Mock
     private BorrowRecordRepository borrowRecordRepository;
+    @Mock
+    private NotificationQueueService notificationQueueService;
 
     private OverdueMarkProcessor processor;
 
     @BeforeEach
     void setUp() {
-        processor = new OverdueMarkProcessor(borrowRecordRepository);
+        processor = new OverdueMarkProcessor(borrowRecordRepository, notificationQueueService);
     }
 
     @Test
@@ -49,6 +54,11 @@ class OverdueMarkProcessorTest {
         assertThat(borrow.getStatus()).isEqualTo(BorrowStatus.OVERDUE);
         assertThat(borrow.getBookCopy().getStatus()).isEqualTo(BookCopyStatus.OVERDUE);
         verify(borrowRecordRepository).save(borrow);
+        ArgumentCaptor<EmailNotificationCommand> commandCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().eventKey())
+                .isEqualTo("BORROW_OVERDUE:BORROW_RECORD:100:EMAIL");
     }
 
     @Test
@@ -61,6 +71,7 @@ class OverdueMarkProcessorTest {
         assertThat(result.success()).isFalse();
         assertThat(borrow.getStatus()).isEqualTo(BorrowStatus.RETURNED);
         verify(borrowRecordRepository, never()).save(any());
+        verify(notificationQueueService, never()).enqueueEmail(any());
     }
 
     @Test
@@ -71,6 +82,7 @@ class OverdueMarkProcessorTest {
 
         assertThat(result.success()).isFalse();
         verify(borrowRecordRepository, never()).save(any());
+        verify(notificationQueueService, never()).enqueueEmail(any());
     }
 
     private BorrowRecord borrow(BorrowStatus borrowStatus, BookCopyStatus copyStatus) {

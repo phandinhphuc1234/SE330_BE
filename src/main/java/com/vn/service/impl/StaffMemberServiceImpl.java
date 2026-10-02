@@ -10,6 +10,8 @@ import com.vn.entity.Member;
 import com.vn.entity.MemberStatusAudit;
 import com.vn.enums.BorrowStatus;
 import com.vn.enums.MemberStatus;
+import com.vn.enums.NotificationTargetType;
+import com.vn.enums.NotificationType;
 import com.vn.exception.AppException;
 import com.vn.exception.ErrorCode;
 import com.vn.mapper.StaffMemberMapper;
@@ -19,7 +21,9 @@ import com.vn.security.JwtService;
 import com.vn.service.RedisTokenService;
 import com.vn.service.StaffLoanService;
 import com.vn.service.StaffMemberService;
+import com.vn.service.NotificationQueueService;
 import com.vn.service.impl.staff.member.StaffMemberStatsLoader;
+import com.vn.service.notification.EmailNotificationCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,6 +50,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
     private final MemberStatusAuditRepository memberStatusAuditRepository;
     private final RedisTokenService redisTokenService;
     private final JwtService jwtService;
+    private final NotificationQueueService notificationQueueService;
 
     // Tìm member theo filter của staff, sau đó load thống kê phụ theo batch và map sang response.
     @Override
@@ -126,7 +131,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
         Instant changedAt = Instant.now();
         String reason = normalizeReason(request.reason());
         member.setStatus(request.status());
-        memberStatusAuditRepository.save(MemberStatusAudit.builder()
+        MemberStatusAudit audit = memberStatusAuditRepository.save(MemberStatusAudit.builder()
                 .memberId(member.getId())
                 .actorMemberId(actorMemberId)
                 .previousStatus(previousStatus)
@@ -135,10 +140,56 @@ public class StaffMemberServiceImpl implements StaffMemberService {
                 .createdAt(changedAt)
                 .build());
 
+        enqueueStatusNotification(member, audit, previousStatus, request.status(), reason, changedAt);
+
         // Revoke active/refresh tokens both when locking and when reactivating a
         // member, so an older token can never become valid again after reactivation.
         redisTokenService.revokeAllSessions(member.getId(), jwtService.getRefreshExpiry());
         return new MemberStatusUpdateResponse(member.getId(), previousStatus, request.status(), reason, changedAt);
+    }
+
+    private void enqueueStatusNotification(Member member,
+                                           MemberStatusAudit audit,
+                                           MemberStatus previousStatus,
+                                           MemberStatus newStatus,
+                                           String reason,
+                                           Instant changedAt) {
+        NotificationType type;
+        String title;
+        String content;
+        String templateCode;
+
+        if (newStatus == MemberStatus.BANNED) {
+            type = NotificationType.ACCOUNT_BANNED;
+            title = "Tài khoản thư viện đã bị khóa";
+            content = "Tài khoản của bạn đã bị khóa bởi quản trị viên.";
+            templateCode = "account-banned";
+        } else if (previousStatus == MemberStatus.BANNED && newStatus == MemberStatus.ACTIVE) {
+            type = NotificationType.ACCOUNT_REACTIVATED;
+            title = "Tài khoản thư viện đã được mở lại";
+            content = "Tài khoản của bạn đã được quản trị viên mở lại.";
+            templateCode = "account-reactivated";
+        } else {
+            return;
+        }
+
+        notificationQueueService.enqueueEmail(EmailNotificationCommand.builder()
+                .member(member)
+                .title(title)
+                .content(content)
+                .notificationType(type)
+                .targetType(NotificationTargetType.MEMBER_STATUS_AUDIT)
+                .targetId(audit.getId())
+                .eventKey(type.name() + ":MEMBER_STATUS_AUDIT:" + audit.getId() + ":EMAIL")
+                .templateCode(templateCode)
+                .payload(Map.of(
+                        "fullName", displayName(member),
+                        "reason", reason == null ? "Không có lý do được cung cấp" : reason,
+                        "changedAt", changedAt.toString(),
+                        "previousStatus", previousStatus.name(),
+                        "newStatus", newStatus.name()
+                ))
+                .build());
     }
 
     // Parse status query param về enum của domain, trả lỗi chuẩn nếu client truyền sai.
@@ -193,5 +244,11 @@ public class StaffMemberServiceImpl implements StaffMemberService {
             return null;
         }
         return reason.trim();
+    }
+
+    private String displayName(Member member) {
+        return member.getFullName() == null || member.getFullName().isBlank()
+                ? "Bạn đọc"
+                : member.getFullName().strip();
     }
 }

@@ -21,6 +21,9 @@ public enum LogEvent {
 
     // Email delivery
     SEND_VERIFICATION_EMAIL,
+    NOTIFICATION_DELIVERY_BATCH,
+    SEND_QUEUED_NOTIFICATION,
+    RETRY_NOTIFICATION_DELIVERY,
 
     // Member profile
     GET_MY_PROFILE,
@@ -56,7 +59,6 @@ public enum LogEvent {
     // Scheduled jobs: auto-renewal
     AUTO_RENEWAL_JOB,
     AUTO_RENEWAL_ATTEMPT,
-    SEND_AUTO_RENEWAL_EMAIL,
 
     // Scheduled jobs: overdue marking
     MARK_OVERDUE_JOB,
@@ -65,11 +67,13 @@ public enum LogEvent {
     // Scheduled jobs: due-soon reminder
     DUE_SOON_REMINDER_JOB,
     CREATE_DUE_SOON_REMINDER,
-    SEND_DUE_SOON_REMINDER_EMAIL,
 
     // Scheduled jobs: expired ready holds
     EXPIRE_READY_HOLDS_JOB,
     EXPIRE_READY_HOLD,
+
+    // Notification provider callbacks
+    PROCESS_RESEND_WEBHOOK,
 
     // Error handling
     BUSINESS_EXCEPTION,

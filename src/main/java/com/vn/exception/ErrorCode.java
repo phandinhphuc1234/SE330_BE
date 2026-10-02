@@ -29,6 +29,9 @@ public enum ErrorCode {
     PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "PASSWORD_SAME_AS_CURRENT", "Mật khẩu mới phải khác mật khẩu hiện tại"),
     INVALID_MEMBER_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "INVALID_MEMBER_STATUS_TRANSITION", "Trạng thái tài khoản không hợp lệ cho thao tác quản trị"),
     CANNOT_CHANGE_OWN_STATUS(HttpStatus.FORBIDDEN, "CANNOT_CHANGE_OWN_STATUS", "Không thể tự thay đổi trạng thái tài khoản của chính mình"),
+    INVALID_NOTIFICATION_DELIVERY_FILTER(HttpStatus.BAD_REQUEST, "INVALID_NOTIFICATION_DELIVERY_FILTER", "Bộ lọc trạng thái gửi email không hợp lệ"),
+    NOTIFICATION_DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION_DELIVERY_NOT_FOUND", "Không tìm thấy yêu cầu gửi email"),
+    NOTIFICATION_DELIVERY_NOT_RETRYABLE(HttpStatus.CONFLICT, "NOTIFICATION_DELIVERY_NOT_RETRYABLE", "Chỉ có thể gửi lại email đang ở trạng thái DEAD"),
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Dữ liệu không hợp lệ"),
     ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "ILLEGAL_ARGUMENT", "Tham số không hợp lệ"),

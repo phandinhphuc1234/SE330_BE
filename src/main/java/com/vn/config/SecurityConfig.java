@@ -78,6 +78,8 @@ public class SecurityConfig {
                         .permitAll()
                         // VNPAY IPN là server-to-server callback public; bảo mật bằng vnp_SecureHash.
                         .requestMatchers(HttpMethod.GET, "/api/payments/ipn/vnpay").permitAll()
+                        // Resend webhook is server-to-server and verifies the raw body with Svix signatures.
+                        .requestMatchers(HttpMethod.POST, "/api/webhooks/resend").permitAll()
                         // Payment create APIs require a logged-in member.
                         .requestMatchers(HttpMethod.POST, "/api/payments").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/payments/return/vnpay/confirm").authenticated()

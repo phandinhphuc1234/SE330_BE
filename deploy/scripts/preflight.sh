@@ -71,6 +71,32 @@ for variable_name in "${required_variables[@]}"; do
   fi
 done
 
+# Notification delivery is optional, but an enabled worker must have a real
+# Resend API key and verified sender. This keeps the application from starting
+# with an active worker that immediately moves every queue item to DEAD.
+delivery_enabled_line="$(grep -E '^NOTIFICATION_DELIVERY_ENABLED=' "$RUNTIME_ENV_FILE" | tail -n 1 || true)"
+delivery_enabled="${delivery_enabled_line#*=}"
+if [[ "$delivery_enabled" == 'true' ]]; then
+  resend_api_key_line="$(grep -E '^RESEND_API_KEY=' "$RUNTIME_ENV_FILE" | tail -n 1 || true)"
+  resend_api_key="${resend_api_key_line#*=}"
+  mail_from_line="$(grep -E '^MAIL_FROM=' "$RUNTIME_ENV_FILE" | tail -n 1 || true)"
+  mail_from="${mail_from_line#*=}"
+  [[ "$resend_api_key" == re_* ]] || \
+    fail 'RESEND_API_KEY must be configured with a re_ value when notification delivery is enabled.'
+  [[ -n "$mail_from" && "$mail_from" != *example.com* && "$mail_from" != *.invalid* ]] || \
+    fail 'MAIL_FROM must use a verified production sender when notification delivery is enabled.'
+fi
+
+# Resend webhook là tùy chọn, nhưng khi bật phải có signing secret do Resend cấp.
+webhook_enabled_line="$(grep -E '^RESEND_WEBHOOK_ENABLED=' "$RUNTIME_ENV_FILE" | tail -n 1 || true)"
+webhook_enabled="${webhook_enabled_line#*=}"
+if [[ "$webhook_enabled" == 'true' ]]; then
+  webhook_secret_line="$(grep -E '^RESEND_WEBHOOK_SIGNING_SECRET=' "$RUNTIME_ENV_FILE" | tail -n 1 || true)"
+  webhook_secret="${webhook_secret_line#*=}"
+  [[ "$webhook_secret" == whsec_* ]] || \
+    fail 'RESEND_WEBHOOK_SIGNING_SECRET must be configured with a whsec_ value when webhook is enabled.'
+fi
+
 # Bước 8: JWT secret cần tối thiểu 64 ký tự để không dùng khóa ký quá yếu.
 jwt_line="$(grep -E '^JWT_SECRET=' "$RUNTIME_ENV_FILE" | tail -n 1)"
 jwt_value="${jwt_line#*=}"

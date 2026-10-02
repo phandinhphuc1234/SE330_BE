@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Sách đã quá hạn trả</title>
+</head>
+<body>
+<p>Chào <span th:text="${fullName}">Bạn đọc</span>,</p>
+<p>Lượt mượn sau đã quá hạn trả:</p>
+<ul>
+    <li><strong>Sách:</strong> <span th:text="${bookTitle}">Tên sách</span></li>
+    <li><strong>Barcode:</strong> <span th:text="${barcode}">BARCODE</span></li>
+    <li><strong>Hạn trả:</strong> <span th:text="${dueDate}">hạn trả</span></li>
+</ul>
+<p>Vui lòng hoàn trả sách sớm nhất có thể hoặc liên hệ thư viện nếu cần hỗ trợ.</p>
+</body>
+</html>

@@ -7,14 +7,17 @@ import com.vn.entity.Reservation;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.ReservationStatus;
 import com.vn.repository.ReservationRepository;
+import com.vn.service.NotificationQueueService;
 import com.vn.service.impl.circulation.hold.HoldQueueService;
 import com.vn.service.impl.circulation.holdexpiry.HoldExpiryProcessor;
 import com.vn.service.impl.circulation.holdexpiry.HoldExpiryResult;
+import com.vn.service.notification.EmailNotificationCommand;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
@@ -33,12 +36,15 @@ class HoldExpiryProcessorTest {
 
     @Mock
     private HoldQueueService holdQueueService;
+    @Mock
+    private NotificationQueueService notificationQueueService;
 
     private HoldExpiryProcessor holdExpiryProcessor;
 
     @BeforeEach
     void setUp() {
-        holdExpiryProcessor = new HoldExpiryProcessor(reservationRepository, holdQueueService);
+        holdExpiryProcessor = new HoldExpiryProcessor(
+                reservationRepository, holdQueueService, notificationQueueService);
     }
 
     @Test
@@ -58,6 +64,11 @@ class HoldExpiryProcessorTest {
         assertThat(hold.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
         verify(reservationRepository).saveAndFlush(hold);
         verify(holdQueueService).reassignOrReleaseHeldCopy(copy);
+        ArgumentCaptor<EmailNotificationCommand> commandCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().eventKey())
+                .isEqualTo("HOLD_EXPIRED:RESERVATION:700:EMAIL");
     }
 
     @Test
@@ -76,6 +87,7 @@ class HoldExpiryProcessorTest {
         assertThat(hold.getStatus()).isEqualTo(ReservationStatus.READY_FOR_PICKUP);
         verify(reservationRepository, never()).saveAndFlush(hold);
         verify(holdQueueService, never()).reassignOrReleaseHeldCopy(copy);
+        verify(notificationQueueService, never()).enqueueEmail(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -93,6 +105,7 @@ class HoldExpiryProcessorTest {
         assertThat(result.success()).isFalse();
         verify(reservationRepository, never()).saveAndFlush(hold);
         verify(holdQueueService, never()).reassignOrReleaseHeldCopy(copy);
+        verify(notificationQueueService, never()).enqueueEmail(org.mockito.ArgumentMatchers.any());
     }
 
     private Reservation reservation(Long id, ReservationStatus status, BookCopy assignedCopy) {

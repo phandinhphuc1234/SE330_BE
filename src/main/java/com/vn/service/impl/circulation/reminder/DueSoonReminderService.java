@@ -3,7 +3,6 @@ package com.vn.service.impl.circulation.reminder;
 import com.vn.entity.BorrowRecord;
 import com.vn.enums.BorrowStatus;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.service.EmailService;
 import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,6 @@ public class DueSoonReminderService {
     private final BorrowRecordRepository borrowRecordRepository;
     private final CirculationSettingService circulationSettingService;
     private final DueSoonReminderProcessor dueSoonReminderProcessor;
-    private final EmailService emailService;
 
     // Chức năng: quét các lượt mượn sắp đến hạn, tạo notification và gửi email nhắc trả.
     public DueSoonReminderJobSummary sendDueSoonReminders() {
@@ -40,14 +38,6 @@ public class DueSoonReminderService {
             DueSoonReminderResult result = dueSoonReminderProcessor.createReminderIfNeeded(borrow.getId(), window);
             if (result.created()) {
                 successCount++;
-                emailService.sendDueSoonReminderEmail(
-                        result.memberId(),
-                        result.toEmail(),
-                        result.fullName(),
-                        result.bookTitle(),
-                        result.barcode(),
-                        result.dueDate()
-                );
             } else {
                 failedCount++;
             }

@@ -1,5 +1,9 @@
 package com.vn.enums;
 
 public enum NotificationTargetType {
-    BORROW_RECORD
+    MEMBER,
+    MEMBER_STATUS_AUDIT,
+    BORROW_RECORD,
+    RESERVATION,
+    AUTO_RENEWAL_ATTEMPT
 }

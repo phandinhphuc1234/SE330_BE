@@ -4,23 +4,21 @@ import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
 import com.vn.entity.Member;
-import com.vn.entity.Notification;
-import com.vn.entity.NotificationQueue;
 import com.vn.enums.BorrowStatus;
-import com.vn.enums.NotificationChannel;
-import com.vn.enums.NotificationQueueStatus;
 import com.vn.enums.NotificationTargetType;
 import com.vn.enums.NotificationType;
 import com.vn.logging.LogEvent;
 import com.vn.logging.LogResult;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.repository.NotificationQueueRepository;
-import com.vn.repository.NotificationRepository;
+import com.vn.service.NotificationQueueService;
+import com.vn.service.notification.EmailNotificationCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DueSoonReminderProcessor {
 
     private final BorrowRecordRepository borrowRecordRepository;
-    private final NotificationRepository notificationRepository;
-    private final NotificationQueueRepository notificationQueueRepository;
+    private final NotificationQueueService notificationQueueService;
 
     // Chức năng: tạo in-app notification và email queue cho một lượt mượn sắp đến hạn nếu chưa từng tạo.
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -38,30 +35,32 @@ public class DueSoonReminderProcessor {
         if (borrow == null || !isStillDueSoonBorrow(borrow, window)) {
             return DueSoonReminderResult.skipped();
         }
-        if (isReminderAlreadyCreated(borrow.getId())) {
-            return DueSoonReminderResult.skipped();
-        }
-
         Member member = borrow.getMember();
         BookCopy copy = borrow.getBookCopy();
         Book book = copy.getBook();
+        String title = "Sách sắp đến hạn trả";
+        String content = "Sách \"" + book.getTitle() + "\" sắp đến hạn trả.";
 
-        Notification notification = notificationRepository.save(Notification.builder()
+        boolean created = notificationQueueService.enqueueEmail(EmailNotificationCommand.builder()
                 .member(member)
-                .title("Sách sắp đến hạn trả")
-                .content("Sách \"" + book.getTitle() + "\" sắp đến hạn trả.")
-                .type(NotificationType.DUE_SOON_REMINDER)
-                .build());
-
-        notificationQueueRepository.save(NotificationQueue.builder()
-                .member(member)
-                .notification(notification)
-                .channel(NotificationChannel.EMAIL)
-                .status(NotificationQueueStatus.PENDING)
+                .title(title)
+                .content(content)
                 .notificationType(NotificationType.DUE_SOON_REMINDER)
                 .targetType(NotificationTargetType.BORROW_RECORD)
                 .targetId(borrow.getId())
-                .build());
+                .eventKey("DUE_SOON_REMINDER:BORROW_RECORD:" + borrow.getId() + ":EMAIL")
+                .templateCode("due-soon-reminder")
+                .payload(Map.of(
+                        "fullName", displayName(member),
+                        "bookTitle", book.getTitle(),
+                        "barcode", copy.getBarcode(),
+                        "dueDate", borrow.getDueDate().toString()
+                ))
+                .build()).created();
+
+        if (!created) {
+            return DueSoonReminderResult.skipped();
+        }
 
         log.info("eventType={} result={} memberId={} entityType=BORROW_RECORD entityId={} bookCopyId={}",
                 LogEvent.CREATE_DUE_SOON_REMINDER,
@@ -70,14 +69,7 @@ public class DueSoonReminderProcessor {
                 borrow.getId(),
                 copy.getId());
 
-        return DueSoonReminderResult.created(
-                member.getId(),
-                member.getEmail(),
-                member.getFullName(),
-                book.getTitle(),
-                copy.getBarcode(),
-                borrow.getDueDate()
-        );
+        return DueSoonReminderResult.enqueued();
     }
 
     private boolean isStillDueSoonBorrow(BorrowRecord borrow, DueSoonReminderWindow window) {
@@ -86,12 +78,9 @@ public class DueSoonReminderProcessor {
                 && borrow.getDueDate().isBefore(window.end());
     }
 
-    private boolean isReminderAlreadyCreated(Long borrowId) {
-        return notificationQueueRepository.existsByNotificationTypeAndTargetTypeAndTargetIdAndChannel(
-                NotificationType.DUE_SOON_REMINDER,
-                NotificationTargetType.BORROW_RECORD,
-                borrowId,
-                NotificationChannel.EMAIL
-        );
+    private String displayName(Member member) {
+        return member.getFullName() == null || member.getFullName().isBlank()
+                ? "Bạn đọc"
+                : member.getFullName().strip();
     }
 }

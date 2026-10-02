@@ -2,7 +2,8 @@
 
 This document describes the PostgreSQL schema after applying Flyway migrations
 in `src/main/resources/db/migration`. Ebook storage, RAG ingestion metadata,
-and author image URL metadata are documented through `V42`.
+author image URL metadata, and the durable notification-delivery queue are
+documented through `V46`.
 
 Refresh tokens and idempotency records are not stored in PostgreSQL. Refresh
 tokens are stored in Redis, and idempotency state was moved from PostgreSQL to
@@ -605,24 +606,103 @@ Stores async notification delivery jobs.
 | `member_id` | `BIGINT` | Yes | | FK to `members(id)` |
 | `notification_id` | `BIGINT` | Yes | | FK to `notifications(id)` |
 | `channel` | `VARCHAR(20)` | No | | |
-| `status` | `VARCHAR(20)` | No | `'PENDING'` | `PENDING`, `SENT`, `FAILED` |
-| `retry_count` | `INT` | Yes | `0` | |
+| `status` | `VARCHAR(20)` | No | `'PENDING'` | Lifecycle from pending/processing through delivered or terminal failure |
+| `retry_count` | `INT` | No | `0` | Number of failed delivery attempts |
+| `max_attempts` | `INT` | No | `5` | Retry ceiling for the delivery worker |
 | `scheduled_at` | `TIMESTAMP` | No | `NOW()` | |
+| `next_attempt_at` | `TIMESTAMP` | No | `NOW()` | Earliest time at which a worker may claim the row |
+| `last_attempt_at` | `TIMESTAMP` | Yes | | |
+| `locked_at` | `TIMESTAMP` | Yes | | Worker lease timestamp |
+| `locked_by` | `VARCHAR(100)` | Yes | | Worker instance holding the lease |
 | `sent_at` | `TIMESTAMP` | Yes | | |
+| `delivered_at` | `TIMESTAMP` | Yes | | Set only after provider delivery confirmation |
 | `notification_type` | `VARCHAR(100)` | Yes | | Added by `V17` |
 | `target_type` | `VARCHAR(100)` | Yes | | Added by `V17` |
 | `target_id` | `BIGINT` | Yes | | Added by `V17` |
+| `event_key` | `VARCHAR(255)` | No | | Stable application idempotency key |
+| `recipient_email` | `VARCHAR(320)` | Yes | | Recipient snapshot; nullable only for legacy rows without a member |
+| `template_code` | `VARCHAR(100)` | No | | Thymeleaf/provider template identifier |
+| `payload` | `JSONB` | No | `'{}'` | Template variables; must not contain credentials |
+| `provider_message_id` | `VARCHAR(255)` | Yes | | Provider delivery identifier |
+| `delivery_attempt` | `INTEGER` | No | `1` | Increments only for an explicit operator-triggered resend |
+| `provider_request_key` | `VARCHAR(255)` | No | | Stable Resend idempotency key for the current delivery attempt |
+| `last_error` | `TEXT` | Yes | | Sanitized most recent delivery error |
+| `created_at` | `TIMESTAMP` | No | `NOW()` | |
+| `updated_at` | `TIMESTAMP` | No | `NOW()` | |
+| `version` | `BIGINT` | No | `0` | Optimistic-lock version |
 
 Constraints:
 
 - `PRIMARY KEY (id)`
-- `chk_queue_status CHECK (status IN ('PENDING', 'SENT', 'FAILED'))`
+- `chk_queue_status` permits `PENDING`, `PROCESSING`, `RETRY`, `SENT`,
+  `DELIVERED`, `FAILED`, `DEAD`, `BOUNCED`, and `COMPLAINED`.
+- `chk_notification_queue_retry_count CHECK (retry_count >= 0 AND max_attempts > 0)`
+- `chk_notification_queue_delivery_attempt CHECK (delivery_attempt > 0)`
 
 Indexes:
 
 - `idx_queue_status ON notification_queue(status)`
 - `idx_notification_queue_target ON notification_queue(notification_type, target_type, target_id)`
-- `uq_notification_queue_once_per_target UNIQUE ON notification_queue(notification_type, target_type, target_id, channel) WHERE notification_type IS NOT NULL AND target_type IS NOT NULL AND target_id IS NOT NULL`
+- `uq_notification_queue_event_key UNIQUE ON notification_queue(event_key)`
+- `idx_notification_queue_dispatch ON notification_queue(status, next_attempt_at, scheduled_at, id) WHERE status IN ('PENDING', 'RETRY')`
+- `idx_notification_queue_stale_processing ON notification_queue(locked_at, id) WHERE status = 'PROCESSING'`
+- `uq_notification_queue_provider_message_id UNIQUE ON notification_queue(provider_message_id) WHERE provider_message_id IS NOT NULL`
+- `uq_notification_queue_provider_request_key UNIQUE ON notification_queue(provider_request_key)`
+
+Delivery lifecycle:
+
+- A worker atomically claims due `PENDING`/`RETRY` rows with PostgreSQL
+  `FOR UPDATE SKIP LOCKED` and changes them to `PROCESSING`.
+- A stale `PROCESSING` lease can be reclaimed after the configured lock timeout.
+- Resend receives `provider_request_key` as the HTTP `Idempotency-Key`; automatic
+  retries reuse it, while an explicit admin resend increments `delivery_attempt`
+  and creates a new key. A successful API response records
+  `provider_message_id` and changes the row to `SENT`.
+- Retryable failures move to `RETRY` with exponential backoff. Permanent errors
+  or an exhausted `max_attempts` budget move to `DEAD`.
+- `DELIVERED`, `BOUNCED`, and `COMPLAINED` are reserved for provider webhook
+  updates, which are separate from accepting the message for delivery. Resend
+  callbacks are verified against the raw request body using their Svix signing
+  secret before any database state is changed.
+
+### `notification_provider_events`
+
+Stores a minimal, idempotent audit ledger for notification-provider callbacks.
+Raw webhook payloads are intentionally not retained because they can contain
+recipient and message metadata.
+
+| Column | Type | Null | Notes |
+|---|---:|---:|---|
+| `id` | `BIGSERIAL` | No | Primary key |
+| `webhook_message_id` | `VARCHAR(255)` | No | Unique Svix message identifier used for deduplication |
+| `provider` | `VARCHAR(30)` | No | Currently `RESEND` |
+| `provider_message_id` | `VARCHAR(255)` | No | Resend `email_id` |
+| `hinted_queue_id` | `BIGINT` | Yes | Queue id returned through the signed `queue_id` Resend tag |
+| `hinted_delivery_attempt` | `INTEGER` | Yes | Delivery attempt returned through the signed `delivery_attempt` tag |
+| `notification_queue_id` | `BIGINT` | Yes | Matched local delivery row |
+| `event_type` | `VARCHAR(100)` | No | For example `email.delivered` or `email.bounced` |
+| `occurred_at` | `TIMESTAMP` | No | Provider event timestamp |
+| `provider_detail` | `VARCHAR(1000)` | Yes | Sanitized bounce/failure detail only |
+| `processing_status` | `VARCHAR(20)` | No | `PENDING`, `PROCESSED`, `IGNORED`, or `UNMATCHED` |
+| `processing_error` | `VARCHAR(500)` | Yes | Internal reconciliation result without secrets |
+| `created_at` | `TIMESTAMP` | No | Ingestion time |
+| `processed_at` | `TIMESTAMP` | Yes | Processing completion time |
+
+Indexes and constraints:
+
+- `uq_notification_provider_event_message UNIQUE (webhook_message_id)`
+- `idx_notification_provider_event_provider_message ON provider_message_id`
+- Partial index `idx_notification_provider_event_unmatched` for unmatched-event operations
+- `notification_queue_id` references `notification_queue(id)` with `ON DELETE SET NULL`
+
+Operational API access is restricted to `ADMIN`:
+
+- `GET /api/admin/notification-deliveries` searches queue records without
+  returning template payloads or full recipient addresses.
+- `GET /api/admin/notification-deliveries/summary` returns status counters.
+- `POST /api/admin/notification-deliveries/{queueId}/retry` accepts only `DEAD`
+  rows, creates a new delivery attempt, and writes `RETRY_NOTIFICATION_DELIVERY`
+  to `audit_logs` in the same transaction.
 
 ### `system_settings`
 
@@ -870,6 +950,7 @@ idempotency state in Redis instead of PostgreSQL.
 - `notifications.member_id` -> `members.id`
 - `notification_queue.member_id` -> `members.id`
 - `notification_queue.notification_id` -> `notifications.id`
+- `notification_provider_events.notification_queue_id` -> `notification_queue.id` (`ON DELETE SET NULL`)
 - `email_verifications.member_id` -> `members.id`
 - `password_reset_tokens.member_id` -> `members.id`
 - `member_status_audits.member_id` -> `members.id`
