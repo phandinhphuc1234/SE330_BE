@@ -96,10 +96,19 @@ server {
         include /etc/nginx/snippets/quanlythuvien-proxy.conf;
     }
 
-    # Production documentation and the remaining Actuator surface stay private.
-    location ~ ^/(swagger-ui(?:/|$)|swagger-ui\.html$|api-docs(?:/|$)|v3/api-docs(?:/|$)|actuator(?:/|$)) {
+    # Temporarily expose only the health endpoint on the canonical API domain.
+    # Exact matching keeps every other Actuator endpoint private.
+    location = /actuator/health {
+        proxy_pass http://127.0.0.1:8080;
+        include /etc/nginx/snippets/quanlythuvien-proxy.conf;
+    }
+
+    location ~ ^/actuator(?:/|$) {
         return 404;
     }
+
+    # Swagger UI and its OpenAPI document are intentionally proxied by the
+    # general location below while SWAGGER_ENABLED=true in the runtime env.
 
     location = /api/auth/login {
         limit_req zone=quanlythuvien_auth_limit burst=5 nodelay;
