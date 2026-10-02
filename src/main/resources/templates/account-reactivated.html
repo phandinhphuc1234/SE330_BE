@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tài khoản thư viện đã được mở lại</title>
+</head>
+<body>
+<p>Chào <span th:text="${fullName}">Bạn đọc</span>,</p>
+<p>Tài khoản thư viện của bạn đã được quản trị viên mở lại.</p>
+<ul>
+    <li><strong>Ghi chú:</strong> <span th:text="${reason}">Không có lý do được cung cấp</span></li>
+    <li><strong>Thời điểm:</strong> <span th:text="${changedAt}">thời điểm thay đổi</span></li>
+</ul>
+<p>Bạn có thể đăng nhập và tiếp tục sử dụng các dịch vụ của thư viện.</p>
+</body>
+</html>

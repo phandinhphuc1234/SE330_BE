@@ -1,18 +1,31 @@
 package com.vn.repository;
 
 import com.vn.entity.NotificationQueue;
-import com.vn.enums.NotificationChannel;
-import com.vn.enums.NotificationTargetType;
-import com.vn.enums.NotificationType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-public interface NotificationQueueRepository extends JpaRepository<NotificationQueue, Long> {
+import java.util.Optional;
+import java.util.List;
 
-    // Kiểm tra một notification theo target nghiệp vụ đã được tạo chưa để job không gửi trùng.
-    boolean existsByNotificationTypeAndTargetTypeAndTargetIdAndChannel(
-            NotificationType notificationType,
-            NotificationTargetType targetType,
-            Long targetId,
-            NotificationChannel channel
+public interface NotificationQueueRepository extends JpaRepository<NotificationQueue, Long>,
+        JpaSpecificationExecutor<NotificationQueue> {
+
+    Optional<NotificationQueue> findByEventKey(String eventKey);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select queue from NotificationQueue queue where queue.id = :id")
+    Optional<NotificationQueue> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select queue from NotificationQueue queue where queue.providerMessageId = :providerMessageId")
+    Optional<NotificationQueue> findByProviderMessageIdForUpdate(
+            @Param("providerMessageId") String providerMessageId
     );
+
+    @Query("select queue.status, count(queue) from NotificationQueue queue group by queue.status")
+    List<Object[]> countGroupedByStatus();
 }

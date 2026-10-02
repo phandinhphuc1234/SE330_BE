@@ -20,14 +20,14 @@ public class AutoRenewalAttemptRecorder {
     private final JobExecutionLogRepository jobExecutionLogRepository;
 
     // Chức năng: lưu lịch sử auto-renewal thành công của một lượt mượn.
-    public void recordSuccess(BorrowRecord borrow,
-                              Long jobLogId,
-                              Instant attemptedAt,
-                              Instant oldDueDate,
-                              Instant newDueDate,
-                              int renewCountBefore,
-                              int renewCountAfter) {
-        autoRenewalAttemptRepository.save(baseAttempt(borrow, jobLogId, attemptedAt)
+    public AutoRenewalAttempt recordSuccess(BorrowRecord borrow,
+                                            Long jobLogId,
+                                            Instant attemptedAt,
+                                            Instant oldDueDate,
+                                            Instant newDueDate,
+                                            int renewCountBefore,
+                                            int renewCountAfter) {
+        return autoRenewalAttemptRepository.save(baseAttempt(borrow, jobLogId, attemptedAt)
                 .result(AutoRenewalAttemptResult.SUCCESS)
                 .reasonCode(AutoRenewalResultCode.SUCCESS.name())
                 .reasonMessage(AutoRenewalResultCode.SUCCESS.defaultMessage())
@@ -39,11 +39,11 @@ public class AutoRenewalAttemptRecorder {
     }
 
     // Chức năng: lưu lịch sử auto-renewal bị chặn để staff trace được lý do.
-    public void recordFailure(BorrowRecord borrow,
-                              Long jobLogId,
-                              Instant attemptedAt,
-                              AutoRenewalResultCode code) {
-        autoRenewalAttemptRepository.save(baseAttempt(borrow, jobLogId, attemptedAt)
+    public AutoRenewalAttempt recordFailure(BorrowRecord borrow,
+                                            Long jobLogId,
+                                            Instant attemptedAt,
+                                            AutoRenewalResultCode code) {
+        return autoRenewalAttemptRepository.save(baseAttempt(borrow, jobLogId, attemptedAt)
                 .result(AutoRenewalAttemptResult.FAILED)
                 .reasonCode(code.name())
                 .reasonMessage(code.defaultMessage())

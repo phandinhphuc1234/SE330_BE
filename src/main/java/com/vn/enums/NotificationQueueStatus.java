@@ -2,6 +2,12 @@ package com.vn.enums;
 
 public enum NotificationQueueStatus {
     PENDING,
+    PROCESSING,
+    RETRY,
     SENT,
-    FAILED
+    DELIVERED,
+    FAILED,
+    DEAD,
+    BOUNCED,
+    COMPLAINED
 }

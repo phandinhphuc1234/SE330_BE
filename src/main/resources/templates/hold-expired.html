@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lượt giữ sách đã hết hạn</title>
+</head>
+<body>
+<p>Chào <span th:text="${fullName}">Bạn đọc</span>,</p>
+<p>Lượt giữ sách sau đã hết hạn và sách có thể được chuyển cho bạn đọc tiếp theo:</p>
+<ul>
+    <li><strong>Sách:</strong> <span th:text="${bookTitle}">Tên sách</span></li>
+    <li><strong>Hết hạn lúc:</strong> <span th:text="${expiredAt}">thời điểm hết hạn</span></li>
+</ul>
+<p>Bạn có thể tạo lượt giữ mới nếu vẫn còn nhu cầu.</p>
+</body>
+</html>

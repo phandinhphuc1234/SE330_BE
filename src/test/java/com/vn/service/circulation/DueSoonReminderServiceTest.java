@@ -7,7 +7,6 @@ import com.vn.entity.Member;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.BorrowStatus;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.service.EmailService;
 import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import com.vn.service.impl.circulation.reminder.DueSoonReminderJobSummary;
 import com.vn.service.impl.circulation.reminder.DueSoonReminderProcessor;
@@ -43,9 +42,6 @@ class DueSoonReminderServiceTest {
     @Mock
     private DueSoonReminderProcessor dueSoonReminderProcessor;
 
-    @Mock
-    private EmailService emailService;
-
     private DueSoonReminderService dueSoonReminderService;
 
     @BeforeEach
@@ -53,8 +49,7 @@ class DueSoonReminderServiceTest {
         dueSoonReminderService = new DueSoonReminderService(
                 borrowRecordRepository,
                 circulationSettingService,
-                dueSoonReminderProcessor,
-                emailService
+                dueSoonReminderProcessor
         );
     }
 
@@ -71,14 +66,7 @@ class DueSoonReminderServiceTest {
                 isA(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(first, second)));
         when(dueSoonReminderProcessor.createReminderIfNeeded(eq(100L), org.mockito.ArgumentMatchers.any()))
-                .thenReturn(DueSoonReminderResult.created(
-                        5L,
-                        "member5@example.com",
-                        "Member 5",
-                        "Clean Code",
-                        "BC-150",
-                        first.getDueDate()
-                ));
+                .thenReturn(DueSoonReminderResult.enqueued());
         when(dueSoonReminderProcessor.createReminderIfNeeded(eq(101L), org.mockito.ArgumentMatchers.any()))
                 .thenReturn(DueSoonReminderResult.skipped());
 
@@ -87,14 +75,8 @@ class DueSoonReminderServiceTest {
         assertThat(summary.totalProcessed()).isEqualTo(2);
         assertThat(summary.successCount()).isEqualTo(1);
         assertThat(summary.failedCount()).isEqualTo(1);
-        verify(emailService).sendDueSoonReminderEmail(
-                5L,
-                "member5@example.com",
-                "Member 5",
-                "Clean Code",
-                "BC-150",
-                first.getDueDate()
-        );
+        verify(dueSoonReminderProcessor).createReminderIfNeeded(
+                eq(100L), org.mockito.ArgumentMatchers.any());
     }
 
     private BorrowRecord borrow(Long id) {

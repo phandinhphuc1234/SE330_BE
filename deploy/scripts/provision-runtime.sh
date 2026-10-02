@@ -193,6 +193,9 @@ if [[ -z "$mail_from" || "$mail_from" == *example.com* ]]; then
   set_value MAIL_FROM 'no-reply@localhost.invalid'
 fi
 ensure_setting MANAGEMENT_HEALTH_MAIL_ENABLED 'false'
+ensure_setting RESEND_WEBHOOK_ENABLED 'false'
+ensure_setting RESEND_WEBHOOK_SIGNING_SECRET ''
+ensure_setting RESEND_WEBHOOK_MAX_PAYLOAD_BYTES '262144'
 
 # Bước 18: kiểm tra lần cuối để không ghi file còn placeholder hoặc JWT quá ngắn.
 if grep -Eq '^[A-Z][A-Z0-9_]*=.*CHANGE_ME' "$working_file"; then

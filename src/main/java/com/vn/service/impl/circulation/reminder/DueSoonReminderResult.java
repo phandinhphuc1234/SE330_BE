@@ -1,27 +1,12 @@
 package com.vn.service.impl.circulation.reminder;
 
-import java.time.Instant;
-
-public record DueSoonReminderResult(
-        boolean created,
-        Long memberId,
-        String toEmail,
-        String fullName,
-        String bookTitle,
-        String barcode,
-        Instant dueDate
-) {
+public record DueSoonReminderResult(boolean created) {
 
     public static DueSoonReminderResult skipped() {
-        return new DueSoonReminderResult(false, null, null, null, null, null, null);
+        return new DueSoonReminderResult(false);
     }
 
-    public static DueSoonReminderResult created(Long memberId,
-                                                String toEmail,
-                                                String fullName,
-                                                String bookTitle,
-                                                String barcode,
-                                                Instant dueDate) {
-        return new DueSoonReminderResult(true, memberId, toEmail, fullName, bookTitle, barcode, dueDate);
+    public static DueSoonReminderResult enqueued() {
+        return new DueSoonReminderResult(true);
     }
 }

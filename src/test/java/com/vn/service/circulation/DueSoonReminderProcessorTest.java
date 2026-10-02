@@ -4,19 +4,17 @@ import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
 import com.vn.entity.Member;
-import com.vn.entity.Notification;
-import com.vn.entity.NotificationQueue;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.BorrowStatus;
-import com.vn.enums.NotificationChannel;
 import com.vn.enums.NotificationTargetType;
 import com.vn.enums.NotificationType;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.repository.NotificationQueueRepository;
-import com.vn.repository.NotificationRepository;
+import com.vn.service.NotificationQueueService;
 import com.vn.service.impl.circulation.reminder.DueSoonReminderProcessor;
 import com.vn.service.impl.circulation.reminder.DueSoonReminderResult;
 import com.vn.service.impl.circulation.reminder.DueSoonReminderWindow;
+import com.vn.service.notification.EmailNotificationCommand;
+import com.vn.service.notification.NotificationEnqueueResult;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,10 +38,7 @@ class DueSoonReminderProcessorTest {
     private BorrowRecordRepository borrowRecordRepository;
 
     @Mock
-    private NotificationRepository notificationRepository;
-
-    @Mock
-    private NotificationQueueRepository notificationQueueRepository;
+    private NotificationQueueService notificationQueueService;
 
     private DueSoonReminderProcessor processor;
 
@@ -51,58 +46,44 @@ class DueSoonReminderProcessorTest {
     void setUp() {
         processor = new DueSoonReminderProcessor(
                 borrowRecordRepository,
-                notificationRepository,
-                notificationQueueRepository
+                notificationQueueService
         );
     }
 
     @Test
     void createReminderIfNeeded_shouldCreateNotificationAndQueueWhenBorrowIsStillDueSoon() {
         BorrowRecord borrow = dueSoonBorrow();
-        Notification savedNotification = Notification.builder().id(99L).member(borrow.getMember()).build();
         when(borrowRecordRepository.findById(100L)).thenReturn(Optional.of(borrow));
-        when(notificationQueueRepository.existsByNotificationTypeAndTargetTypeAndTargetIdAndChannel(
-                NotificationType.DUE_SOON_REMINDER,
-                NotificationTargetType.BORROW_RECORD,
-                100L,
-                NotificationChannel.EMAIL
-        )).thenReturn(false);
-        when(notificationRepository.save(org.mockito.ArgumentMatchers.any(Notification.class)))
-                .thenReturn(savedNotification);
+        when(notificationQueueService.enqueueEmail(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new NotificationEnqueueResult(99L, 199L, true));
 
         DueSoonReminderResult result = processor.createReminderIfNeeded(100L, reminderWindow());
 
         assertThat(result.created()).isTrue();
-        assertThat(result.memberId()).isEqualTo(5L);
-        assertThat(result.bookTitle()).isEqualTo("Clean Code");
-        assertThat(result.barcode()).isEqualTo("BC-50");
 
-        ArgumentCaptor<NotificationQueue> queueCaptor = ArgumentCaptor.forClass(NotificationQueue.class);
-        verify(notificationQueueRepository).save(queueCaptor.capture());
-        NotificationQueue queue = queueCaptor.getValue();
-        assertThat(queue.getNotification()).isSameAs(savedNotification);
-        assertThat(queue.getNotificationType()).isEqualTo(NotificationType.DUE_SOON_REMINDER);
-        assertThat(queue.getTargetType()).isEqualTo(NotificationTargetType.BORROW_RECORD);
-        assertThat(queue.getTargetId()).isEqualTo(100L);
-        assertThat(queue.getChannel()).isEqualTo(NotificationChannel.EMAIL);
+        ArgumentCaptor<EmailNotificationCommand> commandCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(commandCaptor.capture());
+        EmailNotificationCommand command = commandCaptor.getValue();
+        assertThat(command.notificationType()).isEqualTo(NotificationType.DUE_SOON_REMINDER);
+        assertThat(command.targetType()).isEqualTo(NotificationTargetType.BORROW_RECORD);
+        assertThat(command.targetId()).isEqualTo(100L);
+        assertThat(command.eventKey()).isEqualTo("DUE_SOON_REMINDER:BORROW_RECORD:100:EMAIL");
+        assertThat(command.templateCode()).isEqualTo("due-soon-reminder");
+        assertThat(command.payload()).containsEntry("bookTitle", "Clean Code");
     }
 
     @Test
     void createReminderIfNeeded_shouldSkipWhenReminderAlreadyExists() {
         BorrowRecord borrow = dueSoonBorrow();
         when(borrowRecordRepository.findById(100L)).thenReturn(Optional.of(borrow));
-        when(notificationQueueRepository.existsByNotificationTypeAndTargetTypeAndTargetIdAndChannel(
-                NotificationType.DUE_SOON_REMINDER,
-                NotificationTargetType.BORROW_RECORD,
-                100L,
-                NotificationChannel.EMAIL
-        )).thenReturn(true);
+        when(notificationQueueService.enqueueEmail(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new NotificationEnqueueResult(99L, 199L, false));
 
         DueSoonReminderResult result = processor.createReminderIfNeeded(100L, reminderWindow());
 
         assertThat(result.created()).isFalse();
-        verify(notificationRepository, never()).save(org.mockito.ArgumentMatchers.any(Notification.class));
-        verify(notificationQueueRepository, never()).save(org.mockito.ArgumentMatchers.any(NotificationQueue.class));
+        verify(notificationQueueService).enqueueEmail(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -114,12 +95,7 @@ class DueSoonReminderProcessorTest {
         DueSoonReminderResult result = processor.createReminderIfNeeded(100L, reminderWindow());
 
         assertThat(result.created()).isFalse();
-        verify(notificationQueueRepository, never()).existsByNotificationTypeAndTargetTypeAndTargetIdAndChannel(
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any()
-        );
+        verify(notificationQueueService, never()).enqueueEmail(org.mockito.ArgumentMatchers.any());
     }
 
     private BorrowRecord dueSoonBorrow() {

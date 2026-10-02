@@ -5,6 +5,7 @@ import com.vn.enums.BorrowStatus;
 import com.vn.repository.BorrowRecordRepository;
 import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AutoRenewalService {
 
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Bangkok");
@@ -35,11 +37,16 @@ public class AutoRenewalService {
         int successCount = 0;
         int failedCount = 0;
         for (BorrowRecord borrow : candidates.getContent()) {
-            AutoRenewalResult result = autoRenewalProcessor.processOne(borrow.getId(), jobLogId);
-            if (result.success()) {
-                successCount++;
-            } else {
+            try {
+                AutoRenewalResult result = autoRenewalProcessor.processOne(borrow.getId(), jobLogId);
+                if (result.success()) {
+                    successCount++;
+                } else {
+                    failedCount++;
+                }
+            } catch (RuntimeException e) {
                 failedCount++;
+                log.error("Auto-renewal failed for borrowId={}; continuing the batch", borrow.getId(), e);
             }
         }
 

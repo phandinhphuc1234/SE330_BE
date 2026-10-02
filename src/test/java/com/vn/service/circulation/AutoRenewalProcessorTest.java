@@ -1,6 +1,7 @@
 package com.vn.service.circulation;
 
 import com.vn.dto.circulation.response.RenewBorrowResponse;
+import com.vn.entity.AutoRenewalAttempt;
 import com.vn.entity.Book;
 import com.vn.entity.BookCopy;
 import com.vn.entity.BorrowRecord;
@@ -9,18 +10,22 @@ import com.vn.enums.AutoRenewalResultCode;
 import com.vn.enums.BookCopyStatus;
 import com.vn.enums.BorrowStatus;
 import com.vn.repository.BorrowRecordRepository;
-import com.vn.service.EmailService;
+import com.vn.enums.NotificationTargetType;
+import com.vn.enums.NotificationType;
+import com.vn.service.NotificationQueueService;
 import com.vn.service.impl.circulation.policy.CirculationPolicyService;
 import com.vn.service.impl.circulation.policy.CirculationSettingService;
 import com.vn.service.impl.circulation.usecase.RenewalUseCase;
 import com.vn.service.impl.circulation.autorenewal.AutoRenewalAttemptRecorder;
 import com.vn.service.impl.circulation.autorenewal.AutoRenewalProcessor;
 import com.vn.service.impl.circulation.autorenewal.AutoRenewalResult;
+import com.vn.service.notification.EmailNotificationCommand;
 import com.vn.testsupport.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
@@ -53,7 +58,7 @@ class AutoRenewalProcessorTest {
     private AutoRenewalAttemptRecorder attemptRecorder;
 
     @Mock
-    private EmailService emailService;
+    private NotificationQueueService notificationQueueService;
 
     private AutoRenewalProcessor processor;
 
@@ -65,7 +70,7 @@ class AutoRenewalProcessorTest {
                 circulationSettingService,
                 renewalUseCase,
                 attemptRecorder,
-                emailService
+                notificationQueueService
         );
     }
 
@@ -84,6 +89,10 @@ class AutoRenewalProcessorTest {
         when(circulationSettingService.getRenewalDaysDefault()).thenReturn(7);
         when(circulationSettingService.isAutoRenewNotifySuccessEnabled()).thenReturn(true);
         when(renewalUseCase.applyRenewal(borrow, 7)).thenReturn(renewResponse);
+        when(attemptRecorder.recordSuccess(
+                eq(borrow), eq(900L), any(Instant.class), any(Instant.class),
+                any(Instant.class), eq(0), eq(1)))
+                .thenReturn(AutoRenewalAttempt.builder().id(301L).build());
 
         AutoRenewalResult result = processor.processOne(100L, 900L);
 
@@ -98,17 +107,16 @@ class AutoRenewalProcessorTest {
                 eq(0),
                 eq(1)
         );
-        verify(emailService).sendAutoRenewalSuccessEmail(
-                eq(5L),
-                eq("member5@example.com"),
-                eq("Member 5"),
-                eq("Clean Code"),
-                eq("BC-50"),
-                eq(Instant.parse("2026-05-15T10:00:00Z")),
-                eq(Instant.parse("2026-05-22T10:00:00Z")),
-                eq(1),
-                eq(2)
-        );
+        ArgumentCaptor<EmailNotificationCommand> commandCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().notificationType())
+                .isEqualTo(NotificationType.AUTO_RENEWAL_SUCCESS);
+        assertThat(commandCaptor.getValue().targetType())
+                .isEqualTo(NotificationTargetType.AUTO_RENEWAL_ATTEMPT);
+        assertThat(commandCaptor.getValue().targetId()).isEqualTo(301L);
+        assertThat(commandCaptor.getValue().eventKey())
+                .isEqualTo("AUTO_RENEWAL_SUCCESS:AUTO_RENEWAL_ATTEMPT:301:EMAIL");
     }
 
     @Test
@@ -117,6 +125,9 @@ class AutoRenewalProcessorTest {
         when(borrowRecordRepository.findLockedForRenewalById(100L)).thenReturn(Optional.of(borrow));
         when(circulationPolicyService.validateAutoRenewal(borrow)).thenReturn(AutoRenewalResultCode.BLOCKED_BY_HOLD);
         when(circulationSettingService.isAutoRenewNotifyFailureEnabled()).thenReturn(true);
+        when(attemptRecorder.recordFailure(
+                eq(borrow), eq(900L), any(Instant.class), eq(AutoRenewalResultCode.BLOCKED_BY_HOLD)))
+                .thenReturn(AutoRenewalAttempt.builder().id(302L).build());
 
         AutoRenewalResult result = processor.processOne(100L, 900L);
 
@@ -124,16 +135,14 @@ class AutoRenewalProcessorTest {
         assertThat(result.code()).isEqualTo(AutoRenewalResultCode.BLOCKED_BY_HOLD);
         verify(attemptRecorder).recordFailure(eq(borrow), eq(900L), any(Instant.class), eq(AutoRenewalResultCode.BLOCKED_BY_HOLD));
         verify(renewalUseCase, never()).applyRenewal(any(), anyInt());
-        verify(emailService).sendAutoRenewalFailureEmail(
-                eq(5L),
-                eq("member5@example.com"),
-                eq("Member 5"),
-                eq("Clean Code"),
-                eq("BC-50"),
-                eq(Instant.parse("2026-05-15T10:00:00Z")),
-                eq("BLOCKED_BY_HOLD"),
-                eq(AutoRenewalResultCode.BLOCKED_BY_HOLD.defaultMessage())
-        );
+        ArgumentCaptor<EmailNotificationCommand> commandCaptor =
+                ArgumentCaptor.forClass(EmailNotificationCommand.class);
+        verify(notificationQueueService).enqueueEmail(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().notificationType())
+                .isEqualTo(NotificationType.AUTO_RENEWAL_FAILURE);
+        assertThat(commandCaptor.getValue().targetId()).isEqualTo(302L);
+        assertThat(commandCaptor.getValue().payload())
+                .containsEntry("reasonCode", "BLOCKED_BY_HOLD");
     }
 
     @Test

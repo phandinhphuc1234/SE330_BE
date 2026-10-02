@@ -2,7 +2,7 @@
 
 ## Nguyên tắc an toàn
 
-Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệu trước khi đối chiếu lịch sử Flyway và tạo backup. Mọi migration mới trong source hiện tại đều là migration chỉ tiến (`V35` đến `V42`).
+Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệu trước khi đối chiếu lịch sử Flyway và tạo backup. Mọi migration mới trong source hiện tại đều là migration chỉ tiến (`V35` đến `V46`).
 
 ## Chuỗi migration hiện tại
 
@@ -15,6 +15,10 @@ Không sửa, xóa hoặc `repair` migration trong database đang có dữ liệ
 | V40 | Tạo password-reset token chỉ lưu SHA-256 hash |
 | V41 | Tạo audit thay đổi trạng thái member |
 | V42 | Đưa `password_reset_tokens.token_hash` về `VARCHAR(64)` để khớp Hibernate mapping |
+| V43 | Nâng `notification_queue` thành durable delivery queue có retry, lease và idempotency |
+| V44 | Kích hoạt producer nghiệp vụ và cô lập queue legacy không thể render an toàn |
+| V45 | Thêm audit ledger idempotent cho Resend webhook |
+| V46 | Thêm delivery attempt/provider request key phục vụ retry thủ công an toàn |
 
 Do lịch sử GitHub từng có một file khác cũng mang version `V35` để tạo review, source hiện tại cố ý chỉ giữ V35 storage và V36 review. Đây là chuỗi migration chuẩn của local và phải được giữ nguyên byte-for-byte nếu database local đã ghi nhận checksum.
 
@@ -30,7 +34,7 @@ FROM flyway_schema_history
 ORDER BY installed_rank;
 ```
 
-- Nếu database dừng ở V34: có thể migrate theo source hiện tại; Flyway sẽ chạy V35 storage, V36 review, rồi V37-V42.
+- Nếu database dừng ở V34: có thể migrate theo source hiện tại; Flyway sẽ chạy V35 storage, V36 review, rồi V37-V46.
 - Nếu đã có `V35__move_ebook_storage_metadata_to_s3.sql` và `V36__create_book_reviews.sql`: chỉ cần đối chiếu checksum, không đổi các file migration đã chạy.
 - Nếu history có `V35__create_book_reviews.sql`: dừng lại. Không chạy `clean`, không sửa checksum và không chạy `repair` để ép qua. Cần đối chiếu schema thật của `book_reviews` và lập kế hoạch migration riêng theo database đó.
 

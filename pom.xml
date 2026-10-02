@@ -31,6 +31,7 @@
         <cloudinary.version>2.0.0</cloudinary.version>
         <aws.sdk.version>2.31.54</aws.sdk.version>
         <jacoco.version>0.8.12</jacoco.version>
+        <svix.version>1.95.2</svix.version>
     </properties>
 
     <dependencyManagement>
@@ -95,6 +96,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+
+        <!-- Official Svix verifier used by Resend webhook signatures. -->
+        <dependency>
+            <groupId>com.svix</groupId>
+            <artifactId>svix</artifactId>
+            <version>${svix.version}</version>
         </dependency>
 
         <dependency>
