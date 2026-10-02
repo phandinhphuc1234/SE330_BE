@@ -31,7 +31,7 @@ public class ResendWebhookMetrics {
                 .register(registry);
     }
 
-    public void record(ResendWebhookProcessingResult result) {
+    public void recordResult(ResendWebhookProcessingResult result) {
         resultCounters.get(result).increment();
     }
 

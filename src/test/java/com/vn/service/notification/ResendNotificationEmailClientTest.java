@@ -77,8 +77,10 @@ class ResendNotificationEmailClientTest {
                 )
         );
         server.start();
+        ResendNotificationEmailClient resendClient = client();
+        RenderedNotificationEmail notificationEmail = email();
 
-        assertThatThrownBy(() -> client().send(email()))
+        assertThatThrownBy(() -> resendClient.send(notificationEmail))
                 .isInstanceOf(NotificationDeliveryException.class)
                 .satisfies(exception -> {
                     NotificationDeliveryException deliveryException = (NotificationDeliveryException) exception;
@@ -101,8 +103,10 @@ class ResendNotificationEmailClientTest {
                 )
         );
         server.start();
+        ResendNotificationEmailClient resendClient = client();
+        RenderedNotificationEmail notificationEmail = email();
 
-        assertThatThrownBy(() -> client().send(email()))
+        assertThatThrownBy(() -> resendClient.send(notificationEmail))
                 .isInstanceOf(NotificationDeliveryException.class)
                 .satisfies(exception -> {
                     NotificationDeliveryException deliveryException = (NotificationDeliveryException) exception;

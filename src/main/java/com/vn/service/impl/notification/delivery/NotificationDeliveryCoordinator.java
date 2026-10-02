@@ -44,7 +44,7 @@ public class NotificationDeliveryCoordinator {
         for (NotificationDeliveryTask task : tasks) {
             try {
                 NotificationDeliveryTransition transition = deliver(task);
-                metrics.record(transition.outcome());
+                metrics.recordOutcome(transition.outcome());
                 switch (transition.outcome()) {
                     case SENT -> sent++;
                     case RETRY_SCHEDULED -> retryScheduled++;

@@ -138,6 +138,13 @@ public class NotificationQueue {
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
+        initializeDeliveryState(now);
+        initializeDeliveryIdentity();
+        initializeRecipientAndContent();
+        initializeTimestamps(now);
+    }
+
+    private void initializeDeliveryState(Instant now) {
         if (this.status == null) {
             this.status = NotificationQueueStatus.PENDING;
         }
@@ -153,6 +160,9 @@ public class NotificationQueue {
         if (this.nextAttemptAt == null) {
             this.nextAttemptAt = this.scheduledAt;
         }
+    }
+
+    private void initializeDeliveryIdentity() {
         if (this.eventKey == null || this.eventKey.isBlank()) {
             this.eventKey = buildDefaultEventKey();
         }
@@ -162,6 +172,9 @@ public class NotificationQueue {
         if (this.providerRequestKey == null || this.providerRequestKey.isBlank()) {
             this.providerRequestKey = this.eventKey;
         }
+    }
+
+    private void initializeRecipientAndContent() {
         if ((this.recipientEmail == null || this.recipientEmail.isBlank()) && this.member != null) {
             this.recipientEmail = this.member.getEmail();
         }
@@ -171,6 +184,9 @@ public class NotificationQueue {
         if (this.payload == null) {
             this.payload = new LinkedHashMap<>();
         }
+    }
+
+    private void initializeTimestamps(Instant now) {
         if (this.createdAt == null) {
             this.createdAt = now;
         }

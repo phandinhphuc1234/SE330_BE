@@ -33,7 +33,7 @@ public class NotificationDeliveryMetrics {
         sample.stop(providerLatency);
     }
 
-    public void record(NotificationDeliveryOutcome outcome) {
+    public void recordOutcome(NotificationDeliveryOutcome outcome) {
         switch (outcome) {
             case SENT -> sent.increment();
             case RETRY_SCHEDULED -> retryScheduled.increment();

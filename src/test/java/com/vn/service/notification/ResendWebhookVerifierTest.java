@@ -36,9 +36,11 @@ class ResendWebhookVerifierTest {
         String messageId = "msg_test_1";
         long timestamp = Instant.now().getEpochSecond();
         String signature = new Webhook(SECRET).sign(messageId, timestamp, payload);
+        ResendWebhookVerifier webhookVerifier = verifier();
+        String tamperedPayload = payload + " ";
 
-        assertThatThrownBy(() -> verifier().verify(
-                payload + " ", messageId, Long.toString(timestamp), signature))
+        assertThatThrownBy(() -> webhookVerifier.verify(
+                tamperedPayload, messageId, Long.toString(timestamp), signature))
                 .isInstanceOf(ResendWebhookRejectedException.class);
     }
 

@@ -125,56 +125,8 @@ class NotificationQueueMigrationTest {
                     new ClassPathResource("db/migration/V46__add_notification_delivery_operations.sql")
             );
 
-            try (Statement statement = connection.createStatement();
-                 ResultSet row = statement.executeQuery("""
-                         SELECT event_key,
-                                recipient_email,
-                                template_code,
-                                payload::text,
-                                max_attempts,
-                                next_attempt_at,
-                                created_at,
-                                updated_at,
-                                version,
-                                status,
-                                 last_error,
-                                 delivery_attempt,
-                                 provider_request_key
-                         FROM notification_queue
-                         WHERE id = 1
-                         """)) {
-                assertThat(row.next()).isTrue();
-                assertThat(row.getString("event_key"))
-                        .isEqualTo("DUE_SOON_REMINDER:BORROW_RECORD:99:EMAIL");
-                assertThat(row.getString("recipient_email")).isEqualTo("legacy-reader@example.com");
-                assertThat(row.getString("template_code")).isEqualTo("due-soon-reminder");
-                assertThat(row.getString("payload")).isEqualTo("{}");
-                assertThat(row.getInt("max_attempts")).isEqualTo(5);
-                assertThat(row.getObject("next_attempt_at", LocalDateTime.class))
-                        .isEqualTo(LocalDateTime.of(2026, 9, 29, 8, 0));
-                assertThat(row.getObject("created_at", LocalDateTime.class))
-                        .isEqualTo(LocalDateTime.of(2026, 9, 29, 8, 0));
-                assertThat(row.getObject("updated_at", LocalDateTime.class))
-                        .isAfter(LocalDateTime.of(2026, 9, 29, 8, 0));
-                assertThat(row.getLong("version")).isZero();
-                assertThat(row.getString("status")).isEqualTo("DEAD");
-                assertThat(row.getString("last_error")).isEqualTo("LEGACY_PAYLOAD_NOT_REPLAYABLE");
-                assertThat(row.getInt("delivery_attempt")).isEqualTo(1);
-                assertThat(row.getString("provider_request_key")).isEqualTo(row.getString("event_key"));
-            }
-
-            try (Statement statement = connection.createStatement();
-                 ResultSet legacyRow = statement.executeQuery("""
-                         SELECT event_key, template_code, retry_count, recipient_email
-                         FROM notification_queue
-                         WHERE id = 2
-                         """)) {
-                assertThat(legacyRow.next()).isTrue();
-                assertThat(legacyRow.getString("event_key")).isEqualTo("LEGACY_NOTIFICATION_QUEUE:2");
-                assertThat(legacyRow.getString("template_code")).isEqualTo("legacy-notification");
-                assertThat(legacyRow.getInt("retry_count")).isZero();
-                assertThat(legacyRow.getString("recipient_email")).isNull();
-            }
+            assertReplayableLegacyRowUpgraded(connection);
+            assertFallbackLegacyRowUpgraded(connection);
 
             assertThat(columnType(connection, "payload")).isEqualTo("jsonb");
             assertThat(indexNames(connection)).contains(
@@ -282,6 +234,61 @@ class NotificationQueueMigrationTest {
                     )
                     """))
                     .isInstanceOf(SQLException.class);
+        }
+    }
+
+    private void assertReplayableLegacyRowUpgraded(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement();
+             ResultSet row = statement.executeQuery("""
+                     SELECT event_key,
+                            recipient_email,
+                            template_code,
+                            payload::text,
+                            max_attempts,
+                            next_attempt_at,
+                            created_at,
+                            updated_at,
+                            version,
+                            status,
+                            last_error,
+                            delivery_attempt,
+                            provider_request_key
+                     FROM notification_queue
+                     WHERE id = 1
+                     """)) {
+            assertThat(row.next()).isTrue();
+            assertThat(row.getString("event_key"))
+                    .isEqualTo("DUE_SOON_REMINDER:BORROW_RECORD:99:EMAIL");
+            assertThat(row.getString("recipient_email")).isEqualTo("legacy-reader@example.com");
+            assertThat(row.getString("template_code")).isEqualTo("due-soon-reminder");
+            assertThat(row.getString("payload")).isEqualTo("{}");
+            assertThat(row.getInt("max_attempts")).isEqualTo(5);
+            assertThat(row.getObject("next_attempt_at", LocalDateTime.class))
+                    .isEqualTo(LocalDateTime.of(2026, 9, 29, 8, 0));
+            assertThat(row.getObject("created_at", LocalDateTime.class))
+                    .isEqualTo(LocalDateTime.of(2026, 9, 29, 8, 0));
+            assertThat(row.getObject("updated_at", LocalDateTime.class))
+                    .isAfter(LocalDateTime.of(2026, 9, 29, 8, 0));
+            assertThat(row.getLong("version")).isZero();
+            assertThat(row.getString("status")).isEqualTo("DEAD");
+            assertThat(row.getString("last_error")).isEqualTo("LEGACY_PAYLOAD_NOT_REPLAYABLE");
+            assertThat(row.getInt("delivery_attempt")).isEqualTo(1);
+            assertThat(row.getString("provider_request_key")).isEqualTo(row.getString("event_key"));
+        }
+    }
+
+    private void assertFallbackLegacyRowUpgraded(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement();
+             ResultSet legacyRow = statement.executeQuery("""
+                     SELECT event_key, template_code, retry_count, recipient_email
+                     FROM notification_queue
+                     WHERE id = 2
+                     """)) {
+            assertThat(legacyRow.next()).isTrue();
+            assertThat(legacyRow.getString("event_key")).isEqualTo("LEGACY_NOTIFICATION_QUEUE:2");
+            assertThat(legacyRow.getString("template_code")).isEqualTo("legacy-notification");
+            assertThat(legacyRow.getInt("retry_count")).isZero();
+            assertThat(legacyRow.getString("recipient_email")).isNull();
         }
     }
 

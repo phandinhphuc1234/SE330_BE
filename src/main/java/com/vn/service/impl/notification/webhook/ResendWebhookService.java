@@ -27,7 +27,7 @@ public class ResendWebhookService {
             verifier.verify(rawPayload, messageId, timestamp, signature);
             ResendWebhookEvent event = payloadParser.parse(rawPayload, messageId);
             ResendWebhookProcessingResult result = eventProcessor.process(event);
-            metrics.record(result);
+            metrics.recordResult(result);
             log.info(
                     "eventType={} result={} webhookMessageId={} providerMessageId={} providerEventType={} outcome={}",
                     LogEvent.PROCESS_RESEND_WEBHOOK,

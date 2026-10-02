@@ -24,6 +24,7 @@ import java.util.Locale;
 public class ResendNotificationEmailClient implements NotificationEmailClient {
 
     private static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
+    private static final String UNKNOWN_PROVIDER_CODE = "UNKNOWN";
 
     private final RestClient restClient;
     private final NotificationDeliveryProperties properties;
@@ -101,7 +102,7 @@ public class ResendNotificationEmailClient implements NotificationEmailClient {
 
     private String extractProviderCode(String responseBody) {
         if (!StringUtils.hasText(responseBody)) {
-            return "UNKNOWN";
+            return UNKNOWN_PROVIDER_CODE;
         }
         try {
             JsonNode root = objectMapper.readTree(responseBody);
@@ -110,11 +111,11 @@ public class ResendNotificationEmailClient implements NotificationEmailClient {
                 value = root.path("code").asText("");
             }
             if (!StringUtils.hasText(value)) {
-                return "UNKNOWN";
+                return UNKNOWN_PROVIDER_CODE;
             }
             return value.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9_]+", "_");
         } catch (Exception ignored) {
-            return "UNKNOWN";
+            return UNKNOWN_PROVIDER_CODE;
         }
     }
 

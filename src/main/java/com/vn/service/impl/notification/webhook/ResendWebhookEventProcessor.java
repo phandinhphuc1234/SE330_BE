@@ -17,6 +17,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ResendWebhookEventProcessor {
 
+    private static final String IGNORED_STATUS = "IGNORED";
+
     private static final Set<String> SUPPORTED_EVENTS = Set.of(
             "email.sent",
             "email.delivered",
@@ -37,7 +39,7 @@ public class ResendWebhookEventProcessor {
             return ResendWebhookProcessingResult.DUPLICATE;
         }
         if (!SUPPORTED_EVENTS.contains(event.eventType())) {
-            markEvent(event, null, "IGNORED", "UNSUPPORTED_EVENT_TYPE");
+            markEvent(event, null, IGNORED_STATUS, "UNSUPPORTED_EVENT_TYPE");
             return ResendWebhookProcessingResult.IGNORED;
         }
 
@@ -47,12 +49,12 @@ public class ResendWebhookEventProcessor {
             return ResendWebhookProcessingResult.UNMATCHED;
         }
         if (isStaleDeliveryAttempt(queue, event)) {
-            markEvent(event, queue.getId(), "IGNORED", "STALE_DELIVERY_ATTEMPT");
+            markEvent(event, queue.getId(), IGNORED_STATUS, "STALE_DELIVERY_ATTEMPT");
             return ResendWebhookProcessingResult.IGNORED;
         }
         if (queue.getProviderMessageId() != null
                 && !queue.getProviderMessageId().equals(event.providerMessageId())) {
-            markEvent(event, queue.getId(), "IGNORED", "PROVIDER_MESSAGE_ID_MISMATCH");
+            markEvent(event, queue.getId(), IGNORED_STATUS, "PROVIDER_MESSAGE_ID_MISMATCH");
             return ResendWebhookProcessingResult.IGNORED;
         }
 

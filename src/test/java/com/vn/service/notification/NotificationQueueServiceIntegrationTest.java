@@ -139,10 +139,10 @@ class NotificationQueueServiceIntegrationTest {
     @Test
     void enqueueEmailShouldRejectCallsWithoutAnExistingBusinessTransaction() {
         Member member = memberRepository.findById(memberId).orElseThrow();
+        EmailNotificationCommand notification = command(member, "ACCOUNT_BANNED:9003:EMAIL");
 
-        assertThatThrownBy(() -> notificationQueueService.enqueueEmail(
-                command(member, "ACCOUNT_BANNED:9003:EMAIL")
-        )).isInstanceOf(IllegalTransactionStateException.class);
+        assertThatThrownBy(() -> notificationQueueService.enqueueEmail(notification))
+                .isInstanceOf(IllegalTransactionStateException.class);
     }
 
     @Test

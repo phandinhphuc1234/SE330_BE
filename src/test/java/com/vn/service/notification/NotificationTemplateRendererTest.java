@@ -43,8 +43,9 @@ class NotificationTemplateRendererTest {
     @Test
     void renderShouldRejectTemplatePathTraversal() {
         NotificationTemplateRenderer renderer = new NotificationTemplateRenderer(templateEngine);
+        NotificationDeliveryTask invalidTask = task("../password-reset");
 
-        assertThatThrownBy(() -> renderer.render(task("../password-reset")))
+        assertThatThrownBy(() -> renderer.render(invalidTask))
                 .isInstanceOf(NotificationDeliveryException.class)
                 .satisfies(exception -> assertThat(((NotificationDeliveryException) exception).retryable()).isFalse());
     }
