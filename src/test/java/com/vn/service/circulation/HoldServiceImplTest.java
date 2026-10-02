@@ -35,7 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -87,7 +86,8 @@ class HoldServiceImplTest {
                 circulationSettingService,
                 holdQueueService,
                 new CirculationMapper(new FineStatusResolver()),
-                idempotencyService
+                idempotencyService,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 

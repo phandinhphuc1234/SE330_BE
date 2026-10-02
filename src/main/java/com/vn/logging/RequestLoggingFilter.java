@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.UUID;
 
 @Slf4j
@@ -35,10 +36,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         MDC.put(TRACE_ID, traceId);
         response.setHeader(TRACE_ID_HEADER, traceId);
 
-        long startedAt = System.currentTimeMillis();
+        long startedAtNanos = System.nanoTime();
         try {
             filterChain.doFilter(request, response);
-            long durationMs = System.currentTimeMillis() - startedAt;
+            long durationMs = elapsedMillis(startedAtNanos);
             int statusCode = response.getStatus();
             log.info(
                     "eventType={} result={} memberId={} method={} path={} statusCode={} durationMs={}",
@@ -51,7 +52,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                     durationMs
             );
         } catch (Exception ex) {
-            long durationMs = System.currentTimeMillis() - startedAt;
+            long durationMs = elapsedMillis(startedAtNanos);
             log.error(
                     "eventType={} result={} memberId={} method={} path={} statusCode={} durationMs={} reason={}",
                     LogEvent.HTTP_REQUEST_COMPLETED,
@@ -69,6 +70,11 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             MDC.remove(TRACE_ID);
         }
     }
+
+    private long elapsedMillis(long startedAtNanos) {
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAtNanos);
+    }
+
     // Những URL sẽ không tiến hành logging ở trong hệ thống
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {

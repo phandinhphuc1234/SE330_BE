@@ -28,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -48,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final AuthMapper authMapper;
     private final MemberMapper memberMapper;
+    private final Clock clock;
 
     // ================= REGISTER =================
     // Flow: check email trùng → hash password → save member → tạo mã → gửi email
@@ -68,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         // 3. Chỉ gửi mã rõ qua email; database lưu BCrypt hash để tránh lộ mã.
         String verificationCode = emailVerificationCodeGenerator.generate();
         String codeHash = passwordEncoder.encode(verificationCode);
-        Instant expiresAt = Instant.now().plus(VERIFICATION_CODE_EXPIRY_MINUTES, ChronoUnit.MINUTES);
+        Instant expiresAt = clock.instant().plus(VERIFICATION_CODE_EXPIRY_MINUTES, ChronoUnit.MINUTES);
         EmailVerification verification = authMapper.toEmailVerification(member, codeHash, expiresAt);
         // @PrePersist sẽ set: isUsed=false, createdAt=now
         verificationRepository.save(verification);
@@ -97,13 +99,14 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_OR_EXPIRED_TOKEN));
 
         // 2. Kiểm tra hết hạn
-        if (verification.getExpiresAt().isBefore(Instant.now())) {
+        Instant now = clock.instant();
+        if (verification.getExpiresAt().isBefore(now)) {
             throw new AppException(ErrorCode.VERIFICATION_TOKEN_EXPIRED);
         }
 
         // 3. Đánh dấu token đã dùng
         verification.setIsUsed(true);
-        verification.setUsedAt(Instant.now());
+        verification.setUsedAt(now);
 
         // 4. Kích hoạt tài khoản
         Member member = verification.getMember();
@@ -133,7 +136,8 @@ public class AuthServiceImpl implements AuthService {
         EmailVerification verification = verificationRepository.findByMemberAndIsUsedFalse(member)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_VERIFICATION_CODE));
 
-        if (verification.getExpiresAt().isBefore(Instant.now())) {
+        Instant now = clock.instant();
+        if (verification.getExpiresAt().isBefore(now)) {
             throw new AppException(ErrorCode.VERIFICATION_CODE_EXPIRED);
         }
 
@@ -150,7 +154,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         verification.setIsUsed(true);
-        verification.setUsedAt(Instant.now());
+        verification.setUsedAt(now);
         member.setStatus(MemberStatus.ACTIVE);
         emailVerificationRateLimitService.clear(member.getId());
 
@@ -262,7 +266,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.EMAIL_RESEND_LIMIT_EXCEEDED);
         }
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         String verificationCode = emailVerificationCodeGenerator.generate();
         String newCodeHash = passwordEncoder.encode(verificationCode);
         Instant newExpiresAt = now.plus(VERIFICATION_CODE_EXPIRY_MINUTES, ChronoUnit.MINUTES);

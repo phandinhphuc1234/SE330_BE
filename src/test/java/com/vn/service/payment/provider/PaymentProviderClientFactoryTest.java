@@ -16,7 +16,8 @@ class PaymentProviderClientFactoryTest {
 
     @Test
     void getShouldReturnVnpayClientWhenProviderIsVnpay() {
-        VnpayPaymentProviderClient vnpayClient = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient vnpayClient = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
         PaymentProviderClientFactory factory = new PaymentProviderClientFactory(List.of(vnpayClient));
 
         PaymentProviderClient client = factory.get(PaymentProvider.VNPAY);
@@ -26,7 +27,8 @@ class PaymentProviderClientFactoryTest {
 
     @Test
     void getShouldThrowUnsupportedPaymentProviderWhenProviderIsNotRegistered() {
-        PaymentProviderClientFactory factory = new PaymentProviderClientFactory(List.of(new VnpayPaymentProviderClient(vnpayProperties())));
+        PaymentProviderClientFactory factory = new PaymentProviderClientFactory(List.of(
+                new VnpayPaymentProviderClient(vnpayProperties(), com.vn.testsupport.TestTime.CLOCK)));
 
         assertThatThrownBy(() -> factory.get(PaymentProvider.MOMO))
                 .isInstanceOf(AppException.class)

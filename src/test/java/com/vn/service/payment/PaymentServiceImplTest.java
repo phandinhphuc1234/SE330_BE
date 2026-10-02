@@ -56,7 +56,8 @@ class PaymentServiceImplTest {
                 paymentIdempotencyService,
                 businessApplierFactory,
                 providerClientFactory,
-                paymentTransactionRepository
+                paymentTransactionRepository,
+                com.vn.testsupport.TestTime.CLOCK
         );
 
         when(paymentIdempotencyService.execute(

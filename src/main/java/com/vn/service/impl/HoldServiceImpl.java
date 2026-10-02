@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -53,6 +54,7 @@ public class HoldServiceImpl implements HoldService {
     private final HoldQueueService holdQueueService;
     private final CirculationMapper circulationMapper;
     private final IdempotencyService idempotencyService;
+    private final Clock clock;
 
     // Chức năng: member đặt hold khi đầu sách đã hết bản AVAILABLE.
     @Override
@@ -73,7 +75,7 @@ public class HoldServiceImpl implements HoldService {
         }
         // Tìm ra sách đầu của queue và cho người đó mượn sách
         int queuePosition = reservationRepository.findMaxQueuePositionByBookId(book.getId()) + 1;
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Reservation reservation = Reservation.builder()
                 .member(member)
                 .book(book)
@@ -153,7 +155,7 @@ public class HoldServiceImpl implements HoldService {
         circulationPolicyService.assertBorrowerAccountAllowed(member);
         circulationPolicyService.assertBorrowingCapacityAllowed(member);
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         BorrowRecord borrow = BorrowRecord.builder()
                 .member(member)
                 .bookCopy(copy)

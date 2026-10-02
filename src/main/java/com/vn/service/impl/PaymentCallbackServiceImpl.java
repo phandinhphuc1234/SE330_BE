@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +43,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final PaymentProviderClientFactory providerClientFactory;
     private final PaymentBusinessApplierFactory businessApplierFactory;
+    private final Clock clock;
 
     // Entry point cho VNPAY IPN. Toàn bộ xử lý nằm trong transaction để payment, event và loan nhất quán.
     @Override
@@ -197,7 +198,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
 
         // Chỉ khi cả responseCode và transactionStatus thành công thì mới chuyển SUCCESS và apply nghiệp vụ.
         payment.setStatus(PaymentStatus.SUCCESS);
-        payment.setPaidAt(verification.paidAt() == null ? Instant.now() : verification.paidAt());
+        payment.setPaidAt(verification.paidAt() == null ? clock.instant() : verification.paidAt());
         PaymentBusinessApplier applier = businessApplierFactory.get(payment.getPurpose(), payment.getTargetType());
         // Với ebook, side-effect là tạo ebook_loan ACTIVE; implementation phải idempotent theo payment_id.
         applier.applySuccess(payment);
@@ -247,6 +248,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
         event.setRawPayload(toRawVnpayPayload(params));
         event.setRawHeaders(toObjectMap(headers));
         event.setProcessingStatus(PaymentEventProcessingStatus.RECEIVED);
+        event.setReceivedAt(clock.instant());
         return paymentEventRepository.save(event);
     }
 
@@ -264,7 +266,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
     // Event xử lý xong và payment đã được cập nhật theo kết quả provider.
     private void markProcessed(PaymentEvent event) {
         event.setProcessingStatus(PaymentEventProcessingStatus.PROCESSED);
-        event.setProcessedAt(Instant.now());
+        event.setProcessedAt(clock.instant());
         paymentEventRepository.save(event);
     }
 
@@ -272,7 +274,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
     private void markFailed(PaymentEvent event, String errorMessage) {
         event.setProcessingStatus(PaymentEventProcessingStatus.FAILED);
         event.setErrorMessage(errorMessage);
-        event.setProcessedAt(Instant.now());
+        event.setProcessedAt(clock.instant());
         paymentEventRepository.save(event);
     }
 
@@ -280,7 +282,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
     private void markIgnored(PaymentEvent event, String errorMessage) {
         event.setProcessingStatus(PaymentEventProcessingStatus.IGNORED);
         event.setErrorMessage(errorMessage);
-        event.setProcessedAt(Instant.now());
+        event.setProcessedAt(clock.instant());
         paymentEventRepository.save(event);
     }
 

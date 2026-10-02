@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 
 @Service
@@ -25,6 +27,7 @@ public class NotificationQueueServiceImpl implements NotificationQueueService {
     private final NotificationQueueRepository notificationQueueRepository;
     private final NotificationEventKeyLock eventKeyLock;
     private final NotificationPayloadGuard payloadGuard;
+    private final Clock clock;
 
     // Must join the transaction that performs the business action. This gives
     // the system one atomic commit for the domain change, in-app notification,
@@ -42,6 +45,7 @@ public class NotificationQueueServiceImpl implements NotificationQueueService {
     }
 
     private NotificationEnqueueResult createDelivery(EmailNotificationCommand command) {
+        Instant scheduledAt = command.scheduledAt() == null ? clock.instant() : command.scheduledAt();
         Notification notification = notificationRepository.save(Notification.builder()
                 .member(command.member())
                 .title(command.title())
@@ -56,8 +60,8 @@ public class NotificationQueueServiceImpl implements NotificationQueueService {
                 .status(NotificationQueueStatus.PENDING)
                 .retryCount(0)
                 .maxAttempts(command.maxAttempts())
-                .scheduledAt(command.scheduledAt())
-                .nextAttemptAt(command.scheduledAt())
+                .scheduledAt(scheduledAt)
+                .nextAttemptAt(scheduledAt)
                 .notificationType(command.notificationType())
                 .targetType(command.targetType())
                 .targetId(command.targetId())

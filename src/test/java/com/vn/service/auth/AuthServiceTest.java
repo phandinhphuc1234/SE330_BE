@@ -81,7 +81,8 @@ class AuthServiceTest {
                 emailVerificationCodeGenerator,
                 emailService,
                 new AuthMapper(),
-                new MemberMapper()
+                new MemberMapper(),
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 
@@ -124,7 +125,8 @@ class AuthServiceTest {
         EmailVerification savedVerification = verificationCaptor.getValue();
         assertThat(savedVerification.getMember()).isSameAs(savedMember);
         assertThat(savedVerification.getToken()).isEqualTo("$2a$10$verification-code-hash");
-        assertThat(savedVerification.getExpiresAt()).isNotNull();
+        assertThat(savedVerification.getExpiresAt())
+                .isEqualTo(com.vn.testsupport.TestTime.NOW.plusSeconds(10 * 60));
 
         verify(emailService).sendVerificationEmail(1L, "user@example.com", "Nguyen Van A", "123456789");
         verify(emailVerificationRateLimitService).startCooldown(1L);

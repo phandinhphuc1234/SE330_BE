@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 
 @Service
@@ -36,6 +37,7 @@ public class CheckinUseCase {
     private final BookRepository bookRepository;
     private final CirculationMapper circulationMapper;
     private final HoldQueueService holdQueueService;
+    private final Clock clock;
 
     // Chức năng: đóng lượt mượn đang mở của một bản sách khi user trả sách.
     public CheckinResponse checkin(CheckinRequest request) {
@@ -44,7 +46,7 @@ public class CheckinUseCase {
                 .findFirstByBookCopyIdAndStatusInOrderByBorrowedAtDesc(copy.getId(), BorrowStatus.openStatuses())
                 .orElseThrow(() -> new AppException(ErrorCode.ACTIVE_BORROW_NOT_FOUND));
 
-        Instant returnedAt = Instant.now();
+        Instant returnedAt = clock.instant();
         long overdueDays = circulationFineService.calculateOverdueDays(borrow.getDueDate(), returnedAt);
         if (overdueDays > 0) {
             circulationFineService.applyOverdueFine(borrow, overdueDays, returnedAt);

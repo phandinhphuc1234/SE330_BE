@@ -9,18 +9,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
 public class DueSoonReminderService {
 
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Bangkok");
-
     private final BorrowRecordRepository borrowRecordRepository;
     private final CirculationSettingService circulationSettingService;
     private final DueSoonReminderProcessor dueSoonReminderProcessor;
+    private final Clock clock;
 
     // Chức năng: quét các lượt mượn sắp đến hạn, tạo notification và gửi email nhắc trả.
     public DueSoonReminderJobSummary sendDueSoonReminders() {
@@ -48,11 +47,11 @@ public class DueSoonReminderService {
 
     // Chức năng: tính ngày nghiệp vụ cần nhắc để job chạy nhiều lần trong ngày vẫn cùng một window.
     DueSoonReminderWindow buildWindow() {
-        LocalDate targetDate = LocalDate.now(BUSINESS_ZONE)
+        LocalDate targetDate = LocalDate.now(clock)
                 .plusDays(circulationSettingService.getDueSoonReminderDaysBeforeDue());
         return new DueSoonReminderWindow(
-                targetDate.atStartOfDay(BUSINESS_ZONE).toInstant(),
-                targetDate.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant()
+                targetDate.atStartOfDay(clock.getZone()).toInstant(),
+                targetDate.plusDays(1).atStartOfDay(clock.getZone()).toInstant()
         );
     }
 }

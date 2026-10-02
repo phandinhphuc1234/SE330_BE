@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +29,7 @@ public class BookImportJobTracker {
     private final BookImportJobRepository jobRepository;
     private final BookImportJobErrorRepository errorRepository;
     private final BookImportSseService sseService;
+    private final Clock clock;
 
     @Transactional
     public BookImportJob createJob(String originalFilename) {
@@ -42,7 +43,7 @@ public class BookImportJobTracker {
     public void markProcessing(UUID jobId) {
         BookImportJob job = getJob(jobId);
         job.setStatus(BookImportJobStatus.PROCESSING);
-        job.setStartedAt(Instant.now());
+        job.setStartedAt(clock.instant());
         jobRepository.save(job);
         publishAfterCommit(jobId, "book-import-processing");
     }
@@ -77,7 +78,7 @@ public class BookImportJobTracker {
     public void markCompleted(UUID jobId) {
         BookImportJob job = getJob(jobId);
         job.setStatus(BookImportJobStatus.COMPLETED);
-        job.setCompletedAt(Instant.now());
+        job.setCompletedAt(clock.instant());
         jobRepository.save(job);
         publishAfterCommit(jobId, "book-import-completed");
     }
@@ -87,7 +88,7 @@ public class BookImportJobTracker {
         BookImportJob job = getJob(jobId);
         job.setStatus(BookImportJobStatus.FAILED);
         job.setErrorMessage(message);
-        job.setCompletedAt(Instant.now());
+        job.setCompletedAt(clock.instant());
         jobRepository.save(job);
         publishAfterCommit(jobId, "book-import-failed");
     }

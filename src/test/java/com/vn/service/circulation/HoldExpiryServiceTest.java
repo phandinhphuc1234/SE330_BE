@@ -41,7 +41,8 @@ class HoldExpiryServiceTest {
 
     @BeforeEach
     void setUp() {
-        holdExpiryService = new HoldExpiryService(reservationRepository, holdExpiryProcessor);
+        holdExpiryService = new HoldExpiryService(
+                reservationRepository, holdExpiryProcessor, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test

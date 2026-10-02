@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,11 +26,11 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class StaffStatisticsServiceImpl implements StaffStatisticsService {
 
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final int MAX_RANGE_DAYS = 21;
     private static final Set<String> SUPPORTED_FILTER_TYPES = Set.of("category", "isbn", "title");
 
     private final BorrowRecordRepository borrowRecordRepository;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,14 +46,15 @@ public class StaffStatisticsServiceImpl implements StaffStatisticsService {
         String normalizedFilterValue = normalizeOptional(filterValue);
         String normalizedLanguage = normalizeOptional(language);
 
-        Instant fromInstant = from.atStartOfDay(BUSINESS_ZONE).toInstant();
-        Instant toInstant = to.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant();
+        Instant fromInstant = from.atStartOfDay(clock.getZone()).toInstant();
+        Instant toInstant = to.plusDays(1).atStartOfDay(clock.getZone()).toInstant();
+        String businessZone = clock.getZone().getId();
 
         Map<LocalDate, Long> borrowedByDay = toCountByDay(borrowRecordRepository.countBorrowedPerDay(
-                fromInstant, toInstant, normalizedFilterType, normalizedFilterValue, normalizedLanguage
+                fromInstant, toInstant, normalizedFilterType, normalizedFilterValue, normalizedLanguage, businessZone
         ));
         Map<LocalDate, Long> returnedByDay = toCountByDay(borrowRecordRepository.countReturnedPerDay(
-                fromInstant, toInstant, normalizedFilterType, normalizedFilterValue, normalizedLanguage
+                fromInstant, toInstant, normalizedFilterType, normalizedFilterValue, normalizedLanguage, businessZone
         ));
 
         return buildResponse(from, to, borrowedByDay, returnedByDay);

@@ -28,7 +28,8 @@ class VnpayPaymentProviderClientTest {
 
     @Test
     void createPaymentShouldBuildSignedVnpayPaymentUrl() {
-        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
 
         ProviderPaymentCreateResult result = client.createPayment(new ProviderPaymentCreateRequest(
                 "PAY202606130001",
@@ -57,7 +58,8 @@ class VnpayPaymentProviderClientTest {
 
     @Test
     void createPaymentShouldOmitBlankBankCode() {
-        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
 
         ProviderPaymentCreateResult result = client.createPayment(new ProviderPaymentCreateRequest(
                 "PAY202606130002",
@@ -77,7 +79,8 @@ class VnpayPaymentProviderClientTest {
 
     @Test
     void verifyCallbackShouldNormalizeValidSuccessCallback() {
-        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
         Map<String, String> params = signedCallbackParams("00", "00");
 
         ProviderCallbackVerificationResult result = client.verifyCallback(new ProviderCallbackRequest(
@@ -100,7 +103,8 @@ class VnpayPaymentProviderClientTest {
 
     @Test
     void verifyCallbackShouldRejectTamperedAmountChecksum() {
-        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
         Map<String, String> params = signedCallbackParams("00", "00");
         params.put("vnp_Amount", "999999");
 
@@ -116,7 +120,8 @@ class VnpayPaymentProviderClientTest {
 
     @Test
     void verifyCallbackShouldRequireBothResponseCodeAndTransactionStatusSuccess() {
-        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
 
         ProviderCallbackVerificationResult reversed = client.verifyCallback(new ProviderCallbackRequest(
                 PaymentProvider.VNPAY,
@@ -139,7 +144,8 @@ class VnpayPaymentProviderClientTest {
 
     @Test
     void parseReturnShouldOnlyNormalizeReturnPayload() {
-        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(vnpayProperties());
+        VnpayPaymentProviderClient client = new VnpayPaymentProviderClient(
+                vnpayProperties(), com.vn.testsupport.TestTime.CLOCK);
         Map<String, String> params = signedCallbackParams("24", "02");
 
         ProviderReturnResult result = client.parseReturn(new ProviderReturnRequest(

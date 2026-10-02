@@ -70,14 +70,15 @@ class EbookReaderSessionServiceImplTest {
                 tokenService,
                 mediaStorageService,
                 ebookObjectStorageService,
-                redisTemplate
+                redisTemplate,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 
     @Test
     void createSessionShouldReturnRawTokenOnceAndCacheHash() {
         BookEbook ebook = ebook();
-        EbookLoan loan = loan(Instant.now().plusSeconds(3600));
+        EbookLoan loan = loan(com.vn.testsupport.TestTime.NOW.plusSeconds(3600));
         when(bookEbookRepository.findFirstByBookIdAndStatusOrderByIdDesc(501L, BookEbookStatus.ACTIVE))
                 .thenReturn(Optional.of(ebook));
         when(ebookLoanRepository.findFirstByMemberIdAndBookIdAndBookEbookIdAndStatusAndExpiredAtAfterOrderByExpiredAtDesc(
@@ -121,8 +122,8 @@ class EbookReaderSessionServiceImplTest {
 
     @Test
     void getSignedContentShouldUseRedisSessionCacheWithoutQueryingSessionDb() {
-        Instant sessionExpiresAt = Instant.now().plusSeconds(900);
-        Instant loanExpiresAt = Instant.now().plusSeconds(3600);
+        Instant sessionExpiresAt = com.vn.testsupport.TestTime.NOW.plusSeconds(900);
+        Instant loanExpiresAt = com.vn.testsupport.TestTime.NOW.plusSeconds(3600);
         when(tokenService.hashToken("raw-token")).thenReturn("hashed-token");
         when(valueOperations.get("reading_session:hashed-token"))
                 .thenReturn("""
@@ -132,7 +133,8 @@ class EbookReaderSessionServiceImplTest {
         when(ebookLoanRepository.findById(3001L)).thenReturn(Optional.of(loan(loanExpiresAt)));
         when(bookEbookRepository.findByIdAndBookId(1001L, 501L)).thenReturn(Optional.of(ebook()));
         when(mediaStorageService.generateSignedUrl(any()))
-                .thenReturn(new MediaSignedUrlResult("https://res.cloudinary.com/demo/raw/authenticated/signed.pdf", Instant.now().plusSeconds(300)));
+                .thenReturn(new MediaSignedUrlResult("https://res.cloudinary.com/demo/raw/authenticated/signed.pdf",
+                        com.vn.testsupport.TestTime.NOW.plusSeconds(300)));
 
         EbookSignedContentResponse response = service.getSignedContent(10L, 501L, "raw-token");
 
@@ -142,8 +144,8 @@ class EbookReaderSessionServiceImplTest {
 
     @Test
     void getSignedContentShouldPresignSeaweedObject() {
-        Instant sessionExpiresAt = Instant.now().plusSeconds(900);
-        Instant loanExpiresAt = Instant.now().plusSeconds(3600);
+        Instant sessionExpiresAt = com.vn.testsupport.TestTime.NOW.plusSeconds(900);
+        Instant loanExpiresAt = com.vn.testsupport.TestTime.NOW.plusSeconds(3600);
         BookEbook ebook = ebook();
         ebook.setProvider(MediaProvider.SEAWEEDFS);
         ebook.setPublicId(null);
@@ -170,7 +172,8 @@ class EbookReaderSessionServiceImplTest {
 
     @Test
     void getSignedContentShouldRejectClosedSessionFromDbFallback() {
-        EbookReadingSession closedSession = readingSession(EbookReadingSessionStatus.CLOSED, Instant.now().plusSeconds(900));
+        EbookReadingSession closedSession = readingSession(
+                EbookReadingSessionStatus.CLOSED, com.vn.testsupport.TestTime.NOW.plusSeconds(900));
         when(tokenService.hashToken("raw-token")).thenReturn("hashed-token");
         when(valueOperations.get("reading_session:hashed-token")).thenReturn(null);
         when(readingSessionRepository.findBySessionTokenHash("hashed-token")).thenReturn(Optional.of(closedSession));
@@ -204,7 +207,7 @@ class EbookReaderSessionServiceImplTest {
         loan.setBookId(501L);
         loan.setBookEbookId(1001L);
         loan.setStatus(EbookLoanStatus.ACTIVE);
-        loan.setBorrowedAt(Instant.now().minusSeconds(60));
+        loan.setBorrowedAt(com.vn.testsupport.TestTime.NOW.minusSeconds(60));
         loan.setExpiredAt(expiredAt);
         return loan;
     }

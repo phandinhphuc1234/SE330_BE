@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Set;
@@ -40,13 +40,13 @@ public class PaymentServiceImpl implements PaymentService {
     private static final String VND = "VND";
     private static final Set<String> VNPAY_BANK_CODES = Set.of("VNPAYQR", "VNBANK", "INTCARD");
     private static final Set<String> VNPAY_LOCALES = Set.of("vn", "en");
-    private static final DateTimeFormatter PAYMENT_CODE_DATE = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
-            .withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
+    private static final DateTimeFormatter PAYMENT_CODE_DATE = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final PaymentIdempotencyService paymentIdempotencyService;
     private final PaymentBusinessApplierFactory businessApplierFactory;
     private final PaymentProviderClientFactory providerClientFactory;
     private final PaymentTransactionRepository paymentTransactionRepository;
+    private final Clock clock;
 
     // Entry point có idempotency riêng cho payment theo spec.
     @Override
@@ -96,7 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
         validateDuplicatePayment(memberId, target.purpose(), target.targetType(), target.targetId());
         validateProviderCurrency(request.provider(), target.currency());
 
-        Instant expiredAt = Instant.now().plus(PAYMENT_EXPIRATION);
+        Instant expiredAt = clock.instant().plus(PAYMENT_EXPIRATION);
         String paymentCode = generatePaymentCode();
 
         PaymentTransaction transaction = new PaymentTransaction();
@@ -229,7 +229,7 @@ public class PaymentServiceImpl implements PaymentService {
     private String generatePaymentCode() {
         for (int attempt = 0; attempt < 5; attempt++) {
             String paymentCode = "PAY"
-                    + PAYMENT_CODE_DATE.format(Instant.now())
+                    + PAYMENT_CODE_DATE.withZone(clock.getZone()).format(clock.instant())
                     + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase(Locale.ROOT);
             if (!paymentTransactionRepository.existsByPaymentCode(paymentCode)) {
                 return paymentCode;

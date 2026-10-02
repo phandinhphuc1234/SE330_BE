@@ -59,7 +59,8 @@ class PaymentCallbackServiceImplTest {
                 paymentEventRepository,
                 paymentTransactionRepository,
                 providerClientFactory,
-                businessApplierFactory
+                businessApplierFactory,
+                com.vn.testsupport.TestTime.CLOCK
         );
 
         when(paymentEventRepository.save(any(PaymentEvent.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -264,7 +265,7 @@ class PaymentCallbackServiceImplTest {
         payment.setAmount(25_000L);
         payment.setCurrency("VND");
         payment.setStatus(PaymentStatus.PENDING);
-        payment.setExpiredAt(Instant.now().plusSeconds(900));
+        payment.setExpiredAt(com.vn.testsupport.TestTime.NOW.plusSeconds(900));
         payment.setProviderMetadata(new LinkedHashMap<>());
         return payment;
     }

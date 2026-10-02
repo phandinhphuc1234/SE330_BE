@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -40,6 +41,7 @@ public class CheckoutUseCase {
     private final BookCopyRepository bookCopyRepository;
     private final BookRepository bookRepository;
     private final CirculationMapper circulationMapper;
+    private final Clock clock;
 
     // Chức năng: kiểm tra trước một lượt mượn sách và trả về các lý do bị chặn nếu chưa đủ điều kiện.
     public CheckoutPreviewResponse previewCheckout(CheckoutRequest request) {
@@ -50,7 +52,7 @@ public class CheckoutUseCase {
         int borrowDays = circulationSettingService.getBorrowDaysDefault();
         int maxRenewals = circulationSettingService.getMaxRenewalsDefault();
         Instant dueDate = reasons.isEmpty()
-                ? Instant.now().plus(borrowDays, ChronoUnit.DAYS)
+                ? clock.instant().plus(borrowDays, ChronoUnit.DAYS)
                 : null;
         Book book = copy == null ? null : copy.getBook();
 
@@ -80,7 +82,7 @@ public class CheckoutUseCase {
 
         int borrowDays = circulationSettingService.getBorrowDaysDefault();
         int maxRenewals = circulationSettingService.getMaxRenewalsDefault();
-        Instant now = Instant.now();
+        Instant now = clock.instant();
 
         BorrowRecord borrow = BorrowRecord.builder()
                 .member(member)

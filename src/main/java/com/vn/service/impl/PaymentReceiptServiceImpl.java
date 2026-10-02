@@ -17,9 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
@@ -29,10 +29,10 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 100;
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final String DEFAULT_CURRENCY = "VND";
 
     private final PaymentTransactionRepository paymentTransactionRepository;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -86,10 +86,10 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     @Override
     @Transactional(readOnly = true)
     public PaymentDashboardSummaryResponse getDashboardSummary() {
-        Instant now = Instant.now();
-        LocalDate today = LocalDate.now(BUSINESS_ZONE);
-        Instant todayStart = today.atStartOfDay(BUSINESS_ZONE).toInstant();
-        Instant tomorrowStart = today.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant();
+        Instant now = clock.instant();
+        LocalDate today = LocalDate.now(clock);
+        Instant todayStart = today.atStartOfDay(clock.getZone()).toInstant();
+        Instant tomorrowStart = today.plusDays(1).atStartOfDay(clock.getZone()).toInstant();
 
         return new PaymentDashboardSummaryResponse(
                 paymentTransactionRepository.count(),
@@ -184,9 +184,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
             if (!value.contains("T")) {
                 LocalDate date = LocalDate.parse(value);
                 if (endOfDayForDateOnly) {
-                    return date.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant().minusNanos(1);
+                    return date.plusDays(1).atStartOfDay(clock.getZone()).toInstant().minusNanos(1);
                 }
-                return date.atStartOfDay(BUSINESS_ZONE).toInstant();
+                return date.atStartOfDay(clock.getZone()).toInstant();
             }
             return Instant.parse(value);
         } catch (DateTimeParseException ex) {

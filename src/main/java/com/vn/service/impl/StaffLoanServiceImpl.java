@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
@@ -29,9 +29,8 @@ public class StaffLoanServiceImpl implements StaffLoanService {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 100;
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
     private final EbookLoanRepository ebookLoanRepository;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -43,7 +42,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
                                                String dueTo,
                                                int page,
                                                int size) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Instant parsedDueFrom = parseBoundaryInstant(dueFrom, false);
         Instant parsedDueTo = parseBoundaryInstant(dueTo, true);
         validateDateRange(parsedDueFrom, parsedDueTo);
@@ -69,7 +68,7 @@ public class StaffLoanServiceImpl implements StaffLoanService {
                                                      Boolean overdue,
                                                      int page,
                                                      int size) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Boolean effectiveOpenOnly = openOnly == null ? Boolean.TRUE : openOnly;
 
         return searchLoansInternal(
@@ -170,9 +169,9 @@ public class StaffLoanServiceImpl implements StaffLoanService {
             if (!value.contains("T")) {
                 LocalDate date = LocalDate.parse(value);
                 if (endOfDayForDateOnly) {
-                    return date.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant().minusNanos(1);
+                    return date.plusDays(1).atStartOfDay(clock.getZone()).toInstant().minusNanos(1);
                 }
-                return date.atStartOfDay(BUSINESS_ZONE).toInstant();
+                return date.atStartOfDay(clock.getZone()).toInstant();
             }
             return Instant.parse(value);
         } catch (DateTimeParseException e) {

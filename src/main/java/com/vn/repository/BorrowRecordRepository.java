@@ -267,7 +267,7 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
                                         Pageable pageable);
 
     @Query(value = """
-        select cast(borrow.borrowed_at at time zone 'Asia/Ho_Chi_Minh' as date) as day,
+        select cast(borrow.borrowed_at at time zone :businessZone as date) as day,
                count(borrow.id)
         from borrow_records borrow
         join book_copies copy on borrow.book_copy_id = copy.id
@@ -285,17 +285,18 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
         cast(:language as text) is null
         or lower(book.language) = lower(:language)
         )
-        group by cast(borrow.borrowed_at at time zone 'Asia/Ho_Chi_Minh' as date)
+        group by 1
         order by day
         """, nativeQuery = true)
 List<Object[]> countBorrowedPerDay(@Param("from") Instant from,
                                    @Param("to") Instant to,
                                    @Param("filterType") String filterType,
                                    @Param("filterValue") String filterValue,
-                                   @Param("language") String language);
+                                   @Param("language") String language,
+                                   @Param("businessZone") String businessZone);
 
     @Query(value = """
-        select cast(borrow.returned_at at time zone 'Asia/Ho_Chi_Minh' as date) as day,
+        select cast(borrow.returned_at at time zone :businessZone as date) as day,
                count(borrow.id)
         from borrow_records borrow
         join book_copies copy on borrow.book_copy_id = copy.id
@@ -314,14 +315,15 @@ List<Object[]> countBorrowedPerDay(@Param("from") Instant from,
         cast(:language as text) is null
         or lower(book.language) = lower(:language)
         )
-        group by cast(borrow.returned_at at time zone 'Asia/Ho_Chi_Minh' as date)
+        group by 1
         order by day
         """, nativeQuery = true)
 List<Object[]> countReturnedPerDay(@Param("from") Instant from,
                                    @Param("to") Instant to,
                                    @Param("filterType") String filterType,
                                    @Param("filterValue") String filterValue,
-                                   @Param("language") String language);
+                                   @Param("language") String language,
+                                   @Param("businessZone") String businessZone);
 }
 
 

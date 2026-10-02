@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,6 +21,7 @@ import java.util.Map;
 public class FinePaymentApplier implements PaymentBusinessApplier {
 
     private final BorrowRecordRepository borrowRecordRepository;
+    private final Clock clock;
 
     @Override
     public boolean supports(PaymentPurpose purpose, PaymentTargetType targetType) {
@@ -73,7 +74,7 @@ public class FinePaymentApplier implements PaymentBusinessApplier {
             return;
         }
 
-        borrow.setFinePaidAt(Instant.now());
+        borrow.setFinePaidAt(clock.instant());
         borrowRecordRepository.save(borrow);
 
         markFulfillment(payment, "FULFILLED", "Overdue fine paid successfully");
@@ -96,7 +97,7 @@ public class FinePaymentApplier implements PaymentBusinessApplier {
                 : new LinkedHashMap<>(payment.getProviderMetadata());
         metadata.put("fineFulfillmentStatus", status);
         metadata.put("fineFulfillmentMessage", message);
-        metadata.put("fineFulfillmentAt", Instant.now().toString());
+        metadata.put("fineFulfillmentAt", clock.instant().toString());
         payment.setProviderMetadata(metadata);
     }
 }

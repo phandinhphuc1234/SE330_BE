@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisTokenService {
 
     private final StringRedisTemplate redisTemplate;
+    private final Clock clock;
 
     // ── Key prefix ──
     private static final String REFRESH_PREFIX = "refresh:";
@@ -70,7 +72,7 @@ public class RedisTokenService {
         if (expiryMs > 0) {
             redisTemplate.opsForValue().set(
                     SESSION_REVOKED_AFTER_PREFIX + userId,
-                    Long.toString(Instant.now().toEpochMilli()),
+                    Long.toString(clock.millis()),
                     expiryMs,
                     TimeUnit.MILLISECONDS
             );

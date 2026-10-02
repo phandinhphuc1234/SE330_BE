@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
@@ -31,6 +32,7 @@ public class EbookPaymentApplier implements PaymentBusinessApplier {
     private final BookEbookRepository bookEbookRepository;
     private final EbookLoanRepository ebookLoanRepository;
     private final MediaBorrowLimitService mediaBorrowLimitService;
+    private final Clock clock;
 
     @Override
     public boolean supports(PaymentPurpose purpose, PaymentTargetType targetType) {
@@ -82,7 +84,7 @@ public class EbookPaymentApplier implements PaymentBusinessApplier {
             return;
         }
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         if (ebookLoanRepository.existsByMemberIdAndBookEbookIdAndStatusAndExpiredAtAfter(
                 payment.getMemberId(), ebook.getId(), EbookLoanStatus.ACTIVE, now)) {
             markFulfillment(payment, "ALREADY_HAS_ACTIVE_LOAN", "Member already has an active ebook loan");
@@ -120,7 +122,7 @@ public class EbookPaymentApplier implements PaymentBusinessApplier {
     }
 
     private void validateLoanAvailabilityForPaymentCreate(Long memberId, BookEbook ebook) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         if (ebookLoanRepository.existsByMemberIdAndBookEbookIdAndStatusAndExpiredAtAfter(
                 memberId, ebook.getId(), EbookLoanStatus.ACTIVE, now)) {
             throw new AppException(ErrorCode.EBOOK_ALREADY_BORROWED);
@@ -141,7 +143,7 @@ public class EbookPaymentApplier implements PaymentBusinessApplier {
                 : new LinkedHashMap<>(payment.getProviderMetadata());
         metadata.put("ebookFulfillmentStatus", status);
         metadata.put("ebookFulfillmentMessage", message);
-        metadata.put("ebookFulfillmentAt", Instant.now().toString());
+        metadata.put("ebookFulfillmentAt", clock.instant().toString());
         payment.setProviderMetadata(metadata);
     }
 

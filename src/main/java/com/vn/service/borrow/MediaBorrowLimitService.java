@@ -11,6 +11,7 @@ import com.vn.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 
 @Service
@@ -22,10 +23,11 @@ public class MediaBorrowLimitService {
     private final BorrowRecordRepository borrowRecordRepository;
     private final EbookLoanRepository ebookLoanRepository;
     private final MemberRepository memberRepository;
+    private final Clock clock;
 
     // Dùng cho preview/validation nhẹ: đếm cả borrow_records và ebook_loans còn hiệu lực.
     public boolean hasReachedLimit(Member member) {
-        return member != null && activeMediaLoanCount(member.getId(), Instant.now()) >= maxBorrowLimit(member);
+        return member != null && activeMediaLoanCount(member.getId(), clock.instant()) >= maxBorrowLimit(member);
     }
 
     public boolean hasUnpaidFines(Long memberId) {

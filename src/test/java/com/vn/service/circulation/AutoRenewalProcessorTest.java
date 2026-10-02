@@ -70,7 +70,8 @@ class AutoRenewalProcessorTest {
                 circulationSettingService,
                 renewalUseCase,
                 attemptRecorder,
-                notificationQueueService
+                notificationQueueService,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 

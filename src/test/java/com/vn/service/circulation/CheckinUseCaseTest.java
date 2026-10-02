@@ -74,7 +74,8 @@ class CheckinUseCaseTest {
                 bookCopyRepository,
                 bookRepository,
                 new CirculationMapper(new FineStatusResolver()),
-                holdQueueService
+                holdQueueService,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 

@@ -1,5 +1,6 @@
 package com.vn;
 
+import com.vn.repository.BorrowRecordRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
@@ -10,17 +11,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers(disabledWithoutDocker = true)
 @ActiveProfiles("test")
 @AutoConfigureTestRestTemplate
+@TestPropertySource(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class QuanLyThuVienApplicationTests {
 
@@ -34,6 +39,9 @@ class QuanLyThuVienApplicationTests {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private BorrowRecordRepository borrowRecordRepository;
+
     @DynamicPropertySource
     static void configureContainers(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
@@ -45,6 +53,17 @@ class QuanLyThuVienApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void statisticsQueries_shouldAcceptConfiguredBusinessTimezone() {
+        Instant from = Instant.parse("2026-05-31T17:00:00Z");
+        Instant to = Instant.parse("2026-06-03T17:00:00Z");
+
+        assertThat(borrowRecordRepository.countBorrowedPerDay(
+                from, to, null, null, null, "Asia/Ho_Chi_Minh")).isEmpty();
+        assertThat(borrowRecordRepository.countReturnedPerDay(
+                from, to, null, null, null, "Asia/Ho_Chi_Minh")).isEmpty();
     }
 
     @Test

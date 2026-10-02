@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class HoldQueueService {
     private final BookCopyRepository bookCopyRepository;
     private final BookRepository bookRepository;
     private final CirculationSettingService circulationSettingService;
+    private final Clock clock;
 
     // Chức năng: khi một copy được trả về, ưu tiên gán copy đó cho người đầu hàng đợi hold.
     public Optional<Reservation> assignReturnedCopyToNextHold(BookCopy copy) {
@@ -50,7 +52,7 @@ public class HoldQueueService {
         }
 
         Reservation hold = nextHold.get();
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         int pickupDays = circulationSettingService.getHoldPickupDaysDefault();
 
         // Đây là điểm handoff chính: copy không về AVAILABLE mà được giữ riêng cho hold đầu queue.

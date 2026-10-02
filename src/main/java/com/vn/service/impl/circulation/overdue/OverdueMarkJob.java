@@ -20,7 +20,7 @@ public class OverdueMarkJob {
     private final JobExecutionLogService jobExecutionLogService;
 
     // Chức năng: scheduled job hằng ngày để hệ thống tự nhận diện các borrow đã quá hạn.
-    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Bangkok")
+    @Scheduled(cron = "0 0 1 * * *", zone = "${app.time.zone}")
     public void runDailyMarkOverdue() {
         JobExecutionLog jobLog = jobExecutionLogService.start(JOB_NAME);
         try {

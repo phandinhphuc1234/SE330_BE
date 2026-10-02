@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.Clock;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +18,13 @@ public class OverdueMarkService {
 
     private final BorrowRecordRepository borrowRecordRepository;
     private final OverdueMarkProcessor overdueMarkProcessor;
+    private final Clock clock;
 
     // Chức năng: tìm các borrow đã quá hạn và chuyển từng record sang trạng thái OVERDUE.
     public OverdueJobSummary markOverdueBorrows() {
         Page<BorrowRecord> candidates = borrowRecordRepository.findOverdueCandidates(
                 BorrowStatus.BORROWED,
-                Instant.now(),
+                clock.instant(),
                 PageRequest.of(0, MAX_ITEMS_PER_RUN)
         );
 

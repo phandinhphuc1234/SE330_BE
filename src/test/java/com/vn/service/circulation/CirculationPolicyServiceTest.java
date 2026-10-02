@@ -21,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +50,8 @@ class CirculationPolicyServiceTest {
                 borrowRecordRepository,
                 reservationRepository,
                 circulationSettingService,
-                mediaBorrowLimitService
+                mediaBorrowLimitService,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 
@@ -99,7 +99,7 @@ class CirculationPolicyServiceTest {
     @Test
     void validateAutoRenewal_shouldBlock_whenBookIsDeleted() {
         BorrowRecord borrow = borrow();
-        borrow.getBookCopy().getBook().setDeletedAt(Instant.now());
+        borrow.getBookCopy().getBook().setDeletedAt(com.vn.testsupport.TestTime.NOW);
 
         AutoRenewalResultCode result = policyService.validateAutoRenewal(borrow);
 
@@ -158,7 +158,7 @@ class CirculationPolicyServiceTest {
         Book book = TestDataFactory.book(10L, 0);
         BookCopy copy = TestDataFactory.bookCopy(50L, book, BookCopyStatus.BORROWED);
         BorrowRecord borrow = TestDataFactory.borrowRecord(100L, member, copy, BorrowStatus.BORROWED);
-        borrow.setDueDate(Instant.now().plusSeconds(86_400));
+        borrow.setDueDate(com.vn.testsupport.TestTime.NOW.plusSeconds(86_400));
         borrow.setRenewCount(0);
         borrow.setMaxRenewalsAtCheckout(2);
         return borrow;

@@ -20,7 +20,7 @@ public class HoldExpiryJob {
     private final JobExecutionLogService jobExecutionLogService;
 
     // Chức năng: scheduled job hằng ngày expire các hold quá hạn lấy sách.
-    @Scheduled(cron = "0 0 2 * * *", zone = "Asia/Bangkok")
+    @Scheduled(cron = "0 0 2 * * *", zone = "${app.time.zone}")
     public void runDailyExpireReadyHolds() {
         JobExecutionLog jobLog = jobExecutionLogService.start(JOB_NAME);
         try {

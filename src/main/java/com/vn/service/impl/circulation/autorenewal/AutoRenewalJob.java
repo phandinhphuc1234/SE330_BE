@@ -22,7 +22,7 @@ public class AutoRenewalJob {
     private final JobExecutionLogService jobExecutionLogService;
 
     // Chức năng: scheduled job tự động gia hạn các borrow sắp đến hạn nếu policy cho phép.
-    @Scheduled(cron = "0 0 7 * * *", zone = "Asia/Bangkok")
+    @Scheduled(cron = "0 0 7 * * *", zone = "${app.time.zone}")
     public void runDailyAutoRenewal() {
         if (!circulationSettingService.isAutoRenewEnabled()) {
             return;

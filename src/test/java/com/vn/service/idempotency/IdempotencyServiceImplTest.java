@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.HexFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,7 +63,8 @@ class IdempotencyServiceImplTest {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         lenient().when(transactionManager.getTransaction(any(TransactionDefinition.class)))
                 .thenAnswer(invocation -> new SimpleTransactionStatus());
-        idempotencyService = new IdempotencyServiceImpl(redisTemplate, transactionManager);
+        idempotencyService = new IdempotencyServiceImpl(
+                redisTemplate, transactionManager, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test
@@ -224,8 +224,8 @@ class IdempotencyServiceImplTest {
                         "\"OK\"",
                         null,
                         null,
-                        Instant.now(),
-                        Instant.now()
+                        com.vn.testsupport.TestTime.NOW,
+                        com.vn.testsupport.TestTime.NOW
                 )));
 
         assertThatThrownBy(() -> idempotencyService.execute(
@@ -273,8 +273,8 @@ class IdempotencyServiceImplTest {
                 responseBody,
                 errorCode,
                 errorMessage,
-                Instant.now(),
-                status == IdempotencyStatus.PROCESSING ? null : Instant.now()
+                com.vn.testsupport.TestTime.NOW,
+                status == IdempotencyStatus.PROCESSING ? null : com.vn.testsupport.TestTime.NOW
         );
     }
 

@@ -5,16 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import java.time.Clock;
-
 @Configuration
 @EnableConfigurationProperties({NotificationDeliveryProperties.class, ResendWebhookProperties.class})
 public class NotificationDeliveryConfig {
-
-    @Bean
-    public Clock notificationDeliveryClock() {
-        return Clock.systemUTC();
-    }
 
     @Bean("notificationDeliveryScheduler")
     public ThreadPoolTaskScheduler notificationDeliveryScheduler() {

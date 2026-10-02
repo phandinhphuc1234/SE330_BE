@@ -9,7 +9,8 @@ class JwtServiceTest {
     private final JwtService jwtService = new JwtService(
             "test-secret-must-have-at-least-thirty-two-characters",
             900_000L,
-            604_800_000L
+            604_800_000L,
+            com.vn.testsupport.TestTime.CLOCK
     );
 
     @Test
@@ -18,6 +19,7 @@ class JwtServiceTest {
         String refreshToken = jwtService.generateRefreshToken("member@example.com", 1L);
 
         assertThat(jwtService.isValid(accessToken)).isTrue();
+        assertThat(jwtService.extractIssuedAt(accessToken)).isEqualTo(com.vn.testsupport.TestTime.NOW);
         assertThat(jwtService.isAccessToken(accessToken)).isTrue();
         assertThat(jwtService.isRefreshToken(accessToken)).isFalse();
 

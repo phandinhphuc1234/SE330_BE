@@ -40,7 +40,8 @@ class AutoRenewalServiceTest {
     @BeforeEach
     void setUp() {
         service = new AutoRenewalService(
-                borrowRecordRepository, circulationSettingService, autoRenewalProcessor);
+                borrowRecordRepository, circulationSettingService, autoRenewalProcessor,
+                com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test
