@@ -41,11 +41,11 @@ public final class TestDataFactory {
                 .id(id)
                 .member(member)
                 .token(token)
-                .expiresAt(Instant.now().plusSeconds(3600))
+                .expiresAt(TestTime.NOW.plusSeconds(3600))
                 .isUsed(false)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .lastSentAt(Instant.now())
+                .createdAt(TestTime.NOW)
+                .updatedAt(TestTime.NOW)
+                .lastSentAt(TestTime.NOW)
                 .build();
     }
 
@@ -54,11 +54,11 @@ public final class TestDataFactory {
                 .id(id)
                 .member(member)
                 .token(token)
-                .expiresAt(Instant.now().minusSeconds(60))
+                .expiresAt(TestTime.NOW.minusSeconds(60))
                 .isUsed(false)
-                .createdAt(Instant.now().minusSeconds(3600))
-                .updatedAt(Instant.now().minusSeconds(3600))
-                .lastSentAt(Instant.now().minusSeconds(3600))
+                .createdAt(TestTime.NOW.minusSeconds(3600))
+                .updatedAt(TestTime.NOW.minusSeconds(3600))
+                .lastSentAt(TestTime.NOW.minusSeconds(3600))
                 .build();
     }
 
@@ -123,8 +123,8 @@ public final class TestDataFactory {
                 .role(MemberRole.MEMBER)
                 .status(status)
                 .maxBorrowLimit(5)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
+                .createdAt(TestTime.NOW)
+                .updatedAt(TestTime.NOW)
                 .build();
     }
 }

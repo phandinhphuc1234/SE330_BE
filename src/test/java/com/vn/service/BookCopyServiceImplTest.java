@@ -42,7 +42,8 @@ class BookCopyServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        bookCopyService = new BookCopyServiceImpl(bookRepository, bookCopyRepository, bookCopyMapper);
+        bookCopyService = new BookCopyServiceImpl(
+                bookRepository, bookCopyRepository, bookCopyMapper, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test

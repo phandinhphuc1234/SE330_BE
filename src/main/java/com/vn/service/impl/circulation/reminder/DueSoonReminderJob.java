@@ -22,7 +22,7 @@ public class DueSoonReminderJob {
     private final JobExecutionLogService jobExecutionLogService;
 
     // Chức năng: scheduled job hằng ngày gửi reminder cho các lượt mượn sắp đến hạn trả.
-    @Scheduled(cron = "0 30 7 * * *", zone = "Asia/Bangkok")
+    @Scheduled(cron = "0 30 7 * * *", zone = "${app.time.zone}")
     public void runDailyDueSoonReminder() {
         if (!circulationSettingService.isDueSoonReminderEnabled()) {
             return;

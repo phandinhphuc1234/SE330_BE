@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +34,7 @@ public class BookCopyServiceImpl implements BookCopyService {
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
     private final BookCopyMapper bookCopyMapper;
+    private final Clock clock;
 
     // Lấy danh sách bản copy của một sách, sắp xếp theo ID tăng dần
     @Override
@@ -148,7 +149,7 @@ public class BookCopyServiceImpl implements BookCopyService {
         }
 
         Book book = copy.getBook();
-        copy.setDeletedAt(Instant.now());
+        copy.setDeletedAt(clock.instant());
         copy.setDeletedBy(deletedBy);
         bookCopyRepository.saveAndFlush(copy);
 

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -34,6 +35,7 @@ public class EbookLoanServiceImpl implements EbookLoanService {
     private final BookEbookRepository bookEbookRepository;
     private final EbookMapper ebookMapper;
     private final MediaBorrowLimitService mediaBorrowLimitService;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -54,7 +56,7 @@ public class EbookLoanServiceImpl implements EbookLoanService {
     @Override
     @Transactional
     public EbookLoanResponse borrowFreeEbook(Long memberId, Long bookId) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
 
         // 1. Resolve ebook ACTIVE mới nhất của book.
         BookEbook ebook = bookEbookRepository.findFirstByBookIdAndStatusOrderByIdDesc(bookId, BookEbookStatus.ACTIVE)

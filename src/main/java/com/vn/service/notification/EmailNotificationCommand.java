@@ -38,7 +38,6 @@ public record EmailNotificationCommand(
         payload = payload == null
                 ? Map.of()
                 : Collections.unmodifiableMap(new LinkedHashMap<>(payload));
-        scheduledAt = scheduledAt == null ? Instant.now() : scheduledAt;
         maxAttempts = maxAttempts == null ? 5 : requirePositive(maxAttempts, "maxAttempts");
     }
 

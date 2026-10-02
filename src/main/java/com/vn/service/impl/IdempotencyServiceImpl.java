@@ -18,8 +18,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.function.Supplier;
@@ -34,13 +34,16 @@ public class IdempotencyServiceImpl implements IdempotencyService {
 
     private final StringRedisTemplate redisTemplate;
     private final TransactionTemplate businessTransactionTemplate;
+    private final Clock clock;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .findAndRegisterModules()
             .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
 
     public IdempotencyServiceImpl(StringRedisTemplate redisTemplate,
-                                  PlatformTransactionManager transactionManager) {
+                                  PlatformTransactionManager transactionManager,
+                                  Clock clock) {
         this.redisTemplate = redisTemplate;
+        this.clock = clock;
         this.businessTransactionTemplate = new TransactionTemplate(transactionManager);
         this.businessTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -104,7 +107,7 @@ public class IdempotencyServiceImpl implements IdempotencyService {
                 null,
                 null,
                 null,
-                Instant.now(),
+                clock.instant(),
                 null
         );
     }
@@ -164,7 +167,7 @@ public class IdempotencyServiceImpl implements IdempotencyService {
                 null,
                 null,
                 processingPayload.createdAt(),
-                Instant.now()
+                clock.instant()
         );
         redisTemplate.opsForValue().set(redisKey, writePayload(completedPayload), IDEMPOTENCY_TTL);
     }
@@ -183,7 +186,7 @@ public class IdempotencyServiceImpl implements IdempotencyService {
                 resolveErrorCode(exception),
                 exception.getMessage(),
                 processingPayload.createdAt(),
-                Instant.now()
+                clock.instant()
         );
         redisTemplate.opsForValue().set(redisKey, writePayload(failedPayload), IDEMPOTENCY_TTL);
     }

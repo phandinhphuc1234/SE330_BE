@@ -40,7 +40,8 @@ class OverdueMarkServiceTest {
 
     @BeforeEach
     void setUp() {
-        overdueMarkService = new OverdueMarkService(borrowRecordRepository, overdueMarkProcessor);
+        overdueMarkService = new OverdueMarkService(
+                borrowRecordRepository, overdueMarkProcessor, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test

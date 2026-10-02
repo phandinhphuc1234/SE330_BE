@@ -10,19 +10,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AutoRenewalService {
 
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Bangkok");
-
     private final BorrowRecordRepository borrowRecordRepository;
     private final CirculationSettingService circulationSettingService;
     private final AutoRenewalProcessor autoRenewalProcessor;
+    private final Clock clock;
 
     // Chức năng: quét các lượt mượn sắp đến hạn và xử lý auto-renew từng record.
     public AutoRenewalJobSummary runDailyAutoRenewal(Long jobLogId) {
@@ -55,11 +54,11 @@ public class AutoRenewalService {
 
     // Chức năng: tính cửa sổ ngày nghiệp vụ để tránh quét lặp record khi job chạy nhiều lần trong ngày.
     AutoRenewalWindow buildWindow() {
-        LocalDate targetDate = LocalDate.now(BUSINESS_ZONE)
+        LocalDate targetDate = LocalDate.now(clock)
                 .plusDays(circulationSettingService.getAutoRenewDaysBeforeDue());
         return new AutoRenewalWindow(
-                targetDate.atStartOfDay(BUSINESS_ZONE).toInstant(),
-                targetDate.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant()
+                targetDate.atStartOfDay(clock.getZone()).toInstant(),
+                targetDate.plusDays(1).atStartOfDay(clock.getZone()).toInstant()
         );
     }
 }

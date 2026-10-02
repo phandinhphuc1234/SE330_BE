@@ -34,7 +34,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -66,6 +66,7 @@ public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final BookMapper bookMapper;
+    private final Clock clock;
 
     // Tìm kiếm sách theo nhiều tiêu chí, có phân trang và sắp xếp
     @Override
@@ -182,7 +183,7 @@ public class BookServiceImpl implements BookService {
             throw new AppException(ErrorCode.BOOK_HAS_ACTIVE_COPIES);
         }
 
-        book.setDeletedAt(Instant.now());
+        book.setDeletedAt(clock.instant());
         book.setDeletedBy(deletedBy);
         bookRepository.save(book);
         bookCopyRepository.softDeleteByBookIdExcludingStatuses(bookId, deletedBy, ACTIVE_COPY_STATUSES);

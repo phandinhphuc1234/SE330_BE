@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
@@ -58,12 +59,13 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
     private final MediaStorageService mediaStorageService;
     private final EbookObjectStorageService ebookObjectStorageService;
     private final StringRedisTemplate redisTemplate;
+    private final Clock clock;
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Override
     @Transactional
     public EbookReadingSessionResponse createSession(Long memberId, Long bookId, String ipAddress, String userAgent) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         // Chỉ ebook ACTIVE mới được mở reader; ebook bị inactive/deleted thì không tạo session mới.
         BookEbook ebook = findActiveEbookForBook(bookId);
         // Loan là quyền đọc thật. Không có loan ACTIVE thì không được tạo vé đọc ngắn hạn.
@@ -106,7 +108,7 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
     @Override
     @Transactional(readOnly = true)
     public EbookSignedContentResponse getSignedContent(Long memberId, Long bookId, String rawSessionToken) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         // API chỉ nhận raw token qua header X-Reading-Session; service chuyển sang hash để lookup.
         String tokenHash = tokenService.hashToken(rawSessionToken);
         // Resolve session từ Redis trước, miss thì fallback DB; cả hai đường đều check owner/status/loan.
@@ -137,7 +139,7 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
     @Override
     @Transactional
     public EbookReadingSessionRefreshResponse refreshSession(Long memberId, Long sessionId, String rawSessionToken) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         String tokenHash = tokenService.hashToken(rawSessionToken);
         // Refresh/close dùng query có lock để không đua với request khác hoặc worker expire/revoke.
         EbookReadingSession session = readingSessionRepository.findByIdAndSessionTokenHash(sessionId, tokenHash)
@@ -168,7 +170,7 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
     @Override
     @Transactional
     public EbookReadingSessionCloseResponse closeSession(Long memberId, Long sessionId, String rawSessionToken) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         String tokenHash = tokenService.hashToken(rawSessionToken);
         // Token hash + sessionId giúp đóng đúng session, không đóng nhầm session khác của user.
         EbookReadingSession session = readingSessionRepository.findByIdAndSessionTokenHash(sessionId, tokenHash)

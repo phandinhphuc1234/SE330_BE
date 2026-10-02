@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ public class AutoRenewalProcessor {
     private final RenewalUseCase renewalUseCase;
     private final AutoRenewalAttemptRecorder attemptRecorder;
     private final NotificationQueueService notificationQueueService;
+    private final Clock clock;
 
     // Chức năng: xử lý một borrow trong transaction riêng để lỗi một record không làm fail cả job.
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -63,7 +65,7 @@ public class AutoRenewalProcessor {
     }
 
     private AutoRenewalResult processBorrow(BorrowRecord borrow, Long jobLogId) {
-        Instant attemptedAt = Instant.now();
+        Instant attemptedAt = clock.instant();
         AutoRenewalResultCode validationResult = circulationPolicyService.validateAutoRenewal(borrow);
         if (validationResult != AutoRenewalResultCode.SUCCESS) {
             AutoRenewalAttempt attempt = attemptRecorder.recordFailure(

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
@@ -23,10 +24,11 @@ public class HoldExpiryService {
 
     private final ReservationRepository reservationRepository;
     private final HoldExpiryProcessor holdExpiryProcessor;
+    private final Clock clock;
 
     // Chức năng: tìm các hold quá hạn lấy sách và expire từng record trong transaction riêng.
     public HoldExpiryJobSummary expireReadyHolds() {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Page<Reservation> candidates = reservationRepository.findExpiredReadyHoldCandidates(
                 EXPIRABLE_STATUSES,
                 now,

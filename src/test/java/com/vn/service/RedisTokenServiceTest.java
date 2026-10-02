@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,10 +25,15 @@ class RedisTokenServiceTest {
     void revokeAllSessions_shouldDeleteRefreshTokenAndStoreExpiryBoundedEpoch() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        new RedisTokenService(redisTemplate).revokeAllSessions(1L, 60_000L);
+        new RedisTokenService(redisTemplate, com.vn.testsupport.TestTime.CLOCK)
+                .revokeAllSessions(1L, 60_000L);
 
         verify(redisTemplate).delete("refresh:1");
-        verify(valueOperations).set(eq("session-revoked-after:1"), anyString(), eq(60_000L), eq(TimeUnit.MILLISECONDS));
+        verify(valueOperations).set(
+                eq("session-revoked-after:1"),
+                eq(Long.toString(com.vn.testsupport.TestTime.NOW.toEpochMilli())),
+                eq(60_000L),
+                eq(TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -37,7 +41,7 @@ class RedisTokenServiceTest {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("session-revoked-after:1")).thenReturn("1000");
 
-        boolean revoked = new RedisTokenService(redisTemplate)
+        boolean revoked = new RedisTokenService(redisTemplate, com.vn.testsupport.TestTime.CLOCK)
                 .isSessionRevokedAfter(1L, Instant.ofEpochMilli(999));
 
         assertThat(revoked).isTrue();

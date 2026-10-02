@@ -33,12 +33,13 @@ class MediaBorrowLimitServiceTest {
         borrowRecordRepository = mock(BorrowRecordRepository.class);
         ebookLoanRepository = mock(EbookLoanRepository.class);
         memberRepository = mock(MemberRepository.class);
-        service = new MediaBorrowLimitService(borrowRecordRepository, ebookLoanRepository, memberRepository);
+        service = new MediaBorrowLimitService(
+                borrowRecordRepository, ebookLoanRepository, memberRepository, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test
     void activeMediaLoanCountShouldIncludePhysicalBorrowsAndActiveEbookLoans() {
-        Instant now = Instant.now();
+        Instant now = com.vn.testsupport.TestTime.NOW;
         when(borrowRecordRepository.countByMemberIdAndStatusIn(10L, BorrowStatus.activeStatuses()))
                 .thenReturn(3L);
         when(ebookLoanRepository.countByMemberIdAndStatusAndExpiredAtAfter(10L, EbookLoanStatus.ACTIVE, now))

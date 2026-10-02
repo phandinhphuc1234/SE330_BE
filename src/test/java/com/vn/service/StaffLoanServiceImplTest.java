@@ -29,7 +29,7 @@ class StaffLoanServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        staffLoanService = new StaffLoanServiceImpl(ebookLoanRepository);
+        staffLoanService = new StaffLoanServiceImpl(ebookLoanRepository, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test

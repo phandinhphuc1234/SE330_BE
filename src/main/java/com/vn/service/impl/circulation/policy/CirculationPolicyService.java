@@ -19,7 +19,7 @@ import com.vn.service.borrow.MediaBorrowLimitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +31,7 @@ public class CirculationPolicyService {
     private final ReservationRepository reservationRepository;
     private final CirculationSettingService circulationSettingService;
     private final MediaBorrowLimitService mediaBorrowLimitService;
+    private final Clock clock;
 
     // Chức năng: validate checkout ở dạng danh sách lỗi để dùng cho màn hình preview.
     public List<CirculationBlockResponse> validateCheckout(Member member, BookCopy copy) {
@@ -76,7 +77,7 @@ public class CirculationPolicyService {
         if (!borrow.getStatus().isRenewable()) {
             throw new AppException(ErrorCode.BORROW_NOT_RENEWABLE);
         }
-        if (borrow.getDueDate().isBefore(Instant.now()) && !circulationSettingService.isRenewOverdueAllowed()) {
+        if (borrow.getDueDate().isBefore(clock.instant()) && !circulationSettingService.isRenewOverdueAllowed()) {
             throw new AppException(ErrorCode.BORROW_NOT_RENEWABLE);
         }
         if (borrow.getRenewCount() >= borrow.getMaxRenewalsAtCheckout()) {
@@ -101,7 +102,7 @@ public class CirculationPolicyService {
         if (!borrow.getStatus().isRenewable()) {
             return AutoRenewalResultCode.BORROW_NOT_RENEWABLE_STATUS;
         }
-        if (borrow.getDueDate().isBefore(Instant.now()) && !circulationSettingService.isRenewOverdueAllowed()) {
+        if (borrow.getDueDate().isBefore(clock.instant()) && !circulationSettingService.isRenewOverdueAllowed()) {
             return AutoRenewalResultCode.BORROW_OVERDUE;
         }
         if (borrow.getRenewCount() >= borrow.getMaxRenewalsAtCheckout()) {
@@ -191,7 +192,7 @@ public class CirculationPolicyService {
 
     // Chức năng: xác định thẻ thành viên đã hết hạn hay chưa.
     private boolean isMembershipExpired(Member member) {
-        return member.getMembershipExpiresAt() != null && member.getMembershipExpiresAt().isBefore(Instant.now());
+        return member.getMembershipExpiresAt() != null && member.getMembershipExpiresAt().isBefore(clock.instant());
     }
 
     // Chức năng: thêm lỗi vào danh sách nếu rule có trả lỗi.

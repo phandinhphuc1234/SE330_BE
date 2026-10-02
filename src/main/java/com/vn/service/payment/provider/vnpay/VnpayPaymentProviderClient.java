@@ -20,6 +20,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -42,6 +43,7 @@ public class VnpayPaymentProviderClient implements PaymentProviderClient {
             .withZone(VNPAY_ZONE);
 
     private final VnpayPaymentProperties properties;
+    private final Clock clock;
 
     @Override
     public PaymentProvider supports() {
@@ -57,7 +59,7 @@ public class VnpayPaymentProviderClient implements PaymentProviderClient {
         log.info("VNPAY returnUrl={}", returnUrl);
         log.info("VNPAY ipnUrl={}", ipnUrl);
 
-        String createDate = formatVnpayDate(Instant.now());
+        String createDate = formatVnpayDate(clock.instant());
         String expireDate = formatVnpayDate(request.expiredAt());
         String locale = StringUtils.hasText(request.locale()) ? request.locale() : "vn";
         String orderInfo = normalizeOrderInfo(request.description());

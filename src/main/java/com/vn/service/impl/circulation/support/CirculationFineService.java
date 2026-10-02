@@ -7,29 +7,28 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
 public class CirculationFineService {
 
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Bangkok");
-
     private final FineConfigRepository fineConfigRepository;
+    private final Clock clock;
 
     // Chức năng: tính số ngày quá hạn dựa trên ngày đến hạn và ngày trả thực tế.
     public long calculateOverdueDays(Instant dueDate, Instant returnedAt) {
-        LocalDate due = dueDate.atZone(BUSINESS_ZONE).toLocalDate();
-        LocalDate returned = returnedAt.atZone(BUSINESS_ZONE).toLocalDate();
+        LocalDate due = dueDate.atZone(clock.getZone()).toLocalDate();
+        LocalDate returned = returnedAt.atZone(clock.getZone()).toLocalDate();
         return Math.max(0, ChronoUnit.DAYS.between(due, returned));
     }
 
     // Chức năng: áp dụng cấu hình phạt hiện hành để tính tiền phạt cho lượt mượn quá hạn.
     public void applyOverdueFine(BorrowRecord borrow, long overdueDays, Instant calculatedAt) {
-        LocalDate today = calculatedAt.atZone(BUSINESS_ZONE).toLocalDate();
+        LocalDate today = calculatedAt.atZone(clock.getZone()).toLocalDate();
         FineConfig config = fineConfigRepository.findActiveConfig(today).orElse(null);
         if (config == null) {
             return;

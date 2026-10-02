@@ -47,7 +47,8 @@ class EbookPaymentApplierTest {
         bookEbookRepository = mock(BookEbookRepository.class);
         ebookLoanRepository = mock(EbookLoanRepository.class);
         mediaBorrowLimitService = mock(MediaBorrowLimitService.class);
-        applier = new EbookPaymentApplier(bookEbookRepository, ebookLoanRepository, mediaBorrowLimitService);
+        applier = new EbookPaymentApplier(
+                bookEbookRepository, ebookLoanRepository, mediaBorrowLimitService, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test
@@ -179,7 +180,7 @@ class EbookPaymentApplierTest {
         payment.setAmount(25_000L);
         payment.setCurrency("VND");
         payment.setStatus(PaymentStatus.SUCCESS);
-        payment.setExpiredAt(Instant.now().plusSeconds(900));
+        payment.setExpiredAt(com.vn.testsupport.TestTime.NOW.plusSeconds(900));
         payment.setProviderMetadata(new LinkedHashMap<>());
         return payment;
     }

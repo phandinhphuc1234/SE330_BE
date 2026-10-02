@@ -30,7 +30,8 @@ class StaffStatisticsServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        statisticsService = new StaffStatisticsServiceImpl(borrowRecordRepository);
+        statisticsService = new StaffStatisticsServiceImpl(
+                borrowRecordRepository, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test
@@ -40,12 +41,14 @@ class StaffStatisticsServiceImplTest {
         Instant fromInstant = Instant.parse("2026-05-31T17:00:00Z");
         Instant toInstant = Instant.parse("2026-06-03T17:00:00Z");
 
-        when(borrowRecordRepository.countBorrowedPerDay(fromInstant, toInstant, "title", "Clean Code", "Vietnamese"))
+        when(borrowRecordRepository.countBorrowedPerDay(
+                fromInstant, toInstant, "title", "Clean Code", "Vietnamese", "Asia/Ho_Chi_Minh"))
                 .thenReturn(List.of(
                         new Object[]{LocalDate.of(2026, 6, 1), 2L},
                         new Object[]{LocalDate.of(2026, 6, 3), 4L}
                 ));
-        when(borrowRecordRepository.countReturnedPerDay(fromInstant, toInstant, "title", "Clean Code", "Vietnamese"))
+        when(borrowRecordRepository.countReturnedPerDay(
+                fromInstant, toInstant, "title", "Clean Code", "Vietnamese", "Asia/Ho_Chi_Minh"))
                 .thenReturn(List.<Object[]>of(new Object[]{LocalDate.of(2026, 6, 2), 1L}));
 
         var response = statisticsService.getBorrowStatistics(from, to, " TITLE ", " Clean Code ", " Vietnamese ");
@@ -61,8 +64,10 @@ class StaffStatisticsServiceImplTest {
         assertThat(response.netOnLoan()).isEqualTo(5L);
         assertThat(response.peakBorrowDate()).isEqualTo(LocalDate.of(2026, 6, 3));
         assertThat(response.peakBorrowCount()).isEqualTo(4L);
-        verify(borrowRecordRepository).countBorrowedPerDay(fromInstant, toInstant, "title", "Clean Code", "Vietnamese");
-        verify(borrowRecordRepository).countReturnedPerDay(fromInstant, toInstant, "title", "Clean Code", "Vietnamese");
+        verify(borrowRecordRepository).countBorrowedPerDay(
+                fromInstant, toInstant, "title", "Clean Code", "Vietnamese", "Asia/Ho_Chi_Minh");
+        verify(borrowRecordRepository).countReturnedPerDay(
+                fromInstant, toInstant, "title", "Clean Code", "Vietnamese", "Asia/Ho_Chi_Minh");
     }
 
     @Test

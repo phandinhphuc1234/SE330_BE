@@ -29,7 +29,8 @@ class PaymentReceiptServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        paymentReceiptService = new PaymentReceiptServiceImpl(paymentTransactionRepository);
+        paymentReceiptService = new PaymentReceiptServiceImpl(
+                paymentTransactionRepository, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test

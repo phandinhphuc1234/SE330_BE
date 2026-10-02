@@ -26,7 +26,8 @@ class JobExecutionLogServiceTest {
 
     @BeforeEach
     void setUp() {
-        jobExecutionLogService = new JobExecutionLogService(jobExecutionLogRepository);
+        jobExecutionLogService = new JobExecutionLogService(
+                jobExecutionLogRepository, com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test
@@ -38,7 +39,7 @@ class JobExecutionLogServiceTest {
         assertThat(job.getJobName()).isEqualTo("AUTO_RENEWAL");
         assertThat(job.getStatus()).isEqualTo(JobExecutionStatus.RUNNING);
         assertThat(job.getTotalProcessed()).isZero();
-        assertThat(job.getStartedAt()).isNotNull();
+        assertThat(job.getStartedAt()).isEqualTo(com.vn.testsupport.TestTime.NOW);
     }
 
     @Test
@@ -53,7 +54,7 @@ class JobExecutionLogServiceTest {
         assertThat(job.getTotalProcessed()).isEqualTo(10);
         assertThat(job.getSuccessCount()).isEqualTo(8);
         assertThat(job.getFailedCount()).isEqualTo(2);
-        assertThat(job.getFinishedAt()).isNotNull();
+        assertThat(job.getFinishedAt()).isEqualTo(com.vn.testsupport.TestTime.NOW);
     }
 
     @Test
@@ -66,7 +67,7 @@ class JobExecutionLogServiceTest {
 
         assertThat(job.getStatus()).isEqualTo(JobExecutionStatus.FAILED);
         assertThat(job.getErrorMessage()).isEqualTo("Database unavailable");
-        assertThat(job.getFinishedAt()).isNotNull();
+        assertThat(job.getFinishedAt()).isEqualTo(com.vn.testsupport.TestTime.NOW);
     }
 
     private JobExecutionLog runningJob() {

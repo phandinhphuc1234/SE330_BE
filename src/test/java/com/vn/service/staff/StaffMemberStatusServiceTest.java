@@ -51,7 +51,8 @@ class StaffMemberStatusServiceTest {
     @BeforeEach
     void setUp() {
         service = new StaffMemberServiceImpl(memberRepository, staffLoanService, statsLoader, staffMemberMapper,
-                memberStatusAuditRepository, redisTokenService, jwtService, notificationQueueService);
+                memberStatusAuditRepository, redisTokenService, jwtService, notificationQueueService,
+                com.vn.testsupport.TestTime.CLOCK);
     }
 
     @Test

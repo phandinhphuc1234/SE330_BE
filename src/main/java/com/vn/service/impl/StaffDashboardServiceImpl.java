@@ -13,27 +13,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
 public class StaffDashboardServiceImpl implements StaffDashboardService {
 
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
     private final BorrowRecordRepository borrowRecordRepository;
     private final EbookLoanRepository ebookLoanRepository;
     private final ReservationRepository reservationRepository;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
     public StaffDashboardSummaryResponse getSummary() {
-        Instant now = Instant.now();
-        LocalDate today = LocalDate.now(BUSINESS_ZONE);
-        Instant todayStart = today.atStartOfDay(BUSINESS_ZONE).toInstant();
-        Instant tomorrowStart = today.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant();
+        Instant now = clock.instant();
+        LocalDate today = LocalDate.now(clock);
+        Instant todayStart = today.atStartOfDay(clock.getZone()).toInstant();
+        Instant tomorrowStart = today.plusDays(1).atStartOfDay(clock.getZone()).toInstant();
 
         BigDecimal unpaidFineTotal = borrowRecordRepository.sumUnpaidFineTotal();
 

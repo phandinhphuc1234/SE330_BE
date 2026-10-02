@@ -32,6 +32,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
     private final RedisTokenService redisTokenService;
     private final JwtService jwtService;
     private final NotificationQueueService notificationQueueService;
+    private final Clock clock;
 
     // Tìm member theo filter của staff, sau đó load thống kê phụ theo batch và map sang response.
     @Override
@@ -60,7 +62,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
                                                            Boolean hasOverdue,
                                                            int page,
                                                            int size) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Page<Member> members = memberRepository.searchStaffMembers(
                 normalizeLikeQuery(q),
                 parseOptionalLong(q),
@@ -86,7 +88,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Map<Long, StaffMemberStats> statsByMemberId = statsLoader.loadStats(List.of(member), now);
         return staffMemberMapper.toDetail(
                 member,
@@ -128,7 +130,7 @@ public class StaffMemberServiceImpl implements StaffMemberService {
             throw new AppException(ErrorCode.INVALID_MEMBER_STATUS_TRANSITION);
         }
 
-        Instant changedAt = Instant.now();
+        Instant changedAt = clock.instant();
         String reason = normalizeReason(request.reason());
         member.setStatus(request.status());
         MemberStatusAudit audit = memberStatusAuditRepository.save(MemberStatusAudit.builder()

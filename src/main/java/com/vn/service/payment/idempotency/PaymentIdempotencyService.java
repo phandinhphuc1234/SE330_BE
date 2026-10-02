@@ -18,8 +18,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.function.Supplier;
@@ -35,13 +35,16 @@ public class PaymentIdempotencyService {
 
     private final StringRedisTemplate redisTemplate;
     private final TransactionTemplate transactionTemplate;
+    private final Clock clock;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .findAndRegisterModules()
             .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
 
     public PaymentIdempotencyService(StringRedisTemplate redisTemplate,
-                                     PlatformTransactionManager transactionManager) {
+                                     PlatformTransactionManager transactionManager,
+                                     Clock clock) {
         this.redisTemplate = redisTemplate;
+        this.clock = clock;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -67,7 +70,7 @@ public class PaymentIdempotencyService {
                 null,
                 null,
                 null,
-                Instant.now(),
+                clock.instant(),
                 null
         );
 
@@ -136,7 +139,7 @@ public class PaymentIdempotencyService {
                 null,
                 null,
                 processingPayload.createdAt(),
-                Instant.now()
+                clock.instant()
         );
         redisTemplate.opsForValue().set(redisKey, writePayload(completedPayload), COMPLETED_TTL);
     }
@@ -150,7 +153,7 @@ public class PaymentIdempotencyService {
                 resolveErrorCode(exception),
                 exception.getMessage(),
                 processingPayload.createdAt(),
-                Instant.now()
+                clock.instant()
         );
         redisTemplate.opsForValue().set(redisKey, writePayload(failedPayload), FAILED_TTL);
     }

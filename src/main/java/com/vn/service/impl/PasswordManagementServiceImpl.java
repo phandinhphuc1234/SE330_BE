@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -49,6 +50,7 @@ public class PasswordManagementServiceImpl implements PasswordManagementService 
     private final JwtService jwtService;
     private final PasswordResetRateLimitService passwordResetRateLimitService;
     private final EmailService emailService;
+    private final Clock clock;
 
     @Value("${app.password-reset.token-expiry-minutes:30}")
     private long tokenExpiryMinutes;
@@ -80,7 +82,7 @@ public class PasswordManagementServiceImpl implements PasswordManagementService 
                 .findByTokenHashAndUsedAtIsNull(tokenHash)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_PASSWORD_RESET_TOKEN));
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         if (!resetToken.getExpiresAt().isAfter(now)) {
             throw new AppException(ErrorCode.PASSWORD_RESET_TOKEN_EXPIRED);
         }
@@ -124,7 +126,7 @@ public class PasswordManagementServiceImpl implements PasswordManagementService 
     }
 
     private void issuePasswordResetToken(Member member) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         String rawToken = generateRawToken();
         passwordResetTokenRepository.invalidateUnusedTokensForMember(member.getId(), now);
         passwordResetTokenRepository.save(PasswordResetToken.builder()

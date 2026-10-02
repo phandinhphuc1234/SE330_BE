@@ -7,20 +7,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Clock;
 
 @Service
 @RequiredArgsConstructor
 public class JobExecutionLogService {
 
     private final JobExecutionLogRepository jobExecutionLogRepository;
+    private final Clock clock;
 
     // Chức năng: tạo log RUNNING khi một background job bắt đầu.
     @Transactional
     public JobExecutionLog start(String jobName) {
         return jobExecutionLogRepository.save(JobExecutionLog.builder()
                 .jobName(jobName)
-                .startedAt(Instant.now())
+                .startedAt(clock.instant())
                 .status(JobExecutionStatus.RUNNING)
                 .totalProcessed(0)
                 .successCount(0)
@@ -32,7 +33,7 @@ public class JobExecutionLogService {
     @Transactional
     public void complete(Long jobId, int totalProcessed, int successCount, int failedCount) {
         jobExecutionLogRepository.findById(jobId).ifPresent(job -> {
-            job.setFinishedAt(Instant.now());
+            job.setFinishedAt(clock.instant());
             job.setStatus(JobExecutionStatus.COMPLETED);
             job.setTotalProcessed(totalProcessed);
             job.setSuccessCount(successCount);
@@ -45,7 +46,7 @@ public class JobExecutionLogService {
     @Transactional
     public void fail(Long jobId, String errorMessage) {
         jobExecutionLogRepository.findById(jobId).ifPresent(job -> {
-            job.setFinishedAt(Instant.now());
+            job.setFinishedAt(clock.instant());
             job.setStatus(JobExecutionStatus.FAILED);
             job.setErrorMessage(truncate(errorMessage));
             jobExecutionLogRepository.save(job);

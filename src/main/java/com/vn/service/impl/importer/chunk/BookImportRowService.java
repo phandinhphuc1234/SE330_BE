@@ -19,6 +19,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,6 +32,7 @@ class BookImportRowService {
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final EntityManager entityManager;
+    private final Clock clock;
 
     // Chức năng: resolve dữ liệu nghiệp vụ cho một dòng CSV trước khi batch insert BookCopy.
     PreparedBookCopyImport prepareRow(BookImportCsvRow row, BookImportCache cache) {
@@ -41,7 +43,7 @@ class BookImportRowService {
         // Nhiều dòng có cùng ISBN sẽ dùng chung một Book, nhưng mỗi dòng tạo một BookCopy khác nhau.
         ResolvedImportBook resolvedBook = resolveOrCreateBook(row, isbn, cache);
         Book book = resolvedBook.book();
-        Instant now = Instant.now();
+        Instant now = clock.instant();
 
         BookCopyInsertRow copy = new BookCopyInsertRow(
                 book.getId(),

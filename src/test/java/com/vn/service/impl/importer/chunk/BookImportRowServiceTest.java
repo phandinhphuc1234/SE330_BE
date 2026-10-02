@@ -51,7 +51,8 @@ class BookImportRowServiceTest {
                 bookRepository,
                 authorRepository,
                 categoryRepository,
-                entityManager
+                entityManager,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 

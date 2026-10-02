@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 // bộ thư viện mã hóa built-in của Java, không cần thêm dependency nào.
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 
@@ -21,15 +22,18 @@ public class JwtService {
     private final SecretKey accessKey;
     private final long accessExpiry;
     private final long refreshExpiry;
+    private final Clock clock;
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.access-token-expiry}") long accessExpiry,
-            @Value("${jwt.refresh-token-expiry}") long refreshExpiry
+            @Value("${jwt.refresh-token-expiry}") long refreshExpiry,
+            Clock clock
     ) {
         this.accessKey    = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiry  = accessExpiry;
         this.refreshExpiry = refreshExpiry;
+        this.clock = clock;
     }
 
     public String generateAccessToken(String email, Long userId) {
@@ -83,12 +87,13 @@ public class JwtService {
     // ── private ──────────────────────────────────────────
     // buildToken: Tạo JWT token với thông tin người dùng
     private String buildToken(String email, Long userId, long expiry, String tokenType) {
+        Instant issuedAt = clock.instant();
         return Jwts.builder()
                 .subject(email)                          // 0.12.x: subject() thay vì setSubject()
                 .claim("userId", userId)
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
-                .issuedAt(new Date())                    // 0.12.x: issuedAt() thay vì setIssuedAt()
-                .expiration(new Date(System.currentTimeMillis() + expiry))
+                .issuedAt(Date.from(issuedAt))           // 0.12.x: issuedAt() thay vì setIssuedAt()
+                .expiration(Date.from(issuedAt.plusMillis(expiry)))
                 .signWith(accessKey)                     // 0.12.x: chỉ cần key, tự suy ra algorithm
                 .compact();
     }
@@ -105,6 +110,7 @@ public class JwtService {
     private Claims getClaims(String token) {
         // Builder method pattern: parser() → verifyWith() → build() → parseSignedClaims()
         return Jwts.parser()                             // 0.12.x: parser() thay vì parserBuilder()
+                .clock(() -> Date.from(clock.instant()))
                 .verifyWith(accessKey)                   // 0.12.x: verifyWith() thay vì setSigningKey()
                 .build()
                 .parseSignedClaims(token)                // 0.12.x: parseSignedClaims() thay vì parseClaimsJws()

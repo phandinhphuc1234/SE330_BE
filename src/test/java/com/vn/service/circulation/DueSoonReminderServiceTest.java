@@ -49,7 +49,8 @@ class DueSoonReminderServiceTest {
         dueSoonReminderService = new DueSoonReminderService(
                 borrowRecordRepository,
                 circulationSettingService,
-                dueSoonReminderProcessor
+                dueSoonReminderProcessor,
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 
@@ -75,6 +76,11 @@ class DueSoonReminderServiceTest {
         assertThat(summary.totalProcessed()).isEqualTo(2);
         assertThat(summary.successCount()).isEqualTo(1);
         assertThat(summary.failedCount()).isEqualTo(1);
+        verify(borrowRecordRepository).findDueSoonReminderCandidates(
+                eq(BorrowStatus.BORROWED),
+                eq(Instant.parse("2026-06-16T17:00:00Z")),
+                eq(Instant.parse("2026-06-17T17:00:00Z")),
+                isA(Pageable.class));
         verify(dueSoonReminderProcessor).createReminderIfNeeded(
                 eq(100L), org.mockito.ArgumentMatchers.any());
     }

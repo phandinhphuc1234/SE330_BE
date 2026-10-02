@@ -56,7 +56,7 @@ class PasswordManagementServiceImplTest {
     void setUp() {
         PasswordManagementServiceImpl service = new PasswordManagementServiceImpl(
                 memberRepository, passwordResetTokenRepository, passwordEncoder, redisTokenService,
-                jwtService, passwordResetRateLimitService, emailService
+                jwtService, passwordResetRateLimitService, emailService, com.vn.testsupport.TestTime.CLOCK
         );
         ReflectionTestUtils.setField(service, "tokenExpiryMinutes", 30L);
         passwordManagementService = service;
@@ -103,7 +103,7 @@ class PasswordManagementServiceImplTest {
         PasswordResetToken token = PasswordResetToken.builder()
                 .member(member)
                 .tokenHash(sha256(rawToken))
-                .expiresAt(java.time.Instant.now().plusSeconds(60))
+                .expiresAt(com.vn.testsupport.TestTime.NOW.plusSeconds(60))
                 .build();
         when(passwordResetTokenRepository.findByTokenHashAndUsedAtIsNull(sha256(rawToken))).thenReturn(Optional.of(token));
         when(memberRepository.findLockedById(1L)).thenReturn(Optional.of(member));

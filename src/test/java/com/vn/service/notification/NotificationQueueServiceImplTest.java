@@ -18,7 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -49,7 +48,8 @@ class NotificationQueueServiceImplTest {
                 notificationRepository,
                 notificationQueueRepository,
                 eventKeyLock,
-                new NotificationPayloadGuard()
+                new NotificationPayloadGuard(),
+                com.vn.testsupport.TestTime.CLOCK
         );
     }
 
@@ -87,7 +87,8 @@ class NotificationQueueServiceImplTest {
         assertThat(queue.getTemplateCode()).isEqualTo("account-banned");
         assertThat(queue.getPayload()).containsEntry("reason", "Vi phạm quy định");
         assertThat(queue.getMaxAttempts()).isEqualTo(5);
-        assertThat(queue.getNextAttemptAt()).isEqualTo(command.scheduledAt());
+        assertThat(queue.getScheduledAt()).isEqualTo(com.vn.testsupport.TestTime.NOW);
+        assertThat(queue.getNextAttemptAt()).isEqualTo(com.vn.testsupport.TestTime.NOW);
     }
 
     @Test
@@ -144,7 +145,6 @@ class NotificationQueueServiceImplTest {
                 .eventKey("ACCOUNT_BANNED:501:EMAIL")
                 .templateCode("account-banned")
                 .payload(Map.of("reason", "Vi phạm quy định"))
-                .scheduledAt(Instant.parse("2026-09-29T02:00:00Z"))
                 .build();
     }
 

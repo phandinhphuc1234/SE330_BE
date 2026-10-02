@@ -35,9 +35,10 @@ services:
     restart: always
     environment:
       # Spring datasource
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?timezone=Asia/Ho_Chi_Minh
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?timezone=${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
 
       # Redis
       SPRING_DATA_REDIS_HOST: redis
