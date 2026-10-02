@@ -51,10 +51,13 @@ command -v openssl >/dev/null 2>&1 || fail 'openssl is required to generate runt
 
 public_api_base_url="$(decode_required PUBLIC_API_BASE_URL_B64)"
 frontend_origin="$(decode_required FRONTEND_ORIGIN_B64)"
+swagger_enabled="$(decode_required SWAGGER_ENABLED_B64)"
 public_api_base_url="${public_api_base_url%/}"
 frontend_origin="${frontend_origin%/}"
 validate_http_url PUBLIC_API_BASE_URL "$public_api_base_url"
 validate_http_url FRONTEND_ORIGIN "$frontend_origin"
+[[ "$swagger_enabled" == 'true' || "$swagger_enabled" == 'false' ]] || \
+  fail 'SWAGGER_ENABLED must be true or false.'
 
 # Bước 7: bảo vệ thư mục runtime. Mode 700 = owner được truy cập đầy đủ, mọi
 # user khác bị chặn. Symlink bị từ chối để tránh ghi nhầm sang file ngoài ý muốn.
@@ -175,6 +178,7 @@ set_value CORS_ALLOW_CREDENTIALS 'true'
 set_value APP_PASSWORD_RESET_BASE_URL "${frontend_origin}/reset-password"
 set_value VNPAY_RETURN_URL "${frontend_origin}/payment/vnpay-return"
 set_value VNPAY_IPN_URL "${public_api_base_url}/api/payments/ipn/vnpay"
+set_value SWAGGER_ENABLED "$swagger_enabled"
 
 # Bước 16: cookie chỉ bật Secure/SameSite=None khi API đã thực sự dùng HTTPS.
 # Giai đoạn HTTP tạm thời dùng Secure=false và SameSite=Lax.
@@ -214,8 +218,9 @@ log "Runtime environment provisioned at $RUNTIME_ENV_FILE."
 log 'Secret values were not printed and existing valid secrets were not rotated.'
 
 # FLOW TÓM TẮT:
-# nhận URL public -> kiểm tra input -> đọc file cũ/template -> sinh secret còn
-# thiếu -> cập nhật URL/cookie -> validate -> chmod 600 -> thay backend.env.
+# nhận URL public và cờ Swagger -> kiểm tra input -> đọc file cũ/template -> sinh
+# secret còn thiếu -> cập nhật URL/cookie/Swagger -> validate -> chmod 600
+# -> thay backend.env.
 #
 # VẤN ĐỀ GIẢI QUYẾT:
 # loại bỏ việc nhập tay mật khẩu production, không đưa secret lên GitHub, không
