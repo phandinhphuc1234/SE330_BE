@@ -33,7 +33,13 @@ LABEL org.opencontainers.image.title="QuanLyThuVien" \
       org.opencontainers.image.description="Spring Boot library management service" \
       org.opencontainers.image.version="${APP_VERSION}"
 
-RUN groupadd --system --gid 1001 spring \
+# Install distribution security updates before dropping privileges. The base
+# image is rebuilt independently, so this keeps fixed OS packages current even
+# when its published tag briefly trails the Ubuntu security repository.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 1001 spring \
     && useradd --system --uid 1001 --gid spring --home-dir /app --shell /usr/sbin/nologin spring
 
 COPY --from=extract --chown=spring:spring /workspace/extracted/dependencies/ ./
