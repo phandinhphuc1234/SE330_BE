@@ -82,7 +82,7 @@ public class NotificationDeliveryStateService {
     }
 
     private Duration resolveRetryDelay(int failedAttempts, Duration providerRetryAfter) {
-        int exponent = Math.clamp(failedAttempts - 1, 0, 30);
+        int exponent = (int) Math.clamp((long) failedAttempts - 1L, 0L, 30L);
         long multiplier = 1L << exponent;
         Duration calculated;
         try {

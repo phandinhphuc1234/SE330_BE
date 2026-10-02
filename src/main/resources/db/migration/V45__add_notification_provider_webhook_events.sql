@@ -3,16 +3,16 @@
 -- addresses and message metadata that are unnecessary for reconciliation.
 CREATE TABLE notification_provider_events (
     id BIGSERIAL PRIMARY KEY,
-    webhook_message_id VARCHAR(255) NOT NULL,
-    provider VARCHAR(30) NOT NULL,
-    provider_message_id VARCHAR(255) NOT NULL,
+    webhook_message_id VARCHAR(255) NOT NULL, -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
+    provider VARCHAR(30) NOT NULL, -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
+    provider_message_id VARCHAR(255) NOT NULL, -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
     hinted_queue_id BIGINT,
     notification_queue_id BIGINT,
-    event_type VARCHAR(100) NOT NULL,
+    event_type VARCHAR(100) NOT NULL, -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
     occurred_at TIMESTAMP NOT NULL,
-    provider_detail VARCHAR(1000),
-    processing_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    processing_error VARCHAR(500),
+    provider_detail VARCHAR(1000), -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
+    processing_status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
+    processing_error VARCHAR(500), -- NOSONAR: PostgreSQL VARCHAR, not Oracle PL/SQL.
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     processed_at TIMESTAMP,
     CONSTRAINT uq_notification_provider_event_message UNIQUE (webhook_message_id),

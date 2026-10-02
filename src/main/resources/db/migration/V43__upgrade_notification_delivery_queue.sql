@@ -44,7 +44,8 @@ SET event_key = COALESCE(
     created_at = COALESCE(created_at, scheduled_at),
     updated_at = COALESCE(updated_at, sent_at, scheduled_at),
     retry_count = COALESCE(retry_count, 0),
-    max_attempts = GREATEST(max_attempts, COALESCE(retry_count, 0), 1);
+    max_attempts = GREATEST(max_attempts, COALESCE(retry_count, 0), 1)
+WHERE id IS NOT NULL; -- Intentional full-table backfill; id is a non-null primary key.
 
 -- Preserve the address that existed when the business event was created. This
 -- is intentionally nullable for legacy rows that did not reference a member;
