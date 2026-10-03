@@ -1,0 +1,305 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-rag-database-environment: &rag-database-environment
+  POSTGRES_URL: postgresql+asyncpg://${RAG_POSTGRES_USER:?RAG_POSTGRES_USER is required}:${RAG_POSTGRES_PASSWORD:?RAG_POSTGRES_PASSWORD is required}@rag-postgres:5432/${RAG_POSTGRES_DB:?RAG_POSTGRES_DB is required}
+  POSTGRES_URL_SYNC: postgresql://${RAG_POSTGRES_USER}:${RAG_POSTGRES_PASSWORD}@rag-postgres:5432/${RAG_POSTGRES_DB}
+
+x-rag-storage-environment: &rag-storage-environment
+  OBJECT_STORAGE_ENDPOINT: http://rag-seaweedfs:8333
+  OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
+  OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?OBJECT_STORAGE_ACCESS_KEY is required}
+  OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?OBJECT_STORAGE_SECRET_KEY is required}
+  LIBRARY_EBOOK_BUCKET: ${LIBRARY_EBOOK_BUCKET:-library-private}
+  LIBRARY_TEMP_BUCKET: ${LIBRARY_TEMP_BUCKET:-library-temp}
+  RAG_ARTIFACT_BUCKET: ${RAG_ARTIFACT_BUCKET:-rag-artifacts}
+
+x-rag-app-environment: &rag-app-environment
+  <<: [*rag-database-environment, *rag-storage-environment]
+  APP_ENV: production
+  APP_DEBUG: "false"
+  LOG_LEVEL: ${RAG_LOG_LEVEL:-INFO}
+  LOG_JSON: ${RAG_LOG_JSON:-true}
+  ENABLE_API_DOCS: "false"
+  RAG_INTERNAL_API_KEY: ${RAG_INTERNAL_API_KEY:?RAG_INTERNAL_API_KEY is required}
+  STORAGE_BACKEND: s3
+  RAG_SOURCE_BUCKET: ${LIBRARY_EBOOK_BUCKET:-library-private}
+  REDIS_URL: redis://:${RAG_REDIS_PASSWORD:?RAG_REDIS_PASSWORD is required}@rag-redis:6379/0
+  CELERY_BROKER_URL: redis://:${RAG_REDIS_PASSWORD}@rag-redis:6379/0
+  CELERY_RESULT_BACKEND: redis://:${RAG_REDIS_PASSWORD}@rag-redis:6379/0
+  QDRANT_URL: http://rag-qdrant:6333
+  QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+  QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-rag_chunks}
+  EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-gemini}
+  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-2}
+  EMBEDDING_DIM: ${EMBEDDING_DIM:-3072}
+  EMBEDDING_FALLBACK_MODEL: ${EMBEDDING_FALLBACK_MODEL:-gemini-embedding-001}
+  EMBEDDING_VERSION: ${EMBEDDING_VERSION:-gemini-embedding-2-3072-v1}
+  EMBEDDING_TEXT_POLICY: ${EMBEDDING_TEXT_POLICY:-gemini_search_title_text_v1}
+  EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-8}
+  EMBEDDING_MAX_RETRIES: ${EMBEDDING_MAX_RETRIES:-5}
+  EMBEDDING_RETRY_BASE_DELAY_SECONDS: ${EMBEDDING_RETRY_BASE_DELAY_SECONDS:-2}
+  EMBEDDING_RETRY_MAX_DELAY_SECONDS: ${EMBEDDING_RETRY_MAX_DELAY_SECONDS:-60}
+  EMBEDDING_RETRY_JITTER_SECONDS: ${EMBEDDING_RETRY_JITTER_SECONDS:-0.5}
+  EMBEDDING_DISTANCE_METRIC: ${EMBEDDING_DISTANCE_METRIC:-Cosine}
+  LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+  LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.1}
+  LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-2048}
+  CHUNK_SIZE: ${CHUNK_SIZE:-512}
+  CHUNK_OVERLAP: ${CHUNK_OVERLAP:-64}
+  MAX_CHUNKS_PER_DOCUMENT: ${MAX_CHUNKS_PER_DOCUMENT:-1000}
+  MAX_PDF_PAGES: ${MAX_PDF_PAGES:-3000}
+  PDF_TEXT_SAMPLE_PAGES: ${PDF_TEXT_SAMPLE_PAGES:-5}
+  PDF_MIN_AVG_TEXT_CHARS: ${PDF_MIN_AVG_TEXT_CHARS:-50}
+  MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-100}
+  INGESTION_ALLOWED_EXTENSIONS: '${INGESTION_ALLOWED_EXTENSIONS:-[".pdf"]}'
+  PDF_PARSER: ${PDF_PARSER:-pymupdf4llm}
+  PDF_CLEANING_VERSION: ${PDF_CLEANING_VERSION:-pdf-clean-v1.0.0}
+  PDF_CLEAN_NORMALIZE_UNICODE: ${PDF_CLEAN_NORMALIZE_UNICODE:-true}
+  PDF_CLEAN_COLLAPSE_SPACES: ${PDF_CLEAN_COLLAPSE_SPACES:-true}
+  PDF_CLEAN_MAX_BLANK_LINES: ${PDF_CLEAN_MAX_BLANK_LINES:-2}
+  PDF_CLEAN_HEADER_FOOTER_DETECTION_ENABLED: ${PDF_CLEAN_HEADER_FOOTER_DETECTION_ENABLED:-true}
+  PDF_CLEAN_HEADER_FOOTER_TOP_LINES: ${PDF_CLEAN_HEADER_FOOTER_TOP_LINES:-3}
+  PDF_CLEAN_HEADER_FOOTER_BOTTOM_LINES: ${PDF_CLEAN_HEADER_FOOTER_BOTTOM_LINES:-3}
+  PDF_CLEAN_HEADER_FOOTER_MIN_REPEAT_RATIO: ${PDF_CLEAN_HEADER_FOOTER_MIN_REPEAT_RATIO:-0.4}
+  PDF_CLEAN_HEADER_FOOTER_REMOVAL_ENABLED: ${PDF_CLEAN_HEADER_FOOTER_REMOVAL_ENABLED:-false}
+  RETRIEVAL_TOP_K: ${RETRIEVAL_TOP_K:-10}
+  RERANKER_TOP_K: ${RERANKER_TOP_K:-3}
+  HYBRID_VECTOR_WEIGHT: ${HYBRID_VECTOR_WEIGHT:-0.7}
+  HYBRID_KEYWORD_WEIGHT: ${HYBRID_KEYWORD_WEIGHT:-0.3}
+
+x-rag-application: &rag-application
+  image: ${RAG_IMAGE:?RAG_IMAGE must be an immutable GHCR image reference}
+  pull_policy: always
+  init: true
+  env_file:
+    - ${RUNTIME_ENV_FILE}
+  environment: *rag-app-environment
+  logging: *default-logging
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  # Spring is the only public application. It reaches RAG and object storage by
+  # Docker DNS; none of the RAG infrastructure below publishes a host port.
+  library-service:
+    environment:
+      RAG_ENABLED: "true"
+      RAG_SERVICE_URL: http://rag-api:8000
+      RAG_INTERNAL_API_KEY: ${RAG_INTERNAL_API_KEY:?RAG_INTERNAL_API_KEY is required}
+      OBJECT_STORAGE_ENDPOINT: http://rag-seaweedfs:8333
+    depends_on:
+      rag-api:
+        condition: service_healthy
+
+  rag-api:
+    <<: *rag-application
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      rag-postgres:
+        condition: service_healthy
+      rag-redis:
+        condition: service_healthy
+      rag-qdrant:
+        condition: service_healthy
+      rag-seaweedfs:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
+      retries: 12
+    stop_grace_period: 30s
+    mem_limit: ${RAG_API_MEMORY_LIMIT:-768m}
+    cpus: ${RAG_API_CPU_LIMIT:-1.0}
+    pids_limit: 256
+
+  rag-worker:
+    <<: *rag-application
+    restart: unless-stopped
+    command: celery -A app.jobs.celery_app worker --loglevel=info --concurrency=${RAG_WORKER_CONCURRENCY:-1}
+    depends_on:
+      rag-postgres:
+        condition: service_healthy
+      rag-redis:
+        condition: service_healthy
+      rag-qdrant:
+        condition: service_healthy
+      rag-seaweedfs:
+        condition: service_healthy
+    stop_grace_period: 90s
+    mem_limit: ${RAG_WORKER_MEMORY_LIMIT:-1024m}
+    cpus: ${RAG_WORKER_CPU_LIMIT:-1.0}
+    pids_limit: 256
+
+  rag-migrate:
+    <<: *rag-application
+    restart: "no"
+    environment: *rag-database-environment
+    command: alembic upgrade head
+    depends_on:
+      rag-postgres:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+
+  rag-postgres:
+    image: ${RAG_POSTGRES_IMAGE:-postgres:16-alpine}
+    restart: unless-stopped
+    env_file:
+      - ${RUNTIME_ENV_FILE}
+    environment:
+      POSTGRES_DB: ${RAG_POSTGRES_DB:?RAG_POSTGRES_DB is required}
+      POSTGRES_USER: ${RAG_POSTGRES_USER:?RAG_POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${RAG_POSTGRES_PASSWORD:?RAG_POSTGRES_PASSWORD is required}
+    volumes:
+      - rag_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *default-logging
+    mem_limit: ${RAG_POSTGRES_MEMORY_LIMIT:-512m}
+    cpus: ${RAG_POSTGRES_CPU_LIMIT:-0.75}
+    pids_limit: 192
+    security_opt:
+      - no-new-privileges:true
+
+  rag-redis:
+    image: ${RAG_REDIS_IMAGE:-redis:7-alpine}
+    restart: unless-stopped
+    env_file:
+      - ${RUNTIME_ENV_FILE}
+    command:
+      - sh
+      - -ceu
+      - exec redis-server --appendonly yes --appendfsync everysec --requirepass "$${RAG_REDIS_PASSWORD}"
+    volumes:
+      - rag_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$${RAG_REDIS_PASSWORD}\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *default-logging
+    mem_limit: ${RAG_REDIS_MEMORY_LIMIT:-192m}
+    cpus: ${RAG_REDIS_CPU_LIMIT:-0.25}
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+
+  rag-qdrant:
+    image: ${QDRANT_IMAGE:-qdrant/qdrant:v1.13.4}
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-}
+    volumes:
+      - rag_qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: *default-logging
+    mem_limit: ${QDRANT_MEMORY_LIMIT:-768m}
+    cpus: ${QDRANT_CPU_LIMIT:-1.0}
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+
+  rag-seaweedfs:
+    image: ${SEAWEEDFS_IMAGE:-chrislusf/seaweedfs:3.85}
+    restart: unless-stopped
+    command: >-
+      server -ip=rag-seaweedfs -ip.bind=0.0.0.0 -dir=/data
+      -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+      -filer -filer.port=8888 -master.port=9333 -volume.port=8080
+    configs:
+      - source: rag-seaweedfs-s3-config
+        target: /etc/seaweedfs/s3.json
+    volumes:
+      - rag_seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8333"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: *default-logging
+    mem_limit: ${SEAWEEDFS_MEMORY_LIMIT:-512m}
+    cpus: ${SEAWEEDFS_CPU_LIMIT:-0.75}
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+
+  rag-seaweedfs-init:
+    image: ${AWS_CLI_IMAGE:-amazon/aws-cli:2.17.57}
+    restart: "no"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        aws_s3() {
+          aws --endpoint-url "$${OBJECT_STORAGE_ENDPOINT}" \
+            --cli-connect-timeout 2 --cli-read-timeout 5 "$$@"
+        }
+        attempt=0
+        until aws_s3 s3api list-buckets >/dev/null 2>&1; do
+          attempt=$$((attempt + 1))
+          if [ "$${attempt}" -ge 30 ]; then
+            echo "SeaweedFS S3 did not become ready in time" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        for bucket in "$${LIBRARY_EBOOK_BUCKET}" "$${LIBRARY_TEMP_BUCKET}" "$${RAG_ARTIFACT_BUCKET}"; do
+          aws_s3 s3api head-bucket --bucket "$${bucket}" >/dev/null 2>&1 ||
+          aws_s3 s3api create-bucket --bucket "$${bucket}"
+        done
+    environment:
+      <<: *rag-storage-environment
+      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_KEY}
+      AWS_DEFAULT_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
+      AWS_EC2_METADATA_DISABLED: "true"
+    depends_on:
+      rag-seaweedfs:
+        condition: service_healthy
+
+volumes:
+  rag_postgres_data:
+  rag_redis_data:
+  rag_qdrant_data:
+  rag_seaweedfs_data:
+
+configs:
+  rag-seaweedfs-s3-config:
+    content: |
+      {
+        "identities": [
+          {
+            "name": "rag-platform",
+            "credentials": [
+              {
+                "accessKey": "${OBJECT_STORAGE_ACCESS_KEY}",
+                "secretKey": "${OBJECT_STORAGE_SECRET_KEY}"
+              }
+            ],
+            "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+          }
+        ]
+      }

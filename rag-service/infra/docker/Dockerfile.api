@@ -3,11 +3,13 @@ FROM python:3.11-slim AS builder
 WORKDIR /app
 
 ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_REQUESTS_TIMEOUT=120
 
-RUN pip install --no-cache-dir poetry
+RUN pip install --no-cache-dir poetry==2.2.1
 COPY pyproject.toml poetry.lock README.md ./
-RUN poetry install --only main --no-root \
+RUN poetry config requests.max-retries 5 \
+    && poetry install --only main --no-root \
     && rm -rf /root/.cache/pypoetry /root/.cache/pip
 
 FROM python:3.11-slim AS runtime

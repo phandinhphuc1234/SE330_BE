@@ -162,11 +162,22 @@ ensure_secret REDIS_PASSWORD 32
 ensure_secret JWT_SECRET 32
 ensure_secret EBOOK_READING_SESSION_SECRET 32
 
-# Bước 14: RAG, payment và object storage hiện chưa dùng nên mặc định tắt/local.
-# Credential vẫn được sinh để không còn giá trị mẫu nếu một client bị bật nhầm.
+# Bước 14: RAG và payment mặc định tắt. Vẫn sinh credential riêng cho database,
+# Redis, service-to-service authentication và object storage để lúc bật RAG
+# không phải dùng password mẫu hay dùng chung secret với Spring Boot.
 ensure_secret OBJECT_STORAGE_ACCESS_KEY 16
 ensure_secret OBJECT_STORAGE_SECRET_KEY 32
 ensure_setting RAG_ENABLED 'false'
+ensure_setting RAG_SERVICE_URL 'http://rag-api:8000'
+ensure_setting RAG_POSTGRES_DB 'rag_db'
+ensure_setting RAG_POSTGRES_USER 'rag_app'
+ensure_secret RAG_POSTGRES_PASSWORD 32
+ensure_secret RAG_REDIS_PASSWORD 32
+ensure_secret RAG_INTERNAL_API_KEY 32
+ensure_secret QDRANT_API_KEY 32
+ensure_setting RAG_ARTIFACT_BUCKET 'rag-artifacts'
+ensure_setting LIBRARY_EBOOK_BUCKET 'library-private'
+ensure_setting LIBRARY_TEMP_BUCKET 'library-temp'
 ensure_setting VNPAY_ENABLED 'false'
 ensure_setting OBJECT_STORAGE_ENDPOINT 'http://127.0.0.1:8333'
 ensure_setting OBJECT_STORAGE_PUBLIC_ENDPOINT 'http://127.0.0.1:8333'

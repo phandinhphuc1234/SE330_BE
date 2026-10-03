@@ -52,8 +52,9 @@ missing values into the ignored root `.env` without printing secrets:
 | File | Responsibility |
 | --- | --- |
 | `deploy/runtime.env.example` | Template used by provisioning on the VPS. |
-| `/opt/quanlythuvien/config/runtime.env` | Real production values on the VPS; never committed. |
-| `deploy/compose.production.yaml` | Production runtime definition. |
+| `$HOME/.config/quanlythuvien/backend.env` | Real production values on the VPS; never committed. |
+| `deploy/compose.production.yaml` | Core Spring, PostgreSQL and Redis production definition. |
+| `deploy/compose.rag.production.yaml` | Private RAG production overlay, loaded only when `RAG_ENABLED=true`. |
 | `deploy/scripts/*.sh` | Provisioning, preflight, deployment and rollback behavior. |
 
 Production does not load the repository root `.env` or `rag-service/.env`.

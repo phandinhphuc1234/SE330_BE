@@ -7,6 +7,11 @@ on:
         description: Immutable GHCR image reference ending in @sha256:...
         required: true
         type: string
+      rag_image_ref:
+        description: Optional immutable RAG image digest; blank keeps the current RAG image
+        required: false
+        default: ""
+        type: string
       confirmation:
         description: Type ROLLBACK to continue
         required: true
@@ -31,12 +36,17 @@ jobs:
       - name: Validate requested image
         env:
           IMAGE_REF: ${{ inputs.image_ref }}
+          RAG_IMAGE_REF: ${{ inputs.rag_image_ref }}
         run: |
           set -Eeuo pipefail
           [[ "$IMAGE_REF" =~ ^ghcr\.io/phandinhphuc1234/se330-be@sha256:[0-9a-f]{64}$ ]] || {
             echo 'image_ref must be an immutable se330-be digest.' >&2
             exit 1
           }
+          if [[ -n "$RAG_IMAGE_REF" && ! "$RAG_IMAGE_REF" =~ ^ghcr\.io/phandinhphuc1234/se330-rag@sha256:[0-9a-f]{64}$ ]]; then
+            echo 'rag_image_ref must be blank or an immutable se330-rag digest.' >&2
+            exit 1
+          fi
 
       - name: Check out deployment files
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -76,6 +86,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
           IMAGE_REF: ${{ inputs.image_ref }}
+          RAG_IMAGE_REF: ${{ inputs.rag_image_ref }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -96,15 +107,21 @@ jobs:
           # IMAGE_REF was validated above as an immutable digest.
           # shellcheck disable=SC2029
           ssh "${ssh_args[@]}" "$remote" \
-            "DEPLOY_COMMIT='manual-rollback' bash ~/apps/quanlythuvien/scripts/deploy.sh '$IMAGE_REF'"
+            "DEPLOY_COMMIT='manual-rollback' bash ~/apps/quanlythuvien/scripts/deploy.sh '$IMAGE_REF' '$RAG_IMAGE_REF'"
 
       - name: Publish rollback summary
         env:
           IMAGE_REF: ${{ inputs.image_ref }}
+          RAG_IMAGE_REF: ${{ inputs.rag_image_ref }}
         run: |
           {
             echo '## Production rollback'
-            echo "- Image: \`$IMAGE_REF\`"
+            echo "- Backend image: \`$IMAGE_REF\`"
+            if [[ -n "$RAG_IMAGE_REF" ]]; then
+              echo "- RAG image: \`$RAG_IMAGE_REF\`"
+            else
+              echo '- RAG image: keep current digest'
+            fi
             echo '- Application health check: passed'
             echo '- Database migrations were not rolled back'
           } >> "$GITHUB_STEP_SUMMARY"
