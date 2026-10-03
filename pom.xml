@@ -26,7 +26,7 @@
         <jackson-bom.version>3.1.7</jackson-bom.version>
 
         <!-- Version khai báo rõ để tránh Maven không resolve được -->
-        <jjwt.version>0.12.6</jjwt.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <springdoc.version>3.0.3</springdoc.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <micrometer.version>1.16.7</micrometer.version>
