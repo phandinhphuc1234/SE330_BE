@@ -1,0 +1,167 @@
+package com.vn.auth.controller;
+
+import com.vn.auth.controller.docs.AuthApiDocs;
+import com.vn.auth.dto.request.LoginRequest;
+import com.vn.auth.dto.request.ChangePasswordRequest;
+import com.vn.auth.dto.request.ForgotPasswordRequest;
+import com.vn.auth.dto.request.RegistrationRequest;
+import com.vn.auth.dto.request.ResetPasswordRequest;
+import com.vn.auth.dto.request.ResendVerificationRequest;
+import com.vn.auth.dto.request.VerifyEmailCodeRequest;
+import com.vn.shared.dto.ApiResponse;
+import com.vn.auth.dto.response.AuthResult;
+import com.vn.auth.dto.response.AuthResponse;
+import com.vn.shared.exception.AppException;
+import com.vn.shared.exception.ErrorCode;
+import com.vn.auth.security.MemberUserDetails;
+import com.vn.auth.security.cookie.RefreshTokenCookieService;
+import com.vn.auth.service.AuthService;
+import com.vn.auth.service.PasswordManagementService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController implements AuthApiDocs {
+    // Call các service cần thiết 
+    private final AuthService authService;
+    private final PasswordManagementService passwordManagementService;
+    private final RefreshTokenCookieService refreshTokenCookieService;
+
+    // ── POST /api/auth/register ──
+    // Đăng ký tài khoản → gửi email xác nhận
+    @PostMapping("/register")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegistrationRequest request) {
+        authService.register(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.", null));
+    }
+
+    // ── GET /api/auth/verify-email?token=xxx ──
+    // User click link trong email → xác nhận tài khoản
+    @GetMapping("/verify-email")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(
+            @RequestParam String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success("Xác nhận email thành công. Bạn có thể đăng nhập.", null));
+    }
+
+    @PostMapping("/verify-email")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> verifyEmailCode(@Valid @RequestBody VerifyEmailCodeRequest request) {
+        authService.verifyEmailCode(request);
+        return ResponseEntity.ok(ApiResponse.success("Xác nhận email thành công. Bạn có thể đăng nhập.", null));
+    }
+
+    // ── POST /api/auth/login ──
+    // Đăng nhập → access token trong body, refresh token trong HttpOnly cookie
+    @PostMapping("/login")
+    @Override
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request,
+                                                           HttpServletResponse response) {
+        AuthResult authResult = authService.login(request);
+
+        refreshTokenCookieService.addRefreshTokenCookie(
+                response,
+                authResult.refreshToken(),
+                authResult.refreshTokenExpiryMs()
+        );
+
+        return ResponseEntity.ok(ApiResponse.success("Đăng nhập thành công", authResult.authResponse()));
+    }
+
+    // ── POST /api/auth/refresh ──
+    // Refresh token rotation: gửi refresh token từ cookie → nhận access + refresh mới
+    @PostMapping("/refresh")
+    @Override
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
+            @CookieValue(name = "${app.cookie.refresh-token-name}", required = false) String refreshToken,
+            HttpServletResponse response) {
+
+        if (refreshToken == null) {
+            throw new AppException(ErrorCode.MISSING_REFRESH_TOKEN);
+        }
+
+        AuthResult authResult = authService.refreshToken(refreshToken);
+
+        refreshTokenCookieService.addRefreshTokenCookie(
+                response,
+                authResult.refreshToken(),
+                authResult.refreshTokenExpiryMs()
+        );
+
+        return ResponseEntity.ok(ApiResponse.success("Làm mới token thành công", authResult.authResponse()));
+    }
+
+    @PostMapping("/resend-verification")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> resendVerification(
+            @Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerificationEmail(request);
+        return ResponseEntity.ok(ApiResponse.success("Email xác thực đã được gửi lại", null));
+    }
+
+    @PostMapping("/forgot-password")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordManagementService.requestPasswordReset(request);
+        // Deliberately generic so this public endpoint cannot enumerate emails.
+        return ResponseEntity.ok(ApiResponse.success("Nếu email tồn tại, liên kết đặt lại mật khẩu đã được gửi.", null));
+    }
+
+    @PostMapping("/reset-password")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletResponse response) {
+        passwordManagementService.resetPassword(request);
+        refreshTokenCookieService.clearRefreshTokenCookie(response);
+        return ResponseEntity.ok(ApiResponse.success("Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.", null));
+    }
+
+    @PostMapping("/change-password")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal MemberUserDetails userDetails,
+            @Valid @RequestBody ChangePasswordRequest request,
+            HttpServletResponse response) {
+        if (userDetails == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        passwordManagementService.changePassword(userDetails.getMember().getId(), request);
+        refreshTokenCookieService.clearRefreshTokenCookie(response);
+        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.", null));
+    }
+
+    // ── POST /api/auth/logout ──
+    // Đăng xuất: blacklist access token + xóa refresh token
+    @PostMapping("/logout")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader("Authorization") String authHeader,
+            @AuthenticationPrincipal MemberUserDetails userDetails,
+            HttpServletResponse response) {
+        // Từ chối request nếu thiếu Bearer token hợp lệ hoặc chưa xác thực được người dùng.
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || userDetails == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String accessToken = authHeader.substring(7); // bỏ "Bearer "
+        authService.logout(accessToken, userDetails.getMember().getId());
+
+        refreshTokenCookieService.clearRefreshTokenCookie(response);
+
+        return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công", null));
+    }
+
+}
+

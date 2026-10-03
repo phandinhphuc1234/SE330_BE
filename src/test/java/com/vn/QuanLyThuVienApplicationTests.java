@@ -1,6 +1,6 @@
 package com.vn;
 
-import com.vn.repository.BorrowRecordRepository;
+import com.vn.loan.repository.BorrowRecordRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;

@@ -1,0 +1,21 @@
+package com.vn.book.dto.response;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public record BookSummaryResponse(
+        Long id,
+        String title,
+        String isbn,
+        LocalDate publishedDate,
+        String language,
+        String edition,
+        BookCoverImageResponse coverImage,
+        Integer totalCopies,
+        Integer availableCopies,
+        CategoryResponse category,
+        List<AuthorResponse> authors,
+        Double averageRating,
+        Long totalReviews
+) {
+}
