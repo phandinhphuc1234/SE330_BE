@@ -4,9 +4,10 @@
 
 | File | Role |
 | --- | --- |
-| `compose.yml` | Development definition for API, worker, beat, migration and RAG infrastructure. |
-| `compose.override.yml` | Automatically loaded runtime defaults: no reload for API, restart policies for long-running services. |
-| `compose.observability.yml` | RAG PostgreSQL and Redis exporters only. |
+| `infra/compose/standalone/compose.yml` | Archived standalone definition for API, worker, beat, migration and RAG infrastructure. |
+| `infra/compose/standalone/compose.override.yml` | Standalone runtime defaults: no reload for API, restart policies for long-running services. |
+| `infra/compose/standalone/compose.observability.yml` | Standalone RAG PostgreSQL and Redis exporters only. |
+| `../compose.yaml` + `../compose.rag.yaml` | Preferred integrated library and RAG stack. |
 
 ## Required secret
 
@@ -30,22 +31,22 @@ RAG dependencies use `rag-internal-net`. Only integration-facing services join `
 
 ## Startup order
 
-```bash
-docker compose up -d postgres redis qdrant seaweedfs
-docker compose up seaweedfs-init
-docker compose --profile tools run --rm migrate
-docker compose up -d api worker
+Use the repository-level PowerShell helper for the preferred integrated stack:
+
+```powershell
+.\scripts\dev-up.ps1
 ```
 
+See `infra/compose/standalone/README.md` only when RAG must run independently.
+
 The `beat` service is optional and currently schedules placeholder tasks only.
-Start it later with `docker compose --profile scheduled-jobs up -d beat` after
-real cleanup/reconciliation tasks are implemented.
+Start it later through `.\scripts\dev-up.ps1 -ScheduledJobs` after real
+cleanup/reconciliation tasks are implemented.
 
 Optional exporters:
 
-```bash
-docker compose -f compose.yml -f compose.observability.yml up -d
-```
+The archived standalone exporter command is documented in
+`infra/compose/standalone/README.md`.
 
 ## Migration warning
 

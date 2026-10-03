@@ -137,35 +137,37 @@ docker compose up seaweedfs-init
 
 Run migrations:
 
-```bash
-docker compose --profile tools run --rm migrate
+```powershell
+docker compose --project-directory . -f infra/compose/standalone/compose.yml -f infra/compose/standalone/compose.override.yml --profile tools run --rm migrate
 ```
 
 Start application processes:
 
-```bash
-docker compose up -d api worker
+```powershell
+docker compose --project-directory . -f infra/compose/standalone/compose.yml -f infra/compose/standalone/compose.override.yml up -d api worker
 ```
 
 `beat` is behind the `scheduled-jobs` profile because every scheduled task is
 currently a placeholder. Enable it only after implementing real cleanup jobs:
 
-```bash
-docker compose --profile scheduled-jobs up -d beat
+```powershell
+docker compose --project-directory . -f infra/compose/standalone/compose.yml -f infra/compose/standalone/compose.override.yml --profile scheduled-jobs up -d beat
 ```
 
 Optional exporters:
 
-```bash
-docker compose -f compose.yml -f compose.observability.yml up -d
+```powershell
+docker compose --project-directory . -f infra/compose/standalone/compose.yml -f infra/compose/standalone/compose.override.yml -f infra/compose/standalone/compose.observability.yml up -d
 ```
 
-`compose.override.yml` is loaded automatically and applies runtime defaults such as no API reload and restart policies. This repository does not rely on Compose reset tags, so it stays compatible with older Compose builds.
+The standalone override is passed explicitly because it is archived outside the
+default Compose filename location. Prefer the repository-level
+`..\scripts\dev-up.ps1` command for integrated library development.
 
 ## Verify
 
-```bash
-docker compose ps
+```powershell
+docker compose --project-directory . -f infra/compose/standalone/compose.yml -f infra/compose/standalone/compose.override.yml ps
 docker network inspect library-platform-net
 curl http://localhost:8000/api/v1/health
 ```
