@@ -58,6 +58,15 @@ if [[ -n "${RAG_ENABLED_INPUT_B64:-}" ]]; then
 fi
 [[ "$rag_enabled_input" == 'unchanged' || "$rag_enabled_input" == 'true' || "$rag_enabled_input" == 'false' ]] || \
   fail 'rag_enabled must be unchanged, true, or false.'
+initialize_rag_database='false'
+if [[ -n "${INITIALIZE_RAG_DATABASE_B64:-}" ]]; then
+  initialize_rag_database="$(decode_required INITIALIZE_RAG_DATABASE_B64)"
+fi
+[[ "$initialize_rag_database" == 'true' || "$initialize_rag_database" == 'false' ]] || \
+  fail 'initialize_rag_database must be true or false.'
+if [[ "$initialize_rag_database" == 'true' && "$rag_enabled_input" != 'true' ]]; then
+  fail 'Initial RAG database provisioning requires rag_enabled=true.'
+fi
 public_api_base_url="${public_api_base_url%/}"
 frontend_origin="${frontend_origin%/}"
 validate_http_url PUBLIC_API_BASE_URL "$public_api_base_url"
@@ -147,6 +156,33 @@ ensure_secret() {
   fi
 }
 
+# Chỉ sửa password RAG ban đầu khi operator chọn rõ và Docker xác nhận chưa có
+# container/volume PostgreSQL của RAG. Không xóa volume, đổi password DB đã chạy,
+# hoặc rotate POSTGRES_PASSWORD của Library. Docker lỗi cũng phải dừng an toàn.
+initialize_rag_database_password() {
+  command -v docker >/dev/null 2>&1 || fail 'Docker is required to check initial RAG database state.'
+  docker version >/dev/null 2>&1 || fail 'Cannot verify initial RAG database state with Docker.'
+  local database_containers database_volumes named_volume current_value
+  database_containers="$(docker ps -a \
+    --filter label=com.docker.compose.project=quanlythuvien \
+    --filter label=com.docker.compose.service=rag-postgres \
+    --format '{{.ID}}')" || fail 'Cannot inspect RAG database containers.'
+  database_volumes="$(docker volume ls \
+    --filter label=com.docker.compose.project=quanlythuvien \
+    --filter label=com.docker.compose.volume=rag_postgres_data \
+    --format '{{.Name}}')" || fail 'Cannot inspect RAG database volumes.'
+  named_volume="$(docker volume ls --filter name=quanlythuvien_rag_postgres_data \
+    --format '{{.Name}}')" || fail 'Cannot inspect the expected RAG database volume.'
+  [[ -z "$database_containers" && -z "$database_volumes" && -z "$named_volume" ]] || \
+    fail 'Refusing initial RAG password repair: a database container or volume already exists.'
+  log 'Verified that no RAG PostgreSQL container or volume exists.'
+  current_value="$(get_value RAG_POSTGRES_PASSWORD)"
+  if [[ ! "$current_value" =~ ^[A-Za-z0-9._~-]{24,}$ ]]; then
+    set_value RAG_POSTGRES_PASSWORD "$(openssl rand -hex 32)"
+    log 'Generated a strong initial RAG_POSTGRES_PASSWORD; Library credentials remain unchanged.'
+  fi
+}
+
 # Bước 12: thêm giá trị mặc định cho setting còn thiếu/placeholder nhưng không
 # ghi đè cấu hình hợp lệ mà người vận hành đã chủ động thiết lập.
 ensure_setting() {
@@ -177,6 +213,9 @@ ensure_setting RAG_ENABLED 'false'
 ensure_setting RAG_SERVICE_URL 'http://rag-api:8000'
 ensure_setting RAG_POSTGRES_DB 'rag_db'
 ensure_setting RAG_POSTGRES_USER 'rag_app'
+if [[ "$initialize_rag_database" == 'true' ]]; then
+  initialize_rag_database_password
+fi
 ensure_secret RAG_POSTGRES_PASSWORD 32
 ensure_secret RAG_REDIS_PASSWORD 32
 ensure_secret RAG_INTERNAL_API_KEY 32
@@ -265,6 +304,8 @@ log 'Secret values were not printed and existing valid secrets were not rotated.
 # nhận URL public và cờ Swagger -> kiểm tra input -> đọc file cũ/template -> sinh
 # secret còn thiếu -> cập nhật URL/cookie/Swagger -> validate -> chmod 600
 # -> thay backend.env.
+# Opt-in initialize_rag_database: xác nhận chưa có RAG DB/container/volume ->
+# sửa password RAG ban đầu không đạt chuẩn; không xóa dữ liệu hoặc đổi secret Library.
 #
 # VẤN ĐỀ GIẢI QUYẾT:
 # loại bỏ việc nhập tay mật khẩu production, không đưa secret lên GitHub, không

@@ -20,6 +20,12 @@
    giữ lựa chọn Swagger hiện tại, `rag_enabled=true`, confirmation `PROVISION`.
    Workflow truyền key qua SSH stdin, giữ key hợp lệ trên VPS, sinh credential
    nội bộ còn thiếu và đặt LLM `gemini-2.5-flash`, chunking v1.
+   Nếu database RAG **chưa từng được khởi tạo** và password ban đầu không đạt chuẩn,
+   chọn thêm `initialize_rag_database=true`. Script chỉ sửa `RAG_POSTGRES_PASSWORD`
+   khi Docker xác nhận không có container/volume PostgreSQL RAG; sinh 64 ký tự hex
+   trên VPS, không in giá trị. Database/secret Library và provider key được giữ nguyên.
+   Có container/volume (kể cả DB trống) hoặc không kiểm tra được Docker thì dừng;
+   không xóa volume, không tự rotate password của database đã khởi tạo.
 4. Provision chỉ đổi protected runtime, chưa thay container. Sau preflight đạt,
    deploy qua **Backend CI/CD**. Pipeline backup DB, Alembic/Flyway, deploy
    immutable image, kiểm tra health và rollback image khi cần.
@@ -69,3 +75,14 @@ provider key; core backend vẫn có thể deploy riêng trong thời gian chu�
   các điều kiện trên trước khi xử lý riêng issue; không thay quality gate/profile.
 - Nếu sau này thêm endpoint xác thực bằng cookie, phải cập nhật matcher và test
   trong cùng thay đổi. Không suy ra Bearer-only chỉ vì application stateless.
+
+## Bốn issue cũ trên main trước demo
+
+- `password-reset.html`: khai báo `lang="vi"`; hai bảng dàn trang dùng
+  `role="presentation"`, không thêm `<th>` giả hoặc ẩn nội dung khỏi screen reader.
+  Test render Thymeleaf thật giữ link đặt lại mật khẩu và escape tên người nhận.
+- `V40__add_password_reset_tokens.sql`: `plsql:CharVarchar` yêu cầu Oracle
+  `VARCHAR2` cho một migration PostgreSQL dùng `CHAR(64)` lưu hash. Review riêng
+  false positive theo ngữ cảnh; không sửa migration đã chạy, không tắt rule/profile.
+- Bản sửa phải qua CI và Sonar; sau merge kiểm tra lại quality gate của main
+  trước khi tiếp tục build/scan image và deploy production.
