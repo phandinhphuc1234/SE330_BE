@@ -41,6 +41,10 @@ class SearchResult:
     metadata: dict[str, Any] = field(default_factory=dict)
     vector_id: str | None = None
     retrieval_source: str = "vector"
+    # Optional, answer-only context assembled from neighbouring chunks. Public
+    # semantic-search responses continue to expose ``text`` so expansion does
+    # not silently change their result granularity.
+    context_text: str | None = None
 
 
 class VectorStore(ABC):

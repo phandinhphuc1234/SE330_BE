@@ -58,7 +58,7 @@ class S3EbookObjectStorageServiceTest {
     }
 
     @Test
-    void upload_shouldStreamFileOnceAndCalculateChecksumDuringUpload() throws Exception {
+    void upload_shouldStageMultipartOnceAndProvideRepeatableS3Body() throws Exception {
         byte[] content = "ebook-pdf-content".getBytes();
         AtomicInteger openCount = new AtomicInteger();
         when(file.getContentType()).thenReturn("application/pdf");
@@ -71,7 +71,8 @@ class S3EbookObjectStorageServiceTest {
         when(ebookS3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenAnswer(invocation -> {
                     RequestBody body = invocation.getArgument(1);
-                    body.contentStreamProvider().newStream().readAllBytes();
+                    assertThat(body.contentStreamProvider().newStream().readAllBytes()).isEqualTo(content);
+                    assertThat(body.contentStreamProvider().newStream().readAllBytes()).isEqualTo(content);
                     return PutObjectResponse.builder().build();
                 });
         when(ebookS3Client.headObject(any(HeadObjectRequest.class)))

@@ -2,14 +2,19 @@ package com.vn.ebook.repository;
 
 import com.vn.ebook.entity.BookEbook;
 import com.vn.ebook.enums.BookEbookStatus;
+import com.vn.ebook.enums.EbookIngestionStatus;
 import com.vn.shared.enums.MediaProvider;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface BookEbookRepository extends JpaRepository<BookEbook, Long> {
@@ -36,4 +41,16 @@ public interface BookEbookRepository extends JpaRepository<BookEbook, Long> {
             where ebook.id = :id
             """)
     Optional<BookEbook> findLockedById(@Param("id") Long id);
+
+    @Query("""
+            select ebook.id
+            from BookEbook ebook
+            where ebook.ragJobId is not null
+              and ebook.ingestionStatus in :statuses
+              and (ebook.ingestionNextCheckAt is null or ebook.ingestionNextCheckAt <= :now)
+            order by ebook.indexingRequestedAt asc nulls first, ebook.id asc
+            """)
+    List<Long> findIngestionSyncCandidateIds(@Param("statuses") Collection<EbookIngestionStatus> statuses,
+                                              @Param("now") Instant now,
+                                              Pageable pageable);
 }

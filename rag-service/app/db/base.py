@@ -10,3 +10,4 @@ def import_all_models() -> None:
     # Alembic calls this to populate Base.metadata without creating runtime import cycles.
     from app.documents import models as document_models  # noqa: F401
     from app.ingestion import models as ingestion_models  # noqa: F401
+    from app.retrieval import graph_models  # noqa: F401

@@ -5,7 +5,8 @@ then calls RAG with a trusted book/ebook scope so RAG can search Qdrant with
 mandatory metadata filters.
 """
 
-from typing import Annotated, Any
+from functools import lru_cache
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -16,6 +17,7 @@ from app.retrieval.library_vector_retrieval import (
     LibraryVectorRetrievalResponse as ServiceRetrievalResponse,
     LibraryVectorRetrievalService,
 )
+from app.retrieval.retrieval_pipeline import RetrievalPipeline
 
 
 router = APIRouter()
@@ -34,6 +36,10 @@ class InternalVectorSearchRequest(BaseModel):
     score_threshold: Annotated[float, Field(ge=0.0, le=1.0)] | None = Field(
         default=None,
         alias="scoreThreshold",
+    )
+    retrieval_mode: Literal["dense", "hybrid", "graph"] | None = Field(
+        default=None,
+        alias="retrievalMode",
     )
 
     @model_validator(mode="after")
@@ -70,16 +76,19 @@ class InternalVectorSearchResponse(BaseModel):
     results: list[InternalVectorSearchHit]
 
 
-def get_library_vector_retrieval_service() -> LibraryVectorRetrievalService:
-    """Build the production retrieval service for dependency injection."""
+@lru_cache(maxsize=1)
+def get_library_vector_retrieval_service() -> RetrievalPipeline:
+    """Build the production hybrid retrieval pipeline for dependency injection."""
 
-    return LibraryVectorRetrievalService()
+    return RetrievalPipeline()
 
 
 @router.post("/search", response_model=InternalVectorSearchResponse)
 async def search_library_vectors(
     payload: InternalVectorSearchRequest,
-    service: LibraryVectorRetrievalService = Depends(get_library_vector_retrieval_service),
+    service: LibraryVectorRetrievalService | RetrievalPipeline = Depends(
+        get_library_vector_retrieval_service
+    ),
 ) -> InternalVectorSearchResponse:
     """Search indexed Library ebook chunks using Gemini query embedding + Qdrant."""
 
@@ -92,6 +101,7 @@ async def search_library_vectors(
                 document_id=payload.document_id,
                 top_k=payload.top_k,
                 score_threshold=payload.score_threshold,
+                retrieval_mode=payload.retrieval_mode,
             )
         )
     except ValueError as error:

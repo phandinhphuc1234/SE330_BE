@@ -6,7 +6,7 @@ RAG chạy như một internal processing/search service của Spring Boot, khô
 
 ```text
 Spring Boot = business/auth/permission owner
-RAG         = ingestion/retrieval engine
+RAG         = ingestion/retrieval/grounded-generation engine
 ```
 
 RAG không còn quản lý:
@@ -39,9 +39,9 @@ flowchart LR
     Worker --> Embedding[Embedding provider]
     Worker --> Qdrant[(Qdrant)]
 
-    Library -->|future internal query| API
+    Library -->|scoped retrieval| API
     API --> Qdrant
-    API --> LLM[LLM provider]
+    API -->|bounded evidence prompt| LLM[LLM provider]
 ```
 
 ## 3. Write path
@@ -63,9 +63,23 @@ Staff uploads PDF to Spring Boot
 
 The API returns `202 Accepted` after enqueue. Upload and ingestion status are independent.
 
-## 4. Read path target
+## 4. Read path hiện tại
 
-Spring Boot will eventually call an internal query endpoint with a trusted scope such as `bookId`/`ebookId`. RAG retrieves only Qdrant points matching that scope, builds grounded context and returns an answer plus citations/page metadata.
+RAG hiện đã có `POST /internal/retrieval/search`. Endpoint bắt buộc có ít nhất
+một trusted scope `bookId`, `ebookId` hoặc `documentId`, tạo query embedding,
+tìm Qdrant với metadata filter và trả evidence chunks kèm score/citation/page
+metadata. Đây vẫn là endpoint evidence cấp thấp, không phải chatbot.
+
+Spring hiện expose `POST /api/ebooks/{bookId}/reader/semantic-search`. Endpoint
+yêu cầu member JWT và `X-Reading-Session`, kiểm tra lại active loan và chỉ gửi
+trusted `ebookId` sang RAG. Kết quả có citation lệch scope bị fail closed.
+
+Luồng Ask This Book đã có `POST /internal/answers` và public endpoint
+`POST /api/ebooks/{bookId}/reader/ask`. Spring xác thực quyền đọc rồi gửi
+`ebookId` đáng tin cậy; RAG retrieval evidence, áp dụng score threshold, giới hạn
+context và chỉ chấp nhận source ID thuộc evidence hiện tại. Nếu evidence hoặc
+citation không hợp lệ, response sẽ abstain thay vì đoán. Chi tiết roadmap nằm tại
+[Secure AI Ebook Reader](../../../docs/secure-ai-ebook-reader-roadmap.md).
 
 End-user identity remains in Spring Boot. RAG should receive the minimum trusted authorization scope required for filtering; it does not need a duplicate user database.
 
@@ -177,7 +191,8 @@ Point IDs should be deterministic so Celery retries perform upserts instead of c
 | --- | --- |
 | Upload/validation fails | Spring does not trigger RAG. |
 | Spring DB commit fails | Do not trigger RAG; cleanup orphan object later. |
-| RAG unavailable | Spring retains `RAG_PENDING` and retries. |
+| RAG unavailable lúc trigger | Source hiện tại ghi `FAILED`; production target là outbox/retry idempotent thay vì yêu cầu upload lại. |
+| RAG unavailable lúc polling | Spring giữ trạng thái gần nhất và thử lại ở chu kỳ sau. |
 | Invalid API key/bucket/key | RAG rejects request without enqueue. |
 | Redis unavailable | RAG returns retryable enqueue failure. |
 | Worker/parser fails | RAG marks job `FAILED`; upload remains successful. |
@@ -203,5 +218,8 @@ Production should use a Spring transactional outbox for reliable post-commit del
 
 - No immutable document version model yet.
 - API key rotation supports one active key only.
-- Internal retrieval/query contract has not been finalized.
+- No grounded answer-generation endpoint or abstention policy yet.
+- No member-facing Ask This Book answer-generation API yet; current public API
+  returns retrieval evidence only.
+- Reader citation-to-page navigation and retrieval evaluation are not complete.
 - `/metrics` is not exposed by FastAPI yet.

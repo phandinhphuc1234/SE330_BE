@@ -72,6 +72,10 @@ public enum LogEvent {
     EXPIRE_READY_HOLDS_JOB,
     EXPIRE_READY_HOLD,
 
+    // Ebook AI reader
+    ASK_EBOOK,
+    SEARCH_EBOOK,
+
     // Notification provider callbacks
     PROCESS_RESEND_WEBHOOK,
 

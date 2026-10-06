@@ -15,6 +15,9 @@ api.md
 
 Ghi chú API surface của RAG service.
 
+Bao gồm ingestion/status và scoped evidence retrieval hiện tại. Endpoint
+retrieval chưa tạo câu trả lời cuối cho người dùng.
+
 ### Database schema
 
 ```text

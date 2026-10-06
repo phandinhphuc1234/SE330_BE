@@ -1,4 +1,9 @@
-# Kiến trúc, ERD và ba luồng demo chính
+# Kiến trúc, ERD và các luồng chính
+
+Định hướng AI ưu tiên của project là
+[Secure AI Ebook Reader](secure-ai-ebook-reader-roadmap.md). Luồng này đang
+được hoàn thiện theo từng phase; các luồng thư viện còn lại vẫn hoạt động độc
+lập khi RAG tắt.
 
 ## Kiến trúc ở mức component
 
@@ -13,6 +18,12 @@ flowchart LR
     Service -. optional .-> VNPAY[VNPAY sandbox]
     Service -. optional .-> Storage[S3-compatible ebook storage]
     Service --> SSE[SSE CSV import events]
+    Service -. internal API .-> RAG[RAG FastAPI]
+    RAG --> RAGDB[(RAG PostgreSQL)]
+    RAG --> Qdrant[(Qdrant)]
+    RAG --> RedisRAG[(Redis + Celery)]
+    RAG --> Storage
+    RAG -. embedding / generation .-> AI[AI provider]
 ```
 
 Mọi API thông thường trả `ApiResponse`; danh sách phân trang đặt nội dung ở
@@ -108,3 +119,41 @@ sequenceDiagram
 
 Callback retry không tạo loan trùng: payment transaction được khóa và trạng
 thái terminal được ghi audit rồi bỏ qua.
+
+## Secure AI Ebook Reader
+
+```mermaid
+sequenceDiagram
+    participant Member
+    participant UI as Ebook Reader
+    participant API as Spring Boot
+    participant DB as Library DB
+    participant RAG as RAG Service
+    participant Vector as Qdrant
+    participant LLM as LLM Provider
+
+    Member->>UI: Search hoặc Ask This Book
+    UI->>API: ebookId + question + JWT
+    API->>DB: Kiểm tra quyền đọc và trạng thái INDEXED
+    alt không có quyền
+        API-->>UI: 403 Forbidden
+    else được phép
+        API->>RAG: service credential + trusted ebook scope
+        RAG->>Vector: semantic search có filter ebookId
+        Vector-->>RAG: evidence chunks + page metadata
+        alt Ask This Book và evidence đủ ngưỡng
+            RAG->>LLM: question + bounded evidence
+            LLM-->>RAG: structured answer + source IDs
+            RAG-->>API: grounded answer + verified citations
+        else Semantic search hoặc evidence không đủ
+            RAG-->>API: evidence chunks hoặc abstention
+        end
+        API-->>UI: ApiResponse
+    end
+```
+
+Spring Boot luôn là lớp xác thực/quyền nghiệp vụ; frontend không gọi trực tiếp
+RAG. Public semantic search và Ask This Book đều yêu cầu JWT + reading session +
+active loan. Ask This Book trả answer có citation hoặc chủ động abstain khi
+không đủ evidence. Chi tiết trạng thái và roadmap nằm trong
+[secure-ai-ebook-reader-roadmap.md](secure-ai-ebook-reader-roadmap.md).

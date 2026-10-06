@@ -1,7 +1,43 @@
 # Documentation Map
 
+Implementation cập nhật 2026-10-05:
+[Retrieval, evaluation và graph theo ebook](retrieval-evaluation-implementation.md).
+Các checklist trong guide tổng quát không thay thế trạng thái implementation này.
+
+Giải thích từng phần theo code: [Ghi chú học retrieval — bắt đầu BM25](retrieval-learning-notes.md).
+Tài liệu này theo dõi sáu chủ đề, nội dung đã giải thích và kết quả kiểm tra.
+
+Sơ đồ đầy đủ theo code: [Full flow RAG trong Library](rag-full-flow.md), gồm
+upload/index, retrieval, answer/citation và các flow graph/evaluation chạy riêng.
+
+Checkpoint chunking: [Baseline v1 và kế hoạch sửa ranh giới trang/chương](chunking/chunking-baseline-and-boundary-plan.md).
+Bước 2: [Chapter-aware v2 và source mapping](chunking/chapter-aware-v2.md),
+opt-in; default v1 và dữ liệu đã index chưa thay đổi.
+Bước 3: [Context expansion theo chương và source revision](chunking/chapter-aware-context-expansion.md),
+giữ citation từng chunk và không qua boundary/gap; chưa deploy/reindex.
+Bước 4: [Benchmark PDF thật và promotion gates](chunking/real-book-chunking-benchmark.md),
+source labels chung cho v1/v2; HOLD default v1, chưa reindex/deploy.
+[Follow-up heading fix](chunking/heading-detection-regression-fix.md): sửa
+v2, 491 tests pass, rerun cùng labels; chapter gate pass, retrieval/held-out HOLD.
+[Ranking diagnostics và query holdout](chunking/retrieval-diagnostics-and-vi-query-holdout.md)
+thêm giải thích BM25/cosine và 20 câu tiếng Việt với evidence mới trên PDF
+English cũ; không nhầm query-level holdout với kiểm chứng sách tiếng Việt.
+
 Đây là bản đồ tổng cho folder `docs/`. Tài liệu đã được chia theo từng vùng của
 pipeline để dễ đọc và dễ mở rộng.
+
+---
+
+## 0. Product direction
+
+Hướng sản phẩm đang được ưu tiên là
+[Secure AI Ebook Reader](../../docs/secure-ai-ebook-reader-roadmap.md): hỏi đáp
+trong một ebook được cấp quyền, có citation theo trang và abstain khi không đủ
+bằng chứng.
+
+Các tài liệu GraphRAG, multi-book research, recommendation và learning assistant
+là backlog sau MVP. Endpoint retrieval trả evidence chunks; generation MVP đã
+được nối qua `/internal/answers` với citation allow-list và abstention.
 
 ---
 
@@ -207,6 +243,7 @@ Chương chunking đã được tách sang docs/chunking/04-chunking-strategy.md
 ## Thứ tự đọc đề xuất cho đồ án hiện tại
 
 ```text
+0. ../docs/secure-ai-ebook-reader-roadmap.md
 1. docs/platform/README.md
 2. docs/integration/README.md
 3. docs/ingestion/README.md

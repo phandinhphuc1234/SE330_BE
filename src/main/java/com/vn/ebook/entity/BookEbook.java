@@ -103,8 +103,23 @@ public class BookEbook {
     @Column(name = "ingestion_last_error", length = 1000)
     private String ingestionLastError;
 
+    @Column(name = "ingestion_stage", length = 100)
+    private String ingestionStage;
+
     @Column(name = "indexing_requested_at")
     private Instant indexingRequestedAt;
+
+    @Column(name = "ingestion_last_checked_at")
+    private Instant ingestionLastCheckedAt;
+
+    @Column(name = "ingestion_poll_failure_count", nullable = false)
+    private Integer ingestionPollFailureCount;
+
+    @Column(name = "ingestion_next_check_at")
+    private Instant ingestionNextCheckAt;
+
+    @Column(name = "indexing_completed_at")
+    private Instant indexingCompletedAt;
 
     // ACTIVE là bản ebook đang dùng; upload lại main.pdf sẽ giữ một row và cập nhật metadata.
     @Enumerated(EnumType.STRING)
@@ -167,6 +182,9 @@ public class BookEbook {
         }
         if (this.ingestionStatus == null) {
             this.ingestionStatus = EbookIngestionStatus.NOT_REQUESTED;
+        }
+        if (this.ingestionPollFailureCount == null) {
+            this.ingestionPollFailureCount = 0;
         }
         if (this.maxConcurrentLoans == null) {
             this.maxConcurrentLoans = 5;

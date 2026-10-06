@@ -81,6 +81,130 @@ Current terminal success is `INDEXED`. The worker still commits `CHUNKED` as an
 intermediate state after chunks/artifacts are persisted, but `INDEXED` is only
 set after embedding and Qdrant upsert succeed.
 
+## Search indexed evidence
+
+```http
+POST /internal/retrieval/search
+Content-Type: application/json
+X-RAG-API-Key: <service-secret>
+```
+
+At least one trusted scope is required: `bookId`, `ebookId` or `documentId`.
+For the Secure AI Ebook Reader, Spring Boot should authorize the member first
+and send the exact `ebookId` being read.
+
+```json
+{
+  "query": "Dependency inversion là gì?",
+  "ebookId": 55,
+  "topK": 5,
+  "scoreThreshold": 0.7
+}
+```
+
+Constraints:
+
+- `query`: 1-4096 characters.
+- `topK`: optional, 1-50.
+- `scoreThreshold`: optional, 0.0-1.0.
+- Unknown request fields are rejected.
+
+Response example:
+
+```json
+{
+  "queryTextHash": "<sha256>",
+  "queryTextPolicy": "<embedding query policy>",
+  "embeddingVersion": "<configured version>",
+  "topK": 5,
+  "resultCount": 1,
+  "appliedFilters": {
+    "ebook_id": 55
+  },
+  "results": [
+    {
+      "pointId": "<qdrant point id>",
+      "vectorId": "<deterministic vector id>",
+      "score": 0.83,
+      "text": "Retrieved evidence text...",
+      "citation": {
+        "documentId": "doc_ebook_55",
+        "bookId": 101,
+        "ebookId": 55,
+        "pageStart": 42,
+        "pageEnd": 43,
+        "chunkIndex": 12
+      },
+      "metadata": {}
+    }
+  ]
+}
+```
+
+This endpoint returns evidence chunks, not a generated answer. It does not
+authenticate end users and must never be called directly from the browser.
+The target user-facing flow and answer contract are documented in
+[Secure AI Ebook Reader](../../../docs/secure-ai-ebook-reader-roadmap.md).
+
+## Generate an evidence-grounded ebook answer
+
+```http
+POST /internal/answers
+Content-Type: application/json
+X-RAG-API-Key: <service-secret>
+```
+
+Spring must authorize the member and reading session first, then send the
+trusted `ebookId`. The configured `ANSWER_SCORE_THRESHOLD` is a safety floor:
+callers may raise it but cannot lower it.
+
+```json
+{
+  "question": "Dependency inversion là gì?",
+  "ebookId": 55,
+  "topK": 5,
+  "scoreThreshold": 0.7
+}
+```
+
+Grounded response:
+
+```json
+{
+  "answer": "Dependency inversion tách module cấp cao khỏi chi tiết cấp thấp.",
+  "grounded": true,
+  "abstained": false,
+  "reason": null,
+  "citations": [
+    {
+      "documentId": "doc_ebook_55",
+      "bookId": 101,
+      "ebookId": 55,
+      "pageStart": 42,
+      "pageEnd": 43,
+      "chunkId": "<deterministic-vector-id>",
+      "excerpt": "<bounded evidence excerpt>",
+      "score": 0.83
+    }
+  ],
+  "model": "gpt-4o-mini",
+  "promptVersion": "library-ebook-answer-v1"
+}
+```
+
+If retrieval is below the threshold, the endpoint does not call the LLM and
+returns `abstained=true`, `grounded=false` and an empty citation list. A
+non-abstained answer is accepted only when every cited source ID belongs to the
+current retrieval result; model-generated citation metadata is never trusted.
+
+Runtime generation settings:
+
+- `LLM_PROVIDER=openai` with `OPENAI_API_KEY`, or `LLM_PROVIDER=gemini` with
+  `GEMINI_API_KEY`.
+- `LLM_MODEL` must name a model for the selected provider.
+- `LLM_TIMEOUT_SECONDS`, `ANSWER_RETRIEVAL_TOP_K`,
+  `ANSWER_SCORE_THRESHOLD`, and `ANSWER_MAX_CONTEXT_CHARS` bound cost and risk.
+
 ## Health
 
 ```http

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "name": "english-real-pdf-chunking-development",
+  "version": "1.0.0",
+  "books": [
+    {
+      "id": "gift-of-the-magi",
+      "title": "The Gift of the Magi",
+      "filename": "gift-of-the-magi.pdf",
+      "sha256": "637e2cf35c2fb62f99b1152ebbb8b6cb16344786b665c573436f1f7d8c44075c",
+      "source_url": "https://www.ibiblio.org/ebooks/Henry/Gift_Magi.pdf",
+      "rights_url": "https://www.ibiblio.org/ebooks/Henry/",
+      "chapters": [],
+      "questions": [
+        {"id": "rent", "question": "How much did the furnished flat cost each week?", "evidence": [{"page": 3, "quote": "A furnished flat at $8 per week."}], "tags": ["fact", "money"]},
+        {"id": "watch-inheritance", "question": "Who owned Jim's gold watch before him?", "evidence": [{"page": 4, "quote": "One was Jim’s gold watch that had been his father’s and his grandfather’s."}], "tags": ["fact", "relation"]},
+        {"id": "hair-length", "question": "How far did Della's hair reach before she sold it?", "evidence": [{"page": 5, "quote": "It reached below her knee and made itself almost a garment for her."}], "tags": ["fact"]},
+        {"id": "chain-price-and-change", "question": "How much did the chain cost and how much money did Della bring home?", "evidence": [{"page": 5, "quote": "Twenty-one dollars they took"}, {"page": 6, "quote": "from her for it, and she hurried home with the 87 cents."}], "tags": ["cross-page", "multi-fact"]},
+        {"id": "dinner", "question": "At what time was the coffee made and the frying-pan ready for the chops?", "evidence": [{"page": 6, "quote": "At 7 o’clock the coffee was made and the frying-pan was on the back of the stove hot and ready to cook the chops."}], "tags": ["fact"]},
+        {"id": "age", "question": "How old was Jim?", "evidence": [{"page": 6, "quote": "Poor fellow, he was only twenty-two"}], "tags": ["fact"]},
+        {"id": "combs", "question": "What gift did Jim buy for Della?", "evidence": [{"page": 8, "quote": "For there lay The Combs—the set of combs, side and back"}], "tags": ["fact", "gift"]},
+        {"id": "sold-watch", "question": "How did Jim get the money to buy Della's combs?", "evidence": [{"page": 9, "quote": "I sold the watch to get the money to buy your combs."}], "tags": ["fact", "gift"]},
+        {"id": "two-sacrifices", "question": "Compare what Della and Jim each sold to buy the other's gift.", "evidence": [{"page": 7, "quote": "I had my hair cut off and sold it"}, {"page": 9, "quote": "I sold the watch to get the money to buy your combs."}], "tags": ["cross-page", "comparison"]},
+        {"id": "unusable-gifts", "question": "Why could neither Della nor Jim immediately use the gifts?", "evidence": [{"page": 8, "quote": "the tresses that should have adorned the coveted adornments were gone."}, {"page": 9, "quote": "I sold the watch to get the money to buy your combs."}], "tags": ["cross-page", "reasoning"]}
+      ]
+    },
+    {
+      "id": "douglass-narrative",
+      "title": "Narrative of the Life of Frederick Douglass",
+      "filename": "douglass-narrative.pdf",
+      "sha256": "fa3afe6e9b2b7e741d984e6185648c30650b2f529c3dc619005d41c6d9b37a92",
+      "source_url": "https://www.ibiblio.org/ebooks/Douglass/Narrative/Douglass_Narrative.pdf",
+      "rights_url": "https://www.ibiblio.org/ebooks/Douglass/index.html",
+      "chapter_audit_start_page": 19,
+      "chapters": [
+        {"page": 19, "heading": "##### **CHAPTER I.**", "title": "CHAPTER I."},
+        {"page": 25, "heading": "##### **CHAPTER II.**", "title": "CHAPTER II."},
+        {"page": 31, "heading": "##### **CHAPTER III.**", "title": "CHAPTER III."},
+        {"page": 36, "heading": "##### **CHAPTER IV.**", "title": "CHAPTER IV."},
+        {"page": 41, "heading": "##### **CHAPTER V.**", "title": "CHAPTER V."},
+        {"page": 46, "heading": "##### **CHAPTER VI.**", "title": "CHAPTER VI."},
+        {"page": 50, "heading": "##### **CHAPTER VII.**", "title": "CHAPTER VII."},
+        {"page": 57, "heading": "##### **CHAPTER VIII.**", "title": "CHAPTER VIII."},
+        {"page": 63, "heading": "##### **CHAPTER IX.**", "title": "CHAPTER IX."},
+        {"page": 69, "heading": "##### **CHAPTER X.**", "title": "CHAPTER X."},
+        {"page": 104, "heading": "##### **CHAPTER XI.**", "title": "CHAPTER XI."},
+        {"page": 119, "heading": "APPENDIX.", "title": "APPENDIX."}
+      ],
+      "questions": [
+        {"id": "birthplace", "question": "Where was Frederick Douglass born?", "evidence": [{"page": 19, "quote": "I WAS born in Tuckahoe, near Hillsborough"}], "tags": ["fact", "named-entity"]},
+        {"id": "mother-name", "question": "What was Douglass's mother's name?", "evidence": [{"page": 19, "quote": "My mother was named Harriet Bailey."}], "tags": ["fact", "relation"]},
+        {"id": "parents", "question": "What does Douglass say about his mother's name and his father's race?", "evidence": [{"page": 19, "quote": "My mother was named Harriet Bailey."}, {"page": 20, "quote": "My father was a white man."}], "tags": ["cross-page", "multi-fact"]},
+        {"id": "master-children", "question": "What were the names of the master's two sons and daughter?", "evidence": [{"page": 25, "quote": "two sons, Andrew and Richard; one daughter, Lucretia"}], "tags": ["multi-fact", "named-entity"]},
+        {"id": "garden", "question": "How many men worked in Colonel Lloyd's garden besides the chief gardener?", "evidence": [{"page": 31, "quote": "almost constant employment for four men, besides the chief gardener"}], "tags": ["fact"]},
+        {"id": "overseer", "question": "Who succeeded Mr. Hopkins as overseer?", "evidence": [{"page": 36, "quote": "Mr. Hopkins was succeeded by Mr. Austin Gore"}], "tags": ["fact", "named-entity"]},
+        {"id": "mistress-trade", "question": "What was Douglass's new mistress's trade before she married?", "evidence": [{"page": 46, "quote": "She was by trade a weaver"}], "tags": ["fact"]},
+        {"id": "hugh-years", "question": "How long did Douglass live in Master Hugh's family?", "evidence": [{"page": 50, "quote": "I LIVED in Master Hugh’s family about seven years."}], "tags": ["fact"]},
+        {"id": "move-date", "question": "When did Douglass leave Baltimore to live with Thomas Auld at St. Michael's?", "evidence": [{"page": 63, "quote": "I left Baltimore, and went to live with Master Thomas Auld, at St. Michael’s, in March, 1832."}], "tags": ["fact", "date"]},
+        {"id": "covey-date", "question": "When did Douglass go to live with Mr. Covey?", "evidence": [{"page": 69, "quote": "went to live with Mr. Covey, on the 1st of January, 1833."}], "tags": ["fact", "date"]}
+      ]
+    }
+  ]
+}

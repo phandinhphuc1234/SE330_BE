@@ -1,5 +1,12 @@
 # 22. Project Implementation Roadmap
 
+> Library implementation 2026-10-05: dense/BM25/hybrid, deterministic rewrite,
+> heuristic reranking, bounded context, evaluation runner + 20-case dataset và
+> document-local graph đã có trong source. Xem
+> [trạng thái và cách chạy](../retrieval-evaluation-implementation.md).
+> Các phase dưới đây là roadmap học tổng quát, không phải tất cả đều là backlog
+> bắt buộc của Secure AI Ebook Reader.
+
 Roadmap này biến toàn bộ guide thành kế hoạch triển khai thực tế cho project `professional-rag-platform`.
 
 Mục tiêu không phải làm tất cả cùng lúc. Mục tiêu là đi từng phase, mỗi phase có output chạy được, test được, học được.

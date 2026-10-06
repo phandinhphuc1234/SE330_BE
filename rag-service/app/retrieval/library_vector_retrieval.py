@@ -48,6 +48,9 @@ class LibraryVectorRetrievalRequest:
     document_id: int | None = None
     top_k: int | None = None
     score_threshold: float | None = None
+    expand_context: bool = False
+    max_context_chars: int | None = None
+    retrieval_mode: str | None = None
 
 
 @dataclass(frozen=True)
@@ -60,6 +63,7 @@ class LibraryVectorRetrievalHit:
     vector_id: str | None = None
     citation: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+    context_text: str | None = None
 
 
 @dataclass(frozen=True)
@@ -148,7 +152,7 @@ class LibraryVectorRetrievalService:
         )
 
     def _resolve_top_k(self, requested_top_k: int | None) -> int:
-        top_k = requested_top_k or self.settings.retrieval_top_k
+        top_k = self.settings.retrieval_top_k if requested_top_k is None else requested_top_k
         if isinstance(top_k, bool) or int(top_k) <= 0:
             raise ValueError("top_k must be a positive integer.")
         top_k = int(top_k)

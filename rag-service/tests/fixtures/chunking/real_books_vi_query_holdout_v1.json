@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "name": "vietnamese-query-english-source-query-holdout",
+  "version": "1.0.0",
+  "split": "query_holdout",
+  "query_language": "vi",
+  "source_language": "en",
+  "review_status": "assistant_source_checked",
+  "baseline_dataset_sha256": "4ea39dc5b9c3d7dce0630ed455cceedb76cf883eceb76374d964c1f62673b22d",
+  "books": [
+    {
+      "id": "gift-of-the-magi",
+      "title": "The Gift of the Magi",
+      "filename": "gift-of-the-magi.pdf",
+      "sha256": "637e2cf35c2fb62f99b1152ebbb8b6cb16344786b665c573436f1f7d8c44075c",
+      "source_url": "https://www.ibiblio.org/ebooks/Henry/Gift_Magi.pdf",
+      "rights_url": "https://www.ibiblio.org/ebooks/Henry/",
+      "chapters": [],
+      "questions": [
+        {"id": "vi-savings", "question": "Della đã dành dụm được tổng cộng bao nhiêu tiền trước Giáng sinh?", "evidence": [{"page": 3, "quote": "One dollar and eighty-seven cents."}], "tags": ["vi", "money", "heldout"]},
+        {"id": "vi-income-change", "question": "Thu nhập hàng tuần của Jim đã giảm từ mức nào xuống mức nào?", "evidence": [{"page": 3, "quote": "being paid $30 per week."}, {"page": 3, "quote": "the income was shrunk to $20"}], "tags": ["vi", "money", "multi-fact", "heldout"]},
+        {"id": "vi-full-name", "question": "Tên đầy đủ của Jim được ghi trên tấm thẻ dưới lối vào là gì?", "evidence": [{"page": 3, "quote": "a card bearing the name “Mr. James Dillingham Young.”"}], "tags": ["vi", "named-entity", "heldout"]},
+        {"id": "vi-hair-buyer", "question": "Della bán tóc ở cửa hàng của ai?", "evidence": [{"page": 5, "quote": "Mme. Sofronie. Hair Goods of All Kinds."}], "tags": ["vi", "named-entity", "heldout"]},
+        {"id": "vi-hair-price", "question": "Madame trả cho Della bao nhiêu đô la khi mua tóc?", "evidence": [{"page": 5, "quote": "“Twenty dollars,” said Madame"}], "tags": ["vi", "money", "heldout"]},
+        {"id": "vi-curling-time", "question": "Della mất khoảng bao lâu để sửa lại mái tóc ngắn thành những lọn nhỏ?", "evidence": [{"page": 6, "quote": "Within forty minutes her head was covered with tiny, close-lying curls"}], "tags": ["vi", "time", "heldout"]},
+        {"id": "vi-prayer", "question": "Trước khi Jim bước vào nhà, Della thầm cầu xin điều gì?", "evidence": [{"page": 6, "quote": "Please God, make him think I am still pretty."}], "tags": ["vi", "emotion", "heldout"]},
+        {"id": "vi-reaction", "question": "Ánh mắt của Jim khi thấy Della có phải thể hiện tức giận hoặc kinh ngạc không?", "evidence": [{"page": 7, "quote": "It was not anger, nor surprise, nor disapproval, nor horror"}], "tags": ["vi", "negation", "heldout"]},
+        {"id": "vi-gift-materials", "question": "Dây đeo đồng hồ Della mua và bộ lược Jim mua được làm bằng những chất liệu gì?", "evidence": [{"page": 5, "quote": "a platinum fob chain simple and chaste in design"}, {"page": 8, "quote": "pure tortoise shell, with jewelled rims"}], "tags": ["vi", "cross-page", "comparison", "heldout"]},
+        {"id": "vi-magi-tradition", "question": "Theo người kể chuyện, những nhà thông thái đã khởi xướng truyền thống nào vào dịp Giáng sinh?", "evidence": [{"page": 9, "quote": "They invented the art of giving Christmas presents."}], "tags": ["vi", "paraphrase", "heldout"]}
+      ]
+    },
+    {
+      "id": "douglass-narrative",
+      "title": "Narrative of the Life of Frederick Douglass",
+      "filename": "douglass-narrative.pdf",
+      "sha256": "fa3afe6e9b2b7e741d984e6185648c30650b2f529c3dc619005d41c6d9b37a92",
+      "source_url": "https://www.ibiblio.org/ebooks/Douglass/Narrative/Douglass_Narrative.pdf",
+      "rights_url": "https://www.ibiblio.org/ebooks/Douglass/index.html",
+      "chapter_audit_start_page": 19,
+      "chapters": [
+        {"page": 19, "heading": "##### **CHAPTER I.**", "title": "CHAPTER I."},
+        {"page": 25, "heading": "##### **CHAPTER II.**", "title": "CHAPTER II."},
+        {"page": 31, "heading": "##### **CHAPTER III.**", "title": "CHAPTER III."},
+        {"page": 36, "heading": "##### **CHAPTER IV.**", "title": "CHAPTER IV."},
+        {"page": 41, "heading": "##### **CHAPTER V.**", "title": "CHAPTER V."},
+        {"page": 46, "heading": "##### **CHAPTER VI.**", "title": "CHAPTER VI."},
+        {"page": 50, "heading": "##### **CHAPTER VII.**", "title": "CHAPTER VII."},
+        {"page": 57, "heading": "##### **CHAPTER VIII.**", "title": "CHAPTER VIII."},
+        {"page": 63, "heading": "##### **CHAPTER IX.**", "title": "CHAPTER IX."},
+        {"page": 69, "heading": "##### **CHAPTER X.**", "title": "CHAPTER X."},
+        {"page": 104, "heading": "##### **CHAPTER XI.**", "title": "CHAPTER XI."},
+        {"page": 119, "heading": "APPENDIX.", "title": "APPENDIX."}
+      ],
+      "questions": [
+        {"id": "vi-age-estimate", "question": "Khi viết hồi ký, Frederick Douglass ước tính mình khoảng bao nhiêu tuổi?", "evidence": [{"page": 19, "quote": "between twenty-seven and twenty-eight years of age"}], "tags": ["vi", "number", "heldout"]},
+        {"id": "vi-separation", "question": "Trẻ em thường bị tách khỏi mẹ trước khi đạt mốc bao nhiêu tháng tuổi ở vùng Maryland được mô tả?", "evidence": [{"page": 20, "quote": "before the child has reached its twelfth month"}], "tags": ["vi", "time", "heldout"]},
+        {"id": "vi-sloop-name", "question": "Chiếc thuyền chở nông sản đến Baltimore trên đồn điền của Colonel Lloyd mang tên gì?", "evidence": [{"page": 25, "quote": "This sloop was named Sally Lloyd"}], "tags": ["vi", "named-entity", "heldout"]},
+        {"id": "vi-garden-fence", "question": "Colonel Lloyd đã dùng cách gì với hàng rào để phát hiện người lẻn vào vườn trái cây?", "evidence": [{"page": 31, "quote": "tarring his fence all around"}], "tags": ["vi", "paraphrase", "heldout"]},
+        {"id": "vi-gore-accusation", "question": "Dưới quyền Mr. Gore, một người bị buộc tội có cơ hội được minh oan trước khi chịu phạt không?", "evidence": [{"page": 36, "quote": "To be accused was to be convicted, and to be convicted was to be punished"}], "tags": ["vi", "negation", "heldout"]},
+        {"id": "vi-cold-bag", "question": "Douglass đã dùng vật gì để tránh rét trong những đêm lạnh nhất?", "evidence": [{"page": 41, "quote": "steal a bag which was used for carrying corn to the mill"}], "tags": ["vi", "paraphrase", "heldout"]},
+        {"id": "vi-mistress-experience", "question": "Trước Douglass, người nữ chủ mới đã từng quản lý nô lệ nào chưa?", "evidence": [{"page": 46, "quote": "She had never had a slave under her control previously to myself"}], "tags": ["vi", "negation", "heldout"]},
+        {"id": "vi-regular-teacher", "question": "Trong thời gian học đọc và viết ở nhà Master Hugh, Douglass có giáo viên thường xuyên không?", "evidence": [{"page": 50, "quote": "I had no regular teacher."}], "tags": ["vi", "negation", "heldout"]},
+        {"id": "vi-inheritance-will", "question": "Captain Anthony có để lại di chúc quy định cách phân chia tài sản khi qua đời không?", "evidence": [{"page": 57, "quote": "he left no will as to the disposal of his property"}], "tags": ["vi", "negation", "heldout"]},
+        {"id": "vi-oxen", "question": "Mr. Covey giao cho Douglass một đội bò kéo đã được thuần luyện hay chưa khi sai đi lấy gỗ?", "evidence": [{"page": 69, "quote": "He gave me a team of unbroken oxen."}], "tags": ["vi", "negation", "heldout"]}
+      ]
+    }
+  ]
+}

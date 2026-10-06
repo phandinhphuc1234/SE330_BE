@@ -32,6 +32,29 @@ The browser calls Spring Boot. Spring Boot calls `http://rag-api:8000` through
 Docker DNS. RAG infrastructure ports are bound to loopback for diagnostics and
 must not be published directly on a production firewall.
 
+The public ebook AI endpoints are protected independently from the PDF reader:
+
+- `EBOOK_AI_ASK_REQUESTS_PER_WINDOW` and
+  `EBOOK_AI_SEARCH_REQUESTS_PER_WINDOW` set per-member/per-ebook limits.
+- `EBOOK_AI_RATE_LIMIT_WINDOW` controls the Redis-backed window.
+- `EBOOK_AI_RATE_LIMIT_FAIL_OPEN=false` is the safe production default: if the
+  cost guard is unavailable, AI calls pause while normal ebook reading remains
+  available.
+- `RAG_CONNECT_TIMEOUT` and `RAG_READ_TIMEOUT` bound Spring-to-RAG calls.
+- `RAG_INGESTION_SYNC_MAX_POLL_FAILURES` limits consecutive status-poll
+  failures before the ebook is moved to terminal `INDEX_FAILED`.
+- `RAG_INGESTION_SYNC_INITIAL_RETRY_DELAY` and
+  `RAG_INGESTION_SYNC_MAX_RETRY_DELAY` bound exponential polling backoff.
+
+Staff can use the management re-index action after a terminal failure. That
+request sends `forceReindex=true`, so RAG creates a new job even when the PDF
+checksum matches an already indexed document. Normal upload requests leave the
+flag false and retain idempotent job reuse.
+
+`Ask this book` is not retried automatically because repeating a generation
+request can duplicate provider cost. The frontend exposes an explicit retry so
+the member decides whether to submit again.
+
 ## Standalone RAG development
 
 `rag-service/.env` and `rag-service/.env.example` belong only to developers who

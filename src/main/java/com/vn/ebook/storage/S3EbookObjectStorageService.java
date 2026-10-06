@@ -17,6 +17,9 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -45,12 +48,24 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
                 .contentLength(file.getSize())
                 .metadata(metadata)
                 .build();
-        try (InputStream input = new DigestInputStream(file.getInputStream(), digest)) {
-            ebookS3Client.putObject(request, RequestBody.fromInputStream(input, file.getSize()));
+        Path stagedFile = null;
+        try {
+            stagedFile = Files.createTempFile("ebook-upload-", ".pdf");
+            try (InputStream input = new DigestInputStream(file.getInputStream(), digest)) {
+                Files.copy(input, stagedFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // A repeatable file-backed body avoids truncated uploads when an S3-compatible
+            // server retries or re-reads the request body. The multipart stream itself may
+            // only be consumed once, so it is staged before the network request starts.
+            ebookS3Client.putObject(request, RequestBody.fromFile(stagedFile));
+            verifyUploadedSize(objectKey, file.getSize());
         } catch (IOException | RuntimeException e) {
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+        } finally {
+            deleteStagedFile(stagedFile);
         }
-        verifyUploadedSize(objectKey, file.getSize());
+
         String checksum = HexFormat.of().formatHex(digest.digest());
         return new EbookObjectMetadata(
                 properties.ebookBucket(), objectKey, file.getOriginalFilename(), file.getContentType(),
@@ -77,6 +92,17 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
             return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void deleteStagedFile(Path stagedFile) {
+        if (stagedFile == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(stagedFile);
+        } catch (IOException e) {
+            // Upload outcome is already known; cleanup failure must not corrupt that result.
         }
     }
 

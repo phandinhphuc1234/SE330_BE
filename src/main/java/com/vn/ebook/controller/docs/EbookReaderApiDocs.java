@@ -1,9 +1,13 @@
 package com.vn.ebook.controller.docs;
 
 import com.vn.shared.dto.ApiResponse;
+import com.vn.ebook.dto.request.EbookAskRequest;
+import com.vn.ebook.dto.request.EbookSemanticSearchRequest;
+import com.vn.ebook.dto.response.EbookAnswerResponse;
 import com.vn.ebook.dto.response.EbookReadingSessionCloseResponse;
 import com.vn.ebook.dto.response.EbookReadingSessionRefreshResponse;
 import com.vn.ebook.dto.response.EbookReadingSessionResponse;
+import com.vn.ebook.dto.response.EbookSemanticSearchResponse;
 import com.vn.ebook.dto.response.EbookSignedContentResponse;
 import com.vn.auth.security.MemberUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +47,40 @@ public interface EbookReaderApiDocs {
             @Parameter(description = "Book ID", required = true) Long bookId,
             @Parameter(description = "Raw reading session token", required = true) String rawSessionToken,
             @Parameter(hidden = true) MemberUserDetails userDetails
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Search inside the current ebook",
+            description = """
+                    Perform semantic search inside the ebook bound to the current reading session.
+                    Spring validates the JWT, X-Reading-Session, active ebook loan and INDEXED state
+                    before calling the internal RAG retrieval endpoint with a trusted ebook scope.
+                    Requests are rate-limited per member and ebook. HTTP 429 includes Retry-After.
+                    """
+    )
+    ResponseEntity<ApiResponse<EbookSemanticSearchResponse>> semanticSearch(
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "Raw reading session token", required = true) String rawSessionToken,
+            @Parameter(hidden = true) MemberUserDetails userDetails,
+            EbookSemanticSearchRequest request
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
+            summary = "Ask a question about the current ebook",
+            description = """
+                    Generate an evidence-grounded answer for the ebook bound to the current reading session.
+                    Spring validates access before sending the trusted ebook scope to RAG. The response either
+                    contains verified citations from that ebook or explicitly abstains when evidence is insufficient.
+                    Requests are rate-limited per member and ebook. HTTP 429 includes Retry-After.
+                    """
+    )
+    ResponseEntity<ApiResponse<EbookAnswerResponse>> askThisBook(
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "Raw reading session token", required = true) String rawSessionToken,
+            @Parameter(hidden = true) MemberUserDetails userDetails,
+            EbookAskRequest request
     );
 
     @SecurityRequirement(name = "Bearer Authentication")

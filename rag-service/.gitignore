@@ -12,5 +12,7 @@ dist/
 build/
 *.egg-info/
 data/uploads/
+# Downloaded/private PDF inputs and verbose benchmark artifacts stay local.
+data/chunking-comparison/
 .idea/
 .vscode/

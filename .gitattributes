@@ -3,3 +3,5 @@
 *.yaml text eol=lf
 *.yml text eol=lf
 *.cmd text eol=crlf
+# Benchmark manifests/snapshots use byte-level checksums across Windows/Linux.
+/rag-service/tests/fixtures/chunking/*.json text eol=lf

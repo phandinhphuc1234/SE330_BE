@@ -227,7 +227,12 @@ API; PostgreSQL stores only the bucket/object key and file metadata.
 | `rag_document_id` | `VARCHAR(100)` | Yes | | Document ID returned by RAG, for example `doc_ebook_55` |
 | `rag_job_id` | `BIGINT` | Yes | | RAG ingestion job ID returned by `/internal/ingestions` |
 | `ingestion_last_error` | `VARCHAR(1000)` | Yes | | Last Library-side error while requesting RAG ingestion |
+| `ingestion_stage` | `VARCHAR(100)` | Yes | | Fine-grained stage returned by the RAG status endpoint |
 | `indexing_requested_at` | `TIMESTAMP WITH TIME ZONE` | Yes | | Time Library requested RAG ingestion |
+| `ingestion_last_checked_at` | `TIMESTAMP WITH TIME ZONE` | Yes | | Last successful status response applied by the Spring polling job |
+| `ingestion_poll_failure_count` | `INT` | No | `0` | Consecutive failed status-poll attempts for the current job |
+| `ingestion_next_check_at` | `TIMESTAMP WITH TIME ZONE` | Yes | | Earliest time the scheduler may poll the current job again |
+| `indexing_completed_at` | `TIMESTAMP WITH TIME ZONE` | Yes | | Time the current ingestion job reached `INDEXED` |
 | `created_at` | `TIMESTAMP` | No | `NOW()` | |
 | `updated_at` | `TIMESTAMP` | No | `NOW()` | |
 
@@ -238,8 +243,11 @@ Allowed `ingestion_status` values used by the application:
 - `PROCESSING`
 - `PARSED`
 - `CHUNKED`
+- `EMBEDDING`
+- `EMBEDDED`
+- `INDEXING`
 - `INDEXED`
-- `FAILED`
+- `INDEX_FAILED`
 
 Constraints:
 
@@ -266,6 +274,7 @@ Indexes:
 - `idx_book_ebooks_access_type_status ON book_ebooks(access_type, status)`
 - `uq_book_ebooks_provider_public_id UNIQUE ON book_ebooks(provider, public_id)`
 - `uq_book_ebooks_bucket_object_key UNIQUE ON book_ebooks(bucket_name, object_key) WHERE bucket_name IS NOT NULL AND object_key IS NOT NULL`
+- `idx_book_ebooks_ingestion_sync ON book_ebooks(ingestion_status, ingestion_next_check_at, indexing_requested_at, id) WHERE rag_job_id IS NOT NULL AND ingestion_status NOT IN ('NOT_REQUESTED', 'INDEXED', 'INDEX_FAILED')`
 
 Migration notes:
 
@@ -279,6 +288,10 @@ Migration notes:
 - `V37` added RAG ingestion tracking columns: `ingestion_status`,
   `rag_document_id`, `rag_job_id`, `ingestion_last_error`, and
   `indexing_requested_at`.
+- `V47` added `ingestion_stage`, `ingestion_last_checked_at`,
+  `indexing_completed_at`, and the partial index used by scheduled status sync.
+- `V48` renamed terminal ingestion failure to `INDEX_FAILED`, added poll failure
+  count/next-check tracking, and rebuilt the scheduled-sync partial index.
 - For the current RAG contract, SeaweedFS ebook PDFs must use bucket
   `library-private` and object key `ebooks/{bookId}/{ebookId}/original.pdf`.
   PostgreSQL should store the bucket/key, not a full storage URL.

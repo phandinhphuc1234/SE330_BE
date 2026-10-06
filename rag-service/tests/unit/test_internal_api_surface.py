@@ -29,3 +29,15 @@ def test_internal_ingestion_rejects_missing_service_credential() -> None:
 
     assert response.status_code == 401
     assert response.json()["error_code"] == "INVALID_INTERNAL_API_KEY"
+
+
+def test_internal_answer_rejects_missing_service_credential() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/internal/answers",
+        json={"question": "DIP là gì?", "ebookId": 55},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error_code"] == "INVALID_INTERNAL_API_KEY"

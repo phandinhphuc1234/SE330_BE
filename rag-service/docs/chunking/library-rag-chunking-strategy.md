@@ -1,5 +1,15 @@
 # Library RAG Chunking Strategy
 
+Checkpoint mới 2026-10-05:
+[baseline v1 và kế hoạch sửa ranh giới trang/chương](chunking-baseline-and-boundary-plan.md).
+Bước 2 đã có [chapter-aware/source-mapped v2](chapter-aware-v2.md) opt-in;
+mặc định vẫn v1. Bước 3 có [context expansion cùng chương/phiên bản](chapter-aware-context-expansion.md);
+Bước 4 có [benchmark PDF thật](real-book-chunking-benchmark.md);
+[heading fix và rerun](heading-detection-regression-fix.md) đã xử lý gaps
+v2 trên corpus này. Giữ v1 vì retrieval regression và thiếu held-out review.
+Các dòng trạng thái cũ trong doc này là roadmap lịch sử; embedding/search/
+evaluation hiện đã có, xem [implementation ledger](../retrieval-evaluation-implementation.md).
+
 Tài liệu này nối lại giữa lý thuyết trong
 `docs/chunking/04-chunking-strategy.md` và implementation hiện tại của hệ thống
 Library RAG.

@@ -1,5 +1,9 @@
 # Spring Boot → RAG Ebook Ingestion Contract
 
+Tài liệu này mô tả write path và status sync hiện tại. Hướng sử dụng dữ liệu đã
+index cho người dùng nằm tại
+[Secure AI Ebook Reader](../../../docs/secure-ai-ebook-reader-roadmap.md).
+
 ## 1. Mục đích
 
 Tài liệu này là hợp đồng tích hợp giữa hệ thống thư viện Spring Boot và RAG service. Mỗi repo chỉ triển khai trách nhiệm của mình nhưng phải giữ nguyên network, storage và API contract trong tài liệu này.
@@ -86,7 +90,7 @@ sequenceDiagram
     Library->>Library: Validate permission/type/size and SHA-256
     Library->>S3: PUT library-private/ebooks/{bookId}/{ebookId}/original.pdf
     S3-->>Library: Upload completed
-    Library->>LibraryDB: Save file metadata + RAG_PENDING
+    Library->>LibraryDB: Save file metadata + QUEUED
     LibraryDB-->>Library: Commit completed
     Library->>RAG: POST /internal/ingestions
     RAG->>RAGDB: Create/reuse document + ingestion job
@@ -98,7 +102,12 @@ sequenceDiagram
     Worker->>S3: GET source object
     Worker->>Worker: Parse → clean → chunk → embed
     Worker->>Qdrant: Upsert points
-    Worker->>RAGDB: Mark COMPLETED or FAILED
+    Worker->>RAGDB: Mark INDEXED or FAILED
+    loop Scheduled status sync
+        Library->>RAG: GET /internal/ingestions/{jobId}
+        RAG-->>Library: status + stage/error
+        Library->>LibraryDB: Update ingestion progress
+    end
 ```
 
 Ingestion được trigger ngay sau upload; nó không chờ người dùng gửi thêm request. Điểm tách bất đồng bộ chỉ giúp HTTP upload không phải chờ parsing/embedding/indexing.
@@ -150,7 +159,7 @@ HTTP/1.1 202 Accepted
 {
   "documentId": "doc_ebook_55",
   "ingestionJobId": 123,
-  "status": "PENDING"
+  "status": "QUEUED"
 }
 ```
 
@@ -188,7 +197,7 @@ sourceType + ebookId + checksumSha256
 
 ## 8.1. Mapping vào các class Spring Boot
 
-Cách tách class hiện tại là đúng. Trách nhiệm đề xuất:
+Cách tách class hiện tại:
 
 ```text
 RagServiceProperties
@@ -216,24 +225,52 @@ Không log request headers hoặc property chứa API key. `RAG_INTERNAL_API_KEY
 
 Spring nên gọi client từ post-commit handler/outbox processor thay vì giữ transaction database mở trong lúc chờ HTTP response từ RAG.
 
-## 9. Trạng thái hai hệ thống
+## 8.2. Đồng bộ trạng thái hiện tại
 
-Không gộp upload status với ingestion status. Spring Boot nên quản lý tối thiểu:
+Sau khi RAG trả `ingestionJobId`, Spring scheduler lấy tối đa một batch ebook có
+job đang chạy và gọi `GET /internal/ingestions/{jobId}`. Mặc định local:
 
-```text
-uploadStatus:    PENDING | COMPLETED | FAILED
-ingestionStatus: NOT_REQUESTED | PENDING | PROCESSING | COMPLETED | FAILED
-ragJobId:        nullable
+```dotenv
+RAG_INGESTION_SYNC_INITIAL_DELAY_MS=10000
+RAG_INGESTION_SYNC_FIXED_DELAY_MS=5000
+RAG_INGESTION_SYNC_BATCH_SIZE=25
+RAG_INGESTION_SYNC_MAX_POLL_FAILURES=5
+RAG_INGESTION_SYNC_INITIAL_RETRY_DELAY=30s
+RAG_INGESTION_SYNC_MAX_RETRY_DELAY=15m
 ```
 
-Nếu upload thành công nhưng RAG đang down:
+Spring lưu `ingestion_stage`, `ingestion_last_checked_at`, lỗi cuối và
+`indexing_completed_at`. Poll lỗi sẽ tăng `ingestion_poll_failure_count` và đặt
+`ingestion_next_check_at` theo exponential backoff. Khi chạm giới hạn, Spring
+chuyển sang `INDEX_FAILED`; staff có thể chủ động re-index. Response sai job ID,
+status không biết hoặc status cũ hơn đều bị bỏ qua để tránh ghi lùi tiến độ.
+Response có `documentId` khác `doc_ebook_{ebookId}` bị fail-closed thành
+`INDEX_FAILED` để ngăn job ID cũ/tái sử dụng cập nhật nhầm ebook.
+
+## 9. Trạng thái ebook và ingestion
+
+Không dùng ingestion status để suy ra PDF đã upload thành công hay ebook đang
+được phép phục vụ. `BookEbook` giữ metadata object (`provider`, `bucketName`,
+`objectKey`, checksum), trạng thái ebook nghiệp vụ và trạng thái RAG riêng.
 
 ```text
-uploadStatus    = COMPLETED
-ingestionStatus = PENDING
+ingestionStatus:
+  NOT_REQUESTED | QUEUED | PROCESSING | PARSED | CHUNKED |
+  EMBEDDING | EMBEDDED | INDEXING | INDEXED | INDEX_FAILED
+ragJobId: nullable
 ```
 
-Không yêu cầu người dùng upload lại. Spring Boot retry request tạo ingestion job bằng cùng payload/checksum.
+Nếu upload thành công nhưng lời gọi tạo job RAG thất bại, source hiện tại ghi:
+
+```text
+object metadata = đã lưu
+ingestionStatus = INDEX_FAILED
+ingestionStage  = request_failed
+```
+
+Mục tiêu production là không yêu cầu người dùng upload lại: transactional outbox
+hoặc durable retry sẽ gọi lại request tạo ingestion bằng cùng payload/checksum.
+Phần durable retry này chưa được triển khai.
 
 ## 10. Failure handling
 
@@ -241,13 +278,17 @@ Không yêu cầu người dùng upload lại. Spring Boot retry request tạo i
 | --- | --- |
 | S3 upload lỗi | Không lưu trạng thái upload thành công; không gọi RAG. |
 | Library DB commit lỗi sau S3 PUT | Best-effort xóa object hoặc để reconciliation job dọn orphan object. |
-| RAG API timeout/down | Giữ `RAG_PENDING`; retry với backoff và cùng idempotency key. |
+| RAG API timeout/down khi trigger | Hiện ghi `INDEX_FAILED`; staff có thể force re-index, còn tự phục hồi hoàn toàn vẫn cần outbox/retry bền vững. |
+| RAG API timeout/down khi polling | Exponential backoff; đủ số lần lỗi thì chuyển `INDEX_FAILED`, không poll vô hạn. |
 | Redis unavailable | RAG không báo job đã enqueue thành công; trả lỗi retryable hoặc lưu outbox nội bộ. |
 | Worker crash | Celery retry; task và vector write phải idempotent. |
 | PDF corrupt | Mark ingestion `FAILED`; PDF vẫn là object upload thành công. |
 | Embedding/Qdrant lỗi | Retry phù hợp; không đổi upload status thành failed. |
 
-Để tránh mất request giữa Library DB commit và HTTP call, production nên dùng transactional outbox trong Spring Boot. MVP có thể dùng trạng thái `RAG_PENDING` và scheduled retry.
+Để tránh mất request giữa Library DB commit và HTTP call, production nên dùng
+transactional outbox trong Spring Boot. Source hiện tại dùng `QUEUED`, trigger
+bất đồng bộ và scheduled status polling; durable retry cho bước tạo job vẫn là
+một nâng cấp production cần làm.
 
 ## 11. Vì sao không dùng S3 webhook trong MVP
 
@@ -257,16 +298,19 @@ Webhook/event thường có delivery at-least-once, cần deduplication và có 
 
 ## 12. Checklist cho repo Spring Boot
 
-- [ ] Join `library-platform-net` với alias `library-api`.
-- [ ] Cấu hình `RAG_SERVICE_URL=http://rag-api:8000`.
-- [ ] Gửi header `X-RAG-API-Key` bằng secret riêng cho từng environment.
-- [ ] Cấu hình `OBJECT_STORAGE_ENDPOINT=http://rag-seaweedfs:8333`.
-- [ ] Upload PDF vào `library-private/ebooks/{bookId}/{ebookId}/original.pdf`.
-- [ ] Lưu bucket, key, filename, content type, size và checksum; không lưu endpoint URL.
-- [ ] Chỉ trigger RAG sau upload và DB commit thành công.
-- [ ] Lưu riêng upload status và ingestion status.
-- [ ] Retry request RAG theo idempotency contract.
-- [ ] Không log API key hoặc giá trị secret.
+- [x] Join `library-platform-net` trong integrated Compose.
+- [x] Cấu hình `RAG_SERVICE_URL=http://rag-api:8000`.
+- [x] Gửi header `X-RAG-API-Key` bằng secret từ environment.
+- [x] Cấu hình object storage dùng chung.
+- [x] Upload PDF vào `library-private/ebooks/{bookId}/{ebookId}/original.pdf`.
+- [x] Lưu bucket, key, filename, content type, size và checksum; không lưu endpoint URL.
+- [x] Trigger RAG bất đồng bộ sau khi lưu metadata upload.
+- [x] Lưu metadata object/ebook tách biệt với ingestion status.
+- [x] Poll và đồng bộ trạng thái job RAG theo batch.
+- [x] Retry status polling bằng exponential backoff và dừng ở `INDEX_FAILED`.
+- [x] Cho staff force re-index mà không upload lại PDF; request thường vẫn idempotent theo checksum.
+- [x] Không log API key hoặc giá trị secret.
+- [ ] Nâng trigger sang transactional outbox/retry bền vững cho production.
 
 ## 13. Checklist cho repo RAG
 
@@ -277,5 +321,5 @@ Webhook/event thường có delivery at-least-once, cần deduplication và có 
 - [x] Loại bỏ RAG-local user/workspace; document dùng `sourceType/sourceId`.
 - [x] Implement API-key authentication và idempotency cơ bản cho internal endpoint.
 - [x] Cho storage adapter download theo bucket nhận từ request.
-- [ ] Hoàn thiện embedding và Qdrant upsert trước khi dùng trạng thái `COMPLETED/INDEXED`.
+- [x] Hoàn thiện embedding và Qdrant upsert trước khi dùng trạng thái `INDEXED`.
 - [x] Implement polling status endpoint.

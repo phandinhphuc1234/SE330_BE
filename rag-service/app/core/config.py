@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -57,6 +58,9 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     llm_temperature: float = 0.1
     llm_max_tokens: int = 2048
+    llm_timeout_seconds: float = Field(default=30.0, gt=0.0, le=120.0)
+    gemini_thinking_budget: int | None = Field(default=None, ge=-1, le=24_576)
+    graph_llm_max_tokens: int = Field(default=8192, ge=2048, le=16_000)
     gemini_api_key: str | None = None
     # Cấu hình lưu trữ, bao gồm loại backend, 
     # đường dẫn lưu trữ cục bộ và các tham số 
@@ -78,6 +82,8 @@ class Settings(BaseSettings):
 
     chunk_size: int = 512
     chunk_overlap: int = 64
+    # Keep production on v1 until real-book/retrieval comparison is reviewed.
+    chunking_strategy_version: Literal["v1", "v2"] = "v1"
     max_chunks_per_document: int = 1000
     max_pdf_pages: int = 3000
     pdf_text_sample_pages: int = 5
@@ -99,8 +105,21 @@ class Settings(BaseSettings):
     # từ vector search và keyword search,
     retrieval_top_k: int = 10
     reranker_top_k: int = 3
-    hybrid_vector_weight: float = 0.7
-    hybrid_keyword_weight: float = 0.3
+    retrieval_mode: Literal["dense", "hybrid", "graph"] = "hybrid"
+    keyword_candidate_limit: int = Field(default=5000, ge=100, le=50_000)
+    hybrid_candidate_multiplier: int = Field(default=3, ge=1, le=10)
+    hybrid_rrf_k: int = Field(default=60, ge=1, le=1000)
+    hybrid_fail_open: bool = True
+    query_rewrite_max_queries: int = Field(default=2, ge=1, le=5)
+    context_expansion_window: int = Field(default=1, ge=0, le=3)
+    graph_max_hops: int = Field(default=2, ge=1, le=3)
+    graph_edge_limit: int = Field(default=5000, ge=10, le=50_000)
+    graph_rrf_weight: float = Field(default=0.15, ge=0.0, le=1.0)
+    answer_retrieval_top_k: int = Field(default=6, ge=1, le=20)
+    answer_score_threshold: float = Field(default=0.60, ge=0.0, le=1.0)
+    answer_max_context_chars: int = Field(default=12_000, ge=1_000, le=50_000)
+    hybrid_vector_weight: float = Field(default=0.7, ge=0.0, le=1.0)
+    hybrid_keyword_weight: float = Field(default=0.3, ge=0.0, le=1.0)
     # Cấu hình cho quá trình chunking, bao gồm kích thước chunk mặc định,
     @property
     def effective_celery_broker_url(self) -> str:

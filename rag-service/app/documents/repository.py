@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select
 
@@ -140,7 +142,7 @@ async def create_document_chunk(
         document_id=document_id,
         chunk_index=chunk_index,
         content=content,
-        metadata_=metadata or {},
+        metadata_=deepcopy(metadata or {}),
         vector_id=vector_id,
     )
     session.add(chunk)
@@ -162,7 +164,7 @@ async def update_document_chunk_metadata(
     database row in sync with the in-memory chunk after vector indexing succeeds.
     """
 
-    chunk.metadata_ = metadata
+    chunk.metadata_ = deepcopy(metadata)
     chunk.vector_id = vector_id
     session.add(chunk)
     await session.flush()

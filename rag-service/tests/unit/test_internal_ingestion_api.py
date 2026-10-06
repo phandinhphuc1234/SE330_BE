@@ -135,3 +135,63 @@ async def test_same_checksum_returns_existing_job_without_reenqueue(monkeypatch)
     assert response.status == "PROCESSING"
     delay.assert_not_called()
     session.commit.assert_not_awaited()
+
+
+async def test_force_reindex_creates_new_job_for_same_checksum(monkeypatch) -> None:
+    document = SimpleNamespace(
+        id=7,
+        external_document_id="doc_ebook_55",
+        source_type="LIBRARY_EBOOK",
+        source_id="ebook:55",
+        book_id=101,
+        ebook_id=55,
+        filename="original.pdf",
+        storage_path="ebooks/101/55/original.pdf",
+        metadata_={},
+    )
+    artifact = SimpleNamespace(checksum_sha256="a" * 64)
+    existing_job = SimpleNamespace(id=9, status="INDEXED")
+    new_job = SimpleNamespace(id=10, status="QUEUED")
+    session = SimpleNamespace(commit=AsyncMock())
+    delay = Mock(return_value=SimpleNamespace(id="celery-task-2"))
+
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.get_settings",
+        lambda: SimpleNamespace(library_ebook_bucket="library-private"),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.get_document_by_source",
+        AsyncMock(return_value=document),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.get_document_artifact",
+        AsyncMock(return_value=artifact),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.get_latest_ingestion_job_for_document",
+        AsyncMock(return_value=existing_job),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.update_document_artifact",
+        AsyncMock(),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.create_ingestion_job",
+        AsyncMock(return_value=new_job),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.attach_task_id",
+        AsyncMock(return_value=new_job),
+    )
+    monkeypatch.setattr(
+        "app.api.internal.routes_ingestions.process_document",
+        SimpleNamespace(delay=delay),
+    )
+
+    payload = library_payload().model_copy(update={"force_reindex": True})
+    response = await create_library_ebook_ingestion(payload, session)
+
+    assert response.ingestion_job_id == 10
+    assert response.status == "QUEUED"
+    delay.assert_called_once_with(7, 10)
+    assert session.commit.await_count == 2

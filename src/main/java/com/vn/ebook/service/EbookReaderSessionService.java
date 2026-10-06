@@ -16,6 +16,9 @@ public interface EbookReaderSessionService {
     // Cấp URL object storage ngắn hạn sau khi check JWT member, reading session và ebook loan.
     EbookSignedContentResponse getSignedContent(Long memberId, Long bookId, String rawSessionToken);
 
+    // Xác thực lại session + loan ngay trước các tác vụ reader khác như semantic search.
+    EbookReadingAccess authorizeAccess(Long memberId, Long bookId, String rawSessionToken);
+
     // Gia hạn session đọc ngắn hạn; thời hạn mới không được vượt quá loan.expiredAt.
     EbookReadingSessionRefreshResponse refreshSession(Long memberId, Long sessionId, String rawSessionToken);
 

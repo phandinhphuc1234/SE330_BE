@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +48,8 @@ class EbookRagIngestionAsyncProcessorTest {
         processor = new EbookRagIngestionAsyncProcessor(
                 bookEbookRepository,
                 ragIngestionClient,
-                new RagServiceProperties(true, "http://localhost:8000", "test-key"),
+                new RagServiceProperties(true, "http://localhost:8000", "test-key",
+                        Duration.ofSeconds(3), Duration.ofSeconds(30)),
                 transactionTemplate
         );
     }
@@ -71,6 +73,7 @@ class EbookRagIngestionAsyncProcessorTest {
         assertThat(request.bucket()).isEqualTo("library-private");
         assertThat(request.objectKey()).isEqualTo("ebooks/10/200/original.pdf");
         assertThat(request.checksumSha256()).isEqualTo("abc123");
+        assertThat(request.forceReindex()).isFalse();
 
         assertThat(ebook.getRagDocumentId()).isEqualTo("doc_ebook_200");
         assertThat(ebook.getRagJobId()).isEqualTo(300L);
@@ -79,11 +82,28 @@ class EbookRagIngestionAsyncProcessorTest {
     }
 
     @Test
+    void requestReindexAsync_shouldForceANewRagJob() {
+        BookEbook ebook = ebook();
+        when(bookEbookRepository.findById(200L)).thenReturn(Optional.of(ebook));
+        when(ragIngestionClient.ingestLibraryEbook(any()))
+                .thenReturn(new IngestionResponse("doc_ebook_200", 301L, "QUEUED"));
+        stubTransactions();
+
+        processor.requestReindexAsync(200L);
+
+        ArgumentCaptor<IngestionRequest> requestCaptor = ArgumentCaptor.forClass(IngestionRequest.class);
+        verify(ragIngestionClient).ingestLibraryEbook(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().forceReindex()).isTrue();
+        assertThat(ebook.getRagJobId()).isEqualTo(301L);
+    }
+
+    @Test
     void requestIngestionAsync_shouldDoNothingWhenRagIsDisabled() {
         EbookRagIngestionAsyncProcessor disabledProcessor = new EbookRagIngestionAsyncProcessor(
                 bookEbookRepository,
                 ragIngestionClient,
-                new RagServiceProperties(false, "http://localhost:8000", ""),
+                new RagServiceProperties(false, "http://localhost:8000", "",
+                        Duration.ofSeconds(3), Duration.ofSeconds(30)),
                 transactionTemplate
         );
 
@@ -102,7 +122,7 @@ class EbookRagIngestionAsyncProcessorTest {
 
         processor.requestIngestionAsync(200L);
 
-        assertThat(ebook.getIngestionStatus()).isEqualTo(EbookIngestionStatus.FAILED);
+        assertThat(ebook.getIngestionStatus()).isEqualTo(EbookIngestionStatus.INDEX_FAILED);
         assertThat(ebook.getIngestionLastError()).isEqualTo(ErrorCode.RAG_SERVICE_ERROR.getCode());
         verify(bookEbookRepository).save(ebook);
     }

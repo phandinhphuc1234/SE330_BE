@@ -23,6 +23,7 @@ from app.ingestion.chunking.quality import (
     attach_chunk_quality_report,
 )
 from app.ingestion.chunking.selector import select_chunking_strategy
+from app.ingestion.chunking.chapter_aware_strategy import ChapterAwareChunkingStrategy
 from app.ingestion.chunking.strategy import ChunkingStrategy
 from app.ingestion.chunking.token_counter import (
     APPROX_TOKEN_COUNTER,
@@ -38,6 +39,7 @@ __all__ = [
     "CHAPTER_DETECTION_SOURCE",
     "CHAPTER_DETECTION_VERSION",
     "ChapterDetector",
+    "ChapterAwareChunkingStrategy",
     "ChapterMatch",
     "ChunkQualityIssue",
     "ChunkQualityReport",

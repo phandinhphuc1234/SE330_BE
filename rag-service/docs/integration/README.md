@@ -3,6 +3,10 @@
 Folder này gom các tài liệu liên quan đến việc RAG service tích hợp với hệ thống
 Library/Spring Boot.
 
+Product flow mục tiêu là
+[Secure AI Ebook Reader](../../../docs/secure-ai-ebook-reader-roadmap.md). Spring
+Boot luôn xác thực quyền đọc trước; frontend không gọi RAG trực tiếp.
+
 ---
 
 ## Files

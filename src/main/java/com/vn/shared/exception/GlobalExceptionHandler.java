@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +32,18 @@ import java.util.UUID;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRateLimitExceeded(RateLimitExceededException ex) {
+        String traceId = getTraceId();
+        log.warn("eventType={} result={} errorCode={} retryAfterSeconds={}",
+                LogEvent.BUSINESS_EXCEPTION, LogResult.FAILED, ex.getCode(), ex.getRetryAfterSeconds());
+
+        return ResponseEntity
+                .status(ex.getStatus())
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body(ApiResponse.errorWithTrace(ex.getCode(), ex.getMessage(), traceId));
+    }
 
     // ================= BUSINESS EXCEPTION =================
     // Các exception liên quan tới business logic

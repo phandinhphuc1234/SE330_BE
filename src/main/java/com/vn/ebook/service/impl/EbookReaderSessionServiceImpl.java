@@ -21,6 +21,7 @@ import com.vn.ebook.repository.EbookReadingSessionRepository;
 import com.vn.ebook.service.EbookReaderSessionService;
 import com.vn.ebook.service.EbookReadingSessionCachePayload;
 import com.vn.ebook.service.EbookReadingSessionTokenService;
+import com.vn.ebook.service.EbookReadingAccess;
 import com.vn.shared.storage.MediaSignedUrlCommand;
 import com.vn.shared.storage.MediaSignedUrlResult;
 import com.vn.shared.storage.MediaStorageService;
@@ -134,6 +135,23 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
                 ebook.getPublicId(), ebook.getResourceType(), ebook.getDeliveryType(), ebook.getFormat(), expiresAt
         ));
         return new EbookSignedContentResponse(signedUrl.signedUrl(), signedUrl.expiresAt(), now);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EbookReadingAccess authorizeAccess(Long memberId, Long bookId, String rawSessionToken) {
+        Instant now = clock.instant();
+        String tokenHash = tokenService.hashToken(rawSessionToken);
+        ActiveSessionContext context = resolveActiveSession(memberId, bookId, tokenHash, now);
+        BookEbook ebook = findActiveEbookForSession(context);
+        return new EbookReadingAccess(
+                context.sessionId(),
+                context.bookId(),
+                ebook.getId(),
+                context.loanId(),
+                context.loan().getExpiredAt(),
+                ebook.getIngestionStatus()
+        );
     }
 
     @Override

@@ -8,7 +8,44 @@ trước để biết:
 - phần nào cố ý để sau;
 - code/test/doc nào liên quan.
 
-Ngày cập nhật gần nhất: `2026-07-07`.
+Ngày cập nhật gần nhất: `2026-10-06`.
+
+## Checkpoint mới — baseline và ranh giới trang/chương
+
+[Kế hoạch bốn bước và verification ledger](chunking-baseline-and-boundary-plan.md)
+là checkpoint cho lượt cải thiện hiện tại: bước 1 đã implement fixtures,
+snapshot, tests và CLI; bước 2 có [chapter-aware/source-mapped v2](chapter-aware-v2.md)
+opt-in. Bước 3 có [context expansion theo chương/phiên bản](chapter-aware-context-expansion.md).
+Bước 4 có [benchmark PDF thật và promotion gates](real-book-chunking-benchmark.md).
+Heading regressions đã sửa; [diagnostics/query holdout](retrieval-diagnostics-and-vi-query-holdout.md)
+và [hybrid ranking trace](hybrid-ranking-trace.md) đã đo regression tiếp theo.
+[Policy comparison](hybrid-policy-comparison.md) đã chạy 560 cases + replay;
+không candidate nào qua mọi gates. [Lexical diagnosis](lexical-agreement-diagnostics.md)
+đã phân tích 80 cases và counterexamples, không đổi scoring.
+[Adaptive experiment v2](adaptive-hybrid-experiment-v2.md) đã chạy 560 cases;
+macro gains nhưng không candidate nào qua mọi gates, giữ HOLD.
+[Vietnamese-source baseline mới](vietnamese-source-evaluation-v1.md) đã thêm
+báo cáo Việt 32 trang, 20 câu/23 anchors đã khóa, 40 BM25 cases + exact replay.
+V2 Recall@3 87,5% nhưng còn 30/94 section mismatches. Bạn đã duyệt toàn bộ
+[phiếu 20 câu/7 heading](vietnamese-source-review-v1.md) ngày 2026-10-06;
+approval lưu riêng theo hash, không sửa reports cũ.
+[Bounded Gemini baseline](vietnamese-source-embedding-baseline-v1.md) đã hoàn tất
+sau lượt lỗi đầu tiên: giữ 96 vectors, user duyệt riêng 120 missing inputs,
+token-aware pacing bổ sung thành công cả 120, cache đủ 216 vectors. Chấm đủ
+120 cases, 0 errors; Hybrid Recall@3 v1/v2 là 92,5%/90%. V2 vẫn regression và
+còn 30/94 section mismatches: giữ HOLD v1, không tune known cases, thay default
+hoặc reindex production.
+Follow-up [chẩn đoán đã xong](vietnamese-baseline-diagnostics-v1.md): 40 pairs,
+120 exact baseline replay cases, 0 provider calls; 23/23 anchors có full
+single-chunk evidence ở cả hai. V2 nhận 2/7 headings; rank/context losses đã
+trace đến từng stage. Tiếp theo làm section-detection v3 như experiment riêng;
+không sửa v1/v2 hoặc tune weights, inputs embedding mới cần quyền/budget riêng.
+Các checklist phía dưới giữ lịch sử.
+
+Embedding, Qdrant, search, hybrid và evaluation runner đã có; xem
+[implementation ledger](../retrieval-evaluation-implementation.md).
+Các phần roadmap cũ phía dưới giữ làm lịch sử; không dùng chữ "sau này" trong
+chúng để kết luận embedding/search hiện chưa tồn tại.
 
 ---
 
@@ -631,16 +668,25 @@ Hiện tại:
   Qdrant collection setup đã có.
   Qdrant vector upsert method đã có.
   Pipeline chính đã wire embedding + Qdrant upsert.
-  Chưa có search baseline.
+  Search/hybrid/evaluation runner đã có; xem implementation ledger.
+  Fixtures/tests/snapshot/CLI cho chunking v1 đã được bổ sung.
+  Chapter-aware/source-mapped v2 đã có, opt-in; mặc định giữ v1.
+  Context expansion theo chương/section + source revision đã có.
 
 Làm tiếp:
-  A4 Search baseline
+  Bước 4 benchmark PDF thật đã có; xem real-book-chunking-benchmark.md.
+  Heading regression fix đã sửa v2 terminal-period/Appendix/front-matter.
+  Xem heading-detection-regression-fix.md; v1 baseline không đổi.
+  Ranking diagnostics + 20 Vietnamese query holdout đã có; xem
+  retrieval-diagnostics-and-vi-query-holdout.md. Runtime ranking chưa đổi.
+  HOLD v1: chọn/thử keyword policy trên development, thêm PDF Vietnamese và
+  unseen-document/human review trước khi promote.
 
 Sau đó mới quay lại:
-  D4 NovelBookReconstructor
-  D5 Chapter-wise chunking
+  D4 NovelBookReconstructor tổng quát (v2 hiện chỉ ghép phạm vi chương đã nhận diện)
+  D5 Mở rộng chapter-wise chunking/hierarchy (v2 boundary cơ bản đã có)
   D6 Parent chunks
-  D7 Parent/neighbor expansion
+  D7 Parent expansion (chapter-safe neighbor expansion đã có ở bước 3)
 
 Để sau nữa:
   MarkdownNodeParser cho textbook

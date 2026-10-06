@@ -2,6 +2,12 @@ name: VPS deployment preflight
 
 on:
   workflow_dispatch:
+    inputs:
+      diagnostic_only:
+        description: Read VPS status only; do not synchronize files or start containers
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -28,7 +34,26 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
 
+      - name: Read production status without modifying the VPS
+        if: ${{ inputs.diagnostic_only }}
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(
+            -i "$HOME/.ssh/quanlythuvien_deploy"
+            -p "$VPS_PORT"
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15
+          )
+          ssh "${ssh_args[@]}" "${VPS_USER}@${VPS_HOST}" 'bash -s' < deploy/scripts/status.sh
+
       - name: Connect and synchronize deployment assets
+        if: ${{ !inputs.diagnostic_only }}
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}

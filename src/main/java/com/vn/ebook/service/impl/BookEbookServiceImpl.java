@@ -127,6 +127,19 @@ public class BookEbookServiceImpl implements BookEbookService {
         return toManagementResponse(bookEbookRepository.save(ebook));
     }
 
+    @Override
+    public BookEbookManagementResponse reindexEbook(Long bookId, Long bookEbookId) {
+        if (!ragServiceProperties.enabled()) {
+            throw new AppException(ErrorCode.RAG_SERVICE_ERROR);
+        }
+        getActiveBook(bookId);
+        BookEbook pending = transactionTemplate.execute(status -> prepareReindex(bookId, bookEbookId));
+        if (pending == null) {
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+        return toManagementResponse(scheduleRagReindex(pending));
+    }
+
     private PreparedEbook prepareEbookStorageRow(Book book) {
         BookEbook ebook = bookEbookRepository.findFirstByBookIdOrderByIdDesc(book.getId()).orElse(null);
         boolean wasNew = ebook == null;
@@ -167,8 +180,13 @@ public class BookEbookServiceImpl implements BookEbookService {
                 : EbookIngestionStatus.NOT_REQUESTED);
         ebook.setRagDocumentId(null);
         ebook.setRagJobId(null);
+        ebook.setIngestionStage(ragServiceProperties.enabled() ? "awaiting_enqueue" : null);
         ebook.setIngestionLastError(null);
         ebook.setIndexingRequestedAt(ragServiceProperties.enabled() ? Instant.now() : null);
+        ebook.setIngestionLastCheckedAt(null);
+        ebook.setIngestionPollFailureCount(0);
+        ebook.setIngestionNextCheckAt(null);
+        ebook.setIndexingCompletedAt(null);
 
         if (ebook.getMaxConcurrentLoans() == null) {
             ebook.setMaxConcurrentLoans(5);
@@ -194,12 +212,50 @@ public class BookEbookServiceImpl implements BookEbookService {
         }
     }
 
+    private BookEbook scheduleRagReindex(BookEbook ebook) {
+        try {
+            ragIngestionAsyncProcessor.requestReindexAsync(ebook.getId());
+            return ebook;
+        } catch (RuntimeException exception) {
+            log.warn("Could not schedule forced RAG re-index for ebookId={} objectKey={}",
+                    ebook.getId(), ebook.getObjectKey(), exception);
+            BookEbook failed = transactionTemplate.execute(status ->
+                    markIngestionFailed(ebook.getId(), ErrorCode.INTERNAL_SERVER_ERROR.getCode())
+            );
+            return failed != null ? failed : ebook;
+        }
+    }
+
     private BookEbook markIngestionFailed(Long ebookId, String errorCode) {
         BookEbook ebook = bookEbookRepository.findById(ebookId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
-        ebook.setIngestionStatus(EbookIngestionStatus.FAILED);
+        ebook.setIngestionStatus(EbookIngestionStatus.INDEX_FAILED);
+        ebook.setIngestionStage("request_failed");
         ebook.setIngestionLastError(truncate(errorCode, 1000));
         ebook.setIndexingRequestedAt(Instant.now());
+        ebook.setIngestionLastCheckedAt(Instant.now());
+        ebook.setIngestionPollFailureCount(0);
+        ebook.setIngestionNextCheckAt(null);
+        ebook.setIndexingCompletedAt(null);
+        return bookEbookRepository.save(ebook);
+    }
+
+    private BookEbook prepareReindex(Long bookId, Long bookEbookId) {
+        BookEbook ebook = getBookEbook(bookId, bookEbookId);
+        if (!StringUtils.hasText(ebook.getBucketName()) || !StringUtils.hasText(ebook.getObjectKey())) {
+            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
+
+        ebook.setIngestionStatus(EbookIngestionStatus.QUEUED);
+        ebook.setRagDocumentId(null);
+        ebook.setRagJobId(null);
+        ebook.setIngestionStage("awaiting_reindex_enqueue");
+        ebook.setIngestionLastError(null);
+        ebook.setIndexingRequestedAt(Instant.now());
+        ebook.setIngestionLastCheckedAt(null);
+        ebook.setIngestionPollFailureCount(0);
+        ebook.setIngestionNextCheckAt(null);
+        ebook.setIndexingCompletedAt(null);
         return bookEbookRepository.save(ebook);
     }
 
@@ -342,8 +398,13 @@ public class BookEbookServiceImpl implements BookEbookService {
                 ebook.getIngestionStatus().name(),
                 ebook.getRagDocumentId(),
                 ebook.getRagJobId(),
+                ebook.getIngestionStage(),
                 ebook.getIngestionLastError(),
                 ebook.getIndexingRequestedAt(),
+                ebook.getIngestionLastCheckedAt(),
+                ebook.getIngestionPollFailureCount(),
+                ebook.getIngestionNextCheckAt(),
+                ebook.getIndexingCompletedAt(),
                 ebook.getCreatedAt(),
                 ebook.getUpdatedAt()
         );

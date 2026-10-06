@@ -55,6 +55,7 @@ class LibraryEbookIngestionRequest(BaseModel):
     original_filename: str | None = Field(default=None, alias="originalFilename", max_length=512)
     content_type: str | None = Field(default="application/pdf", alias="contentType", max_length=255)
     file_size_bytes: int | None = Field(default=None, alias="fileSizeBytes", gt=0)
+    force_reindex: bool = Field(default=False, alias="forceReindex")
 
     @field_validator("checksum_sha256")
     @classmethod
@@ -150,7 +151,8 @@ async def create_library_ebook_ingestion(
         artifact = await get_document_artifact(session, document.id, "RAW_ORIGINAL")
         latest_job = await get_latest_ingestion_job_for_document(session, document.id)
         if (
-            artifact is not None
+            not payload.force_reindex
+            and artifact is not None
             and artifact.checksum_sha256 == payload.checksum_sha256
             and latest_job is not None
             and latest_job.status != "FAILED"

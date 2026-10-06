@@ -28,6 +28,15 @@ on:
         options:
           - 'false'
           - 'true'
+      rag_enabled:
+        description: Enable private RAG with the stable v1 demo configuration, or preserve current settings
+        required: true
+        default: unchanged
+        type: choice
+        options:
+          - unchanged
+          - 'true'
+          - 'false'
       confirmation:
         description: Type PROVISION to create or update the VPS runtime file
         required: true
@@ -111,6 +120,8 @@ jobs:
           PUBLIC_API_BASE_URL: ${{ steps.configuration.outputs.api_base_url }}
           FRONTEND_ORIGIN: ${{ steps.configuration.outputs.frontend_origin }}
           SWAGGER_ENABLED: ${{ steps.configuration.outputs.swagger_enabled }}
+          RAG_ENABLED_INPUT: ${{ inputs.rag_enabled }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -131,8 +142,11 @@ jobs:
           api_base_url_b64="$(printf '%s' "$PUBLIC_API_BASE_URL" | base64 -w 0)"
           frontend_origin_b64="$(printf '%s' "$FRONTEND_ORIGIN" | base64 -w 0)"
           swagger_enabled_b64="$(printf '%s' "$SWAGGER_ENABLED" | base64 -w 0)"
-          ssh "${ssh_args[@]}" "$remote" \
-            "PUBLIC_API_BASE_URL_B64='$api_base_url_b64' FRONTEND_ORIGIN_B64='$frontend_origin_b64' SWAGGER_ENABLED_B64='$swagger_enabled_b64' bash ~/apps/quanlythuvien/scripts/provision-runtime.sh"
+          rag_enabled_b64="$(printf '%s' "$RAG_ENABLED_INPUT" | base64 -w 0)"
+          # The provider key travels over SSH stdin, never in remote arguments.
+          # The script preserves a valid key already present on the VPS.
+          printf '%s' "$GEMINI_API_KEY" | ssh "${ssh_args[@]}" "$remote" \
+            "PUBLIC_API_BASE_URL_B64='$api_base_url_b64' FRONTEND_ORIGIN_B64='$frontend_origin_b64' SWAGGER_ENABLED_B64='$swagger_enabled_b64' RAG_ENABLED_INPUT_B64='$rag_enabled_b64' bash ~/apps/quanlythuvien/scripts/provision-runtime.sh"
 
       - name: Validate provisioned runtime without starting the database
         env:

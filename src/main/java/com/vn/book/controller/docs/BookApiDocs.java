@@ -186,6 +186,21 @@ public interface BookApiDocs {
 
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
+            summary = "Re-index an ebook for AI search",
+            description = """
+                    Create a new asynchronous RAG ingestion job for the PDF already stored for this ebook.
+                    The PDF is not uploaded again and access/loan policy is unchanged.
+                    Use this after INDEX_FAILED or when staff intentionally needs to rebuild the search index.
+                    Librarian and Admin can access this API.
+                    """
+    )
+    ResponseEntity<ApiResponse<BookEbookManagementResponse>> reindexBookEbook(
+            @Parameter(description = "Book ID", required = true) Long bookId,
+            @Parameter(description = "Book ebook ID", required = true) Long bookEbookId
+    );
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(
             summary = "Delete book",
             description = """
                     Soft delete a book and its non-active copies.

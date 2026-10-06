@@ -30,8 +30,13 @@ public record BookEbookManagementResponse(
         String ingestionStatus,
         String ragDocumentId,
         Long ragJobId,
+        String ingestionStage,
         String ingestionLastError,
         Instant indexingRequestedAt,
+        Instant ingestionLastCheckedAt,
+        Integer ingestionPollFailureCount,
+        Instant ingestionNextCheckAt,
+        Instant indexingCompletedAt,
         Instant createdAt,
         Instant updatedAt
 ) {

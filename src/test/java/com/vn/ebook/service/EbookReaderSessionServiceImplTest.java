@@ -8,6 +8,7 @@ import com.vn.ebook.entity.EbookLoan;
 import com.vn.ebook.entity.EbookReadingSession;
 import com.vn.ebook.enums.BookEbookStatus;
 import com.vn.ebook.enums.EbookLoanStatus;
+import com.vn.ebook.enums.EbookIngestionStatus;
 import com.vn.ebook.enums.EbookReadingSessionStatus;
 import com.vn.shared.enums.MediaProvider;
 import com.vn.shared.exception.AppException;
@@ -182,6 +183,29 @@ class EbookReaderSessionServiceImplTest {
                 .isInstanceOf(AppException.class)
                 .extracting("code")
                 .isEqualTo(ErrorCode.READING_SESSION_NOT_ACTIVE.getCode());
+    }
+
+    @Test
+    void authorizeAccessShouldReturnTrustedEbookAndIngestionState() {
+        Instant sessionExpiresAt = com.vn.shared.testsupport.TestTime.NOW.plusSeconds(900);
+        Instant loanExpiresAt = com.vn.shared.testsupport.TestTime.NOW.plusSeconds(3600);
+        BookEbook ebook = ebook();
+        ebook.setIngestionStatus(EbookIngestionStatus.INDEXED);
+        when(tokenService.hashToken("raw-token")).thenReturn("hashed-token");
+        when(valueOperations.get("reading_session:hashed-token"))
+                .thenReturn("""
+                        {"sessionId":7001,"memberId":10,"bookId":501,"bookEbookId":1001,"loanId":3001,
+                        "sessionExpiresAt":"%s","loanExpiresAt":"%s","status":"ACTIVE"}
+                        """.formatted(sessionExpiresAt, loanExpiresAt));
+        when(ebookLoanRepository.findById(3001L)).thenReturn(Optional.of(loan(loanExpiresAt)));
+        when(bookEbookRepository.findByIdAndBookId(1001L, 501L)).thenReturn(Optional.of(ebook));
+
+        EbookReadingAccess access = service.authorizeAccess(10L, 501L, "raw-token");
+
+        assertThat(access.readingSessionId()).isEqualTo(7001L);
+        assertThat(access.ebookId()).isEqualTo(1001L);
+        assertThat(access.loanId()).isEqualTo(3001L);
+        assertThat(access.ingestionStatus()).isEqualTo(EbookIngestionStatus.INDEXED);
     }
 
     private BookEbook ebook() {

@@ -1,5 +1,6 @@
-def main() -> None:
-    print("Retrieval benchmark script is not implemented yet.")
+"""Compatibility entry point for the versioned evaluation CLI."""
+
+from app.evaluation.run_eval import main
 
 
 if __name__ == "__main__":

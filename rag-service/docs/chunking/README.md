@@ -29,6 +29,45 @@ LlamaIndex Document
 
 ### 0. Checkpoint hiện tại
 
+Checkpoint cập nhật 2026-10-06:
+[Baseline v1 và kế hoạch sửa ranh giới trang/chương](chunking-baseline-and-boundary-plan.md).
+Bước 1 thêm fixtures/tests/snapshot/CLI; bước 2 thêm
+[chapter-aware/source-mapped v2](chapter-aware-v2.md) opt-in.
+Mặc định vẫn v1; bước 3 có
+[context expansion theo chương/phiên bản](chapter-aware-context-expansion.md).
+Bước 4 có [benchmark PDF thật](real-book-chunking-benchmark.md), 20 questions
+trên 135 trang. [Heading regression fix](heading-detection-regression-fix.md)
+đã sửa terminal-period/Appendix/front-matter của v2 và rerun cùng labels.
+HOLD v1 vì retrieval regressions và thiếu Vietnamese/held-out review.
+[Ranking diagnostics và Vietnamese query holdout](retrieval-diagnostics-and-vi-query-holdout.md)
+giải thích từng term/score và thêm câu hỏi Việt mới trên PDF English, không
+nhầm query-level holdout với corpus sách Việt hoặc unseen-book validation.
+[Hybrid ranking trace](hybrid-ranking-trace.md) đã theo dõi evidence qua RRF,
+reranker và cutoff, tìm thấy hai v2 failures bắt đầu tụt hạng ở RRF. Policy
+chưa đổi; trace có/không bật giữ response và baseline metrics bằng nhau.
+[Policy comparison](hybrid-policy-comparison.md) đã chạy cùng corpus với 5
+policies/controls: có gains và regressions, chưa chọn thay runtime baseline.
+[Lexical agreement](lexical-agreement-diagnostics.md) đã chẩn đoán 80 cases đến
+từng term, cả score=0 evidence. Counterexamples bác bỏ title-only/coverage-only
+như một rule chắc chắn. [Adaptive experiment v2](adaptive-hybrid-experiment-v2.md)
+đã chạy 560 cases với formulas/gates khóa trước run; macro gains nhưng Magi
+regressions vẫn giữ HOLD.
+[Vietnamese-source first evaluation](vietnamese-source-evaluation-v1.md) đã
+thêm báo cáo tiếng Việt 32 trang + 20 câu, chạy 40 BM25 cases + exact replay.
+Chủ đồ án đã duyệt [phiếu câu hỏi/heading](vietnamese-source-review-v1.md) ngày
+2026-10-06, biên bản theo hash lưu riêng sau first scoring.
+[Bounded real embedding baseline](vietnamese-source-embedding-baseline-v1.md) đã
+giữ 96 vectors từ lượt lỗi, bổ sung đủ 120 missing inputs theo quyền riêng và
+token-aware pacing. Cache đủ 216 vectors, chấm 120 BM25/Dense/Hybrid cases,
+0 errors; Hybrid Recall@3 v1/v2 là 92,5%/90%. Section/ranking regressions vẫn
+giữ HOLD v1; không scoring adaptive formulas hoặc runtime changes.
+[Chẩn đoán Vietnamese baseline](vietnamese-baseline-diagnostics-v1.md) đã trace
+40 case-version pairs + 120 exact replay cases, 0 provider calls. 23/23 anchors
+có full single-chunk source ở mỗi chunker; v2 chỉ nhận 2/7 headings. Phân biệt
+section gaps, candidate ranking và top-3/context cutoffs trước khi sửa v3 riêng.
+Trạng thái embedding/retrieval/evaluation mới nhất nằm ở
+[implementation ledger](../retrieval-evaluation-implementation.md).
+
 Đọc đầu tiên nếu muốn biết đang làm tới đâu:
 
 ```text
@@ -148,7 +187,7 @@ app/documents/models.py
 - token count; đã có C5 v1 bằng `ApproxTokenCounter`;
 - chapter metadata cho tiểu thuyết; đã có C6 v1 bằng rule-based `ChapterDetector`;
 - artifacts trong `rag-artifacts`; đã có A1 foundation gồm parsed/cleaned/chunks/manifest;
-- embedding + Qdrant indexing.
+- embedding + Qdrant indexing đã có; xem implementation ledger cho kết quả kiểm chứng.
 
 ---
 
@@ -164,8 +203,25 @@ C4: thêm chunk quality validation [done]
 C5: thêm token count [done]
 C6: thêm chapter metadata cho tiểu thuyết [done]
 A1: lưu parsed/cleaned/chunks artifacts vào `rag-artifacts` [done]
-A2: embedding provider
-A3: Qdrant upsert
+A2: embedding provider [done]
+A3: Qdrant upsert [done]
+
+2026-10-05:
+  Bước 1 baseline v1 fixtures/tests/snapshot/CLI [implemented]
+  Bước 2 chapter-aware/source-mapped v2 [implemented, opt-in]
+  Bước 3 chapter/revision-aware context expansion [implemented]
+  Bước 4 real-book/retrieval benchmark [implemented; HOLD default v1]
+  Heading fixes + ranking diagnostics/query holdout [implemented]
+  Hybrid rank trace [implemented, scoring unchanged]
+  Fixed policy comparison [implemented, no candidate passed all gates]
+  Lexical-agreement diagnosis [80 cases, descriptive only, no scoring change]
+  Adaptive experiment v2 [560 cases, no candidate passed all gates]
+  Vietnamese-source first evaluation [40 BM25 cases, exact replay, source/labels sealed]
+  Owner review [approved after first scoring, separate version/hash receipt]
+  Bounded embeddings first attempt [112 submitted, 96 cached; stopped rate/quota]
+  Token-aware completion [120 missing submitted, 216 cached; 120 cases, 0 errors]
+  Vietnamese baseline diagnosis [40 pairs, 120 exact replay cases, provider calls=0]
+  Tiếp theo: isolated section-detection v3 experiment; stop known-case tuning
 ```
 
 Các việc nâng cao đã cố ý để sau được ghi riêng tại:

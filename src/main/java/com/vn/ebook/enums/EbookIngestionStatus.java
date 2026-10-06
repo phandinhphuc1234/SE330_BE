@@ -6,6 +6,9 @@ public enum EbookIngestionStatus {
     PROCESSING,
     PARSED,
     CHUNKED,
+    EMBEDDING,
+    EMBEDDED,
+    INDEXING,
     INDEXED,
-    FAILED
+    INDEX_FAILED
 }

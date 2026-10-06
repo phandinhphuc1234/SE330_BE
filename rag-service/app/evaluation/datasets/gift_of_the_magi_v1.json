@@ -1,0 +1,185 @@
+{
+  "name": "gift-of-the-magi-library-rag",
+  "version": "1.0.0",
+  "description": "Golden retrieval and grounded-answer cases labeled from the actual six-page PDF indexed as ebook 10. Re-label IDs when importing into another database or changing the chunker.",
+  "items": [
+    {
+      "id": "rooms-rent", "question": "How much did their furnished rooms cost each week?",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-0-66a6bcec62ec"],
+      "expectedPages": [1], "expectedAnswerPoints": ["eight dollars"], "tags": ["fact", "money"]
+    },
+    {
+      "id": "watch-inheritance", "question": "Who owned Jim's gold watch before him?",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-1-a151810c5f32"],
+      "expectedPages": [2], "expectedAnswerPoints": ["father", "grandfather"], "tags": ["fact", "relation"]
+    },
+    {
+      "id": "hair-length", "question": "How far did Della's hair reach before she sold it?",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-2-6a266139d37a"],
+      "expectedPages": [3], "expectedAnswerPoints": ["below her knee"], "tags": ["fact"]
+    },
+    {
+      "id": "money-left", "question": "How much money did Della have left after buying the chain?",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-2-6a266139d37a"],
+      "expectedPages": [3], "expectedAnswerPoints": ["eighty-seven cents"], "tags": ["fact", "money"]
+    },
+    {
+      "id": "dinner-time", "question": "At what time was Jim's dinner ready?",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-3-17c98c4ff9df"],
+      "expectedPages": [4], "expectedAnswerPoints": ["seven"], "tags": ["fact"]
+    },
+    {
+      "id": "two-sacrifices", "question": "Compare what Della and Jim each sold to buy the other's gift.",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-2-6a266139d37a", "doc-1-chunk-5-53eecbd6d3a5"],
+      "expectedPages": [3, 6], "expectedAnswerPoints": ["hair", "watch"], "tags": ["multi-hop", "comparison"]
+    },
+    {
+      "id": "unusable-gifts", "question": "Why could neither Jim nor Della immediately use their Christmas gifts?",
+      "bookId": 3342, "ebookId": 10, "expectedChunkIds": ["doc-1-chunk-4-8b84a70fff8f", "doc-1-chunk-5-53eecbd6d3a5"],
+      "expectedPages": [5, 6], "expectedAnswerPoints": ["hair", "watch"], "tags": ["multi-hop", "reasoning"]
+    },
+    {
+      "id": "money-before-christmas",
+      "question": "How much money did Della have to buy Jim a Christmas gift?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-0-66a6bcec62ec", "doc-1-chunk-1-a151810c5f32"],
+      "expectedPages": [1, 2],
+      "expectedAnswerPoints": ["one dollar and eighty-seven cents"],
+      "answerable": true,
+      "tags": ["fact", "money"]
+    },
+    {
+      "id": "jim-current-salary",
+      "question": "How much was Jim being paid per week at the time of the story?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-1-a151810c5f32"],
+      "expectedPages": [2],
+      "expectedAnswerPoints": ["twenty dollars", "week"],
+      "answerable": true,
+      "tags": ["fact", "money"]
+    },
+    {
+      "id": "two-prized-possessions",
+      "question": "What two possessions were the Youngs most proud of?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-1-a151810c5f32"],
+      "expectedPages": [2],
+      "expectedAnswerPoints": ["gold watch", "hair"],
+      "answerable": true,
+      "tags": ["multi-fact"]
+    },
+    {
+      "id": "hair-buyer-and-price",
+      "question": "Who bought Della's hair and how much did she pay for it?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-2-6a266139d37a"],
+      "expectedPages": [3],
+      "expectedAnswerPoints": ["Mrs. Sofronie", "twenty dollars"],
+      "answerable": true,
+      "tags": ["multi-fact", "named-entity"]
+    },
+    {
+      "id": "della-gift",
+      "question": "What gift did Della buy for Jim?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-2-6a266139d37a"],
+      "expectedPages": [3],
+      "expectedAnswerPoints": ["gold watch chain"],
+      "answerable": true,
+      "tags": ["fact", "gift"]
+    },
+    {
+      "id": "chain-price",
+      "question": "How much did the gold watch chain cost?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-2-6a266139d37a"],
+      "expectedPages": [3],
+      "expectedAnswerPoints": ["twenty-one dollars"],
+      "answerable": true,
+      "tags": ["fact", "money"]
+    },
+    {
+      "id": "jim-age",
+      "question": "How old was Jim?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-3-17c98c4ff9df"],
+      "expectedPages": [4],
+      "expectedAnswerPoints": ["twenty-two"],
+      "answerable": true,
+      "tags": ["fact"]
+    },
+    {
+      "id": "jim-gift",
+      "question": "What Christmas gift did Jim buy for Della?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-4-8b84a70fff8f"],
+      "expectedPages": [5],
+      "expectedAnswerPoints": ["combs"],
+      "answerable": true,
+      "tags": ["fact", "gift"]
+    },
+    {
+      "id": "jim-sold-watch",
+      "question": "What did Jim sell to get money for Della's combs?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-5-53eecbd6d3a5"],
+      "expectedPages": [6],
+      "expectedAnswerPoints": ["watch"],
+      "answerable": true,
+      "tags": ["fact", "gift"]
+    },
+    {
+      "id": "why-called-magi",
+      "question": "Why does the narrator call Jim and Della the magi?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": ["doc-1-chunk-5-53eecbd6d3a5"],
+      "expectedPages": [6],
+      "expectedAnswerPoints": ["most valuable", "gift", "wise"],
+      "answerable": true,
+      "tags": ["reasoning", "theme"]
+    },
+    {
+      "id": "unknown-author-birthday",
+      "question": "On what exact date was O. Henry born?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": ["unanswerable", "abstention"]
+    },
+    {
+      "id": "unknown-city",
+      "question": "In which city does the story explicitly take place?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": ["unanswerable", "abstention"]
+    },
+    {
+      "id": "unknown-maiden-name",
+      "question": "What was Della's surname before she married Jim?",
+      "bookId": 3342,
+      "ebookId": 10,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": ["unanswerable", "abstention"]
+    }
+  ]
+}

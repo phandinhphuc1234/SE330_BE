@@ -19,4 +19,7 @@ public interface BookEbookService {
 
     // Cập nhật policy/trạng thái ebook, không thay file PDF. Thay file dùng API upload hiện có.
     BookEbookManagementResponse updateEbook(Long bookId, Long bookEbookId, UpdateBookEbookRequest request);
+
+    // Tạo ingestion job mới từ PDF đang lưu; không upload lại hoặc thay đổi policy ebook.
+    BookEbookManagementResponse reindexEbook(Long bookId, Long bookEbookId);
 }

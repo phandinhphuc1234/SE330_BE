@@ -210,7 +210,9 @@ class IngestionPipeline:
                     text_page_count=len(non_empty_pages),
                     chunker=LLAMAINDEX_SENTENCE_CHUNKER,
                 )
-                chunk_build_result = self._build_chunk_result(raw_documents, document=document)
+                chunk_build_result = self._build_chunk_result(
+                    raw_documents, document=document, source_checksum_sha256=source_checksum_sha256,
+                )
                 chunks = chunk_build_result.chunks
                 if not chunks:
                     raise IngestionError(
@@ -296,6 +298,7 @@ class IngestionPipeline:
                     "chunker": chunks[0].metadata.get("chunker", LLAMAINDEX_SENTENCE_CHUNKER),
                     "chunk_quality_status": chunks[0].metadata.get("chunk_quality_status"),
                     "chunk_quality_report": chunks[0].metadata.get("chunk_quality_report"),
+                    "source_checksum_sha256": source_checksum_sha256,
                     **artifact_set.to_metadata(),
                     "vector_indexing_status": "pending_embedding",
                 }
@@ -812,9 +815,17 @@ class IngestionPipeline:
     def _build_chunks(self, raw_documents: list[ParsedDocument], document) -> list[Chunk]:
         return self._build_chunk_result(raw_documents, document=document).chunks
 
-    def _build_chunk_result(self, raw_documents: list[ParsedDocument], document) -> ChunkBuildResult:
+    def _build_chunk_result(
+        self, raw_documents: list[ParsedDocument], document,
+        *, source_checksum_sha256: str | None = None,
+    ) -> ChunkBuildResult:
         settings = get_settings()
         base_metadata = self._document_base_metadata(document)
+        # Runtime ingestion already computes the SHA-256 of the validated PDF.
+        # Carry it into every chunk/payload so expansion can bind the source
+        # revision, not just the embedding model or reused document identifier.
+        if source_checksum_sha256 is not None:
+            base_metadata["source_checksum_sha256"] = source_checksum_sha256
         page_documents = parsed_documents_to_llama_documents(
             raw_documents,
             base_metadata=base_metadata,
@@ -831,8 +842,17 @@ class IngestionPipeline:
             cleaned_documents,
             document_profile.to_metadata(),
         )
-        chaptered_documents = self.chapter_detector.attach_metadata(profiled_documents)
-        chunking_strategy = select_chunking_strategy(document_profile.name)
+        chunking_strategy = select_chunking_strategy(
+            document_profile.name,
+            strategy_version=getattr(settings, "chunking_strategy_version", "v1"),
+        )
+        # v1 attaches one chapter label to each page. v2 must see unlabelled
+        # cleaned pages and build actual boundaries itself; its artifacts keep
+        # the original page shape while chunk metadata owns chapter provenance.
+        chaptered_documents = (
+            self.chapter_detector.attach_metadata(profiled_documents)
+            if chunking_strategy.version == "v1" else profiled_documents
+        )
         nodes = chunking_strategy.build_nodes(
             chaptered_documents,
             chunk_size=settings.chunk_size,

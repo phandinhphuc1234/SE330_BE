@@ -27,6 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -71,7 +72,8 @@ class BookEbookServiceImplTest {
                 ebookObjectStorageService,
                 ebookPdfValidator,
                 ragIngestionAsyncProcessor,
-                new RagServiceProperties(true, "http://localhost:8000", "test-key"),
+                new RagServiceProperties(true, "http://localhost:8000", "test-key",
+                        Duration.ofSeconds(3), Duration.ofSeconds(30)),
                 transactionTemplate
         );
         when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
@@ -132,7 +134,8 @@ class BookEbookServiceImplTest {
                 ebookObjectStorageService,
                 ebookPdfValidator,
                 ragIngestionAsyncProcessor,
-                new RagServiceProperties(false, "http://localhost:8000", ""),
+                new RagServiceProperties(false, "http://localhost:8000", "",
+                        Duration.ofSeconds(3), Duration.ofSeconds(30)),
                 transactionTemplate
         );
         Book book = new Book();
@@ -170,6 +173,41 @@ class BookEbookServiceImplTest {
 
         assertThat(response.ingestionStatus()).isEqualTo(EbookIngestionStatus.NOT_REQUESTED.name());
         verify(ragIngestionAsyncProcessor, never()).requestIngestionAsync(200L);
+    }
+
+    @Test
+    void reindexEbook_shouldResetRetryStateAndScheduleNewIngestion() {
+        Book book = new Book();
+        book.setId(10L);
+        BookEbook ebook = new BookEbook();
+        ebook.setId(200L);
+        ebook.setBook(book);
+        ebook.setBucketName("library-private");
+        ebook.setObjectKey("ebooks/10/200/original.pdf");
+        ebook.setOriginalFilename("clean-code.pdf");
+        ebook.setMimeType("application/pdf");
+        ebook.setSizeBytes(1024L);
+        ebook.setChecksumSha256("abc123");
+        ebook.setIngestionStatus(EbookIngestionStatus.INDEX_FAILED);
+        ebook.setIngestionPollFailureCount(5);
+        ebook.setIngestionNextCheckAt(Instant.now().plusSeconds(60));
+        ebook.setIngestionLastError("STATUS_POLL_FAILED: RAG_SERVICE_ERROR");
+        applyEntityDefaults(ebook);
+
+        when(bookRepository.findByIdAndDeletedAtIsNull(10L)).thenReturn(Optional.of(book));
+        when(bookEbookRepository.findByIdAndBookId(200L, 10L)).thenReturn(Optional.of(ebook));
+        when(bookEbookRepository.save(any(BookEbook.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = service.reindexEbook(10L, 200L);
+
+        assertThat(response.ingestionStatus()).isEqualTo(EbookIngestionStatus.QUEUED.name());
+        assertThat(response.ingestionStage()).isEqualTo("awaiting_reindex_enqueue");
+        assertThat(response.ingestionLastError()).isNull();
+        assertThat(response.ingestionPollFailureCount()).isZero();
+        assertThat(response.ingestionNextCheckAt()).isNull();
+        assertThat(ebook.getRagJobId()).isNull();
+        assertThat(ebook.getRagDocumentId()).isNull();
+        verify(ragIngestionAsyncProcessor).requestReindexAsync(200L);
     }
 
     private void applyEntityDefaults(BookEbook ebook) {

@@ -2,6 +2,9 @@
 
 Folder này chứa tài liệu tổng quan hệ thống và triển khai.
 
+Định hướng sản phẩm đang áp dụng:
+[Secure AI Ebook Reader](../../../docs/secure-ai-ebook-reader-roadmap.md).
+
 ---
 
 ## Files

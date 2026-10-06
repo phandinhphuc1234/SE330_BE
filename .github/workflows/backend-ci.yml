@@ -43,6 +43,11 @@ jobs:
       - name: Run unit and integration tests
         run: ./mvnw -B -ntp clean verify
 
+      - name: Validate production provisioning
+        run: |
+          for script in deploy/scripts/*.sh deploy/tests/*.sh; do bash -n "$script"; done
+          bash deploy/tests/provision-runtime-test.sh
+
       - name: Analyze source with CodeQL
         uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
         with:

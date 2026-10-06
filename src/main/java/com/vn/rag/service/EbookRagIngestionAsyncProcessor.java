@@ -31,13 +31,22 @@ public class EbookRagIngestionAsyncProcessor {
 
     @Async("ragIngestionExecutor")
     public void requestIngestionAsync(Long ebookId) {
+        requestIngestion(ebookId, false);
+    }
+
+    @Async("ragIngestionExecutor")
+    public void requestReindexAsync(Long ebookId) {
+        requestIngestion(ebookId, true);
+    }
+
+    private void requestIngestion(Long ebookId, boolean forceReindex) {
         if (!ragServiceProperties.enabled()) {
             log.debug("Skipping RAG ingestion for ebookId={} because RAG is disabled", ebookId);
             return;
         }
 
         try {
-            IngestionRequest request = transactionTemplate.execute(status -> buildRequest(ebookId));
+            IngestionRequest request = transactionTemplate.execute(status -> buildRequest(ebookId, forceReindex));
             if (request == null) {
                 return;
             }
@@ -55,38 +64,50 @@ public class EbookRagIngestionAsyncProcessor {
         }
     }
 
-    private IngestionRequest buildRequest(Long ebookId) {
+    private IngestionRequest buildRequest(Long ebookId, boolean forceReindex) {
         BookEbook ebook = bookEbookRepository.findById(ebookId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        if (forceReindex) {
+            return IngestionRequest.libraryEbookReindex(
+                    ebook.getBook().getId(), ebook.getId(), ebook.getBucketName(), ebook.getObjectKey(),
+                    ebook.getOriginalFilename(), ebook.getMimeType(), ebook.getSizeBytes(), ebook.getChecksumSha256()
+            );
+        }
         return IngestionRequest.libraryEbook(
-                ebook.getBook().getId(),
-                ebook.getId(),
-                ebook.getBucketName(),
-                ebook.getObjectKey(),
-                ebook.getOriginalFilename(),
-                ebook.getMimeType(),
-                ebook.getSizeBytes(),
-                ebook.getChecksumSha256()
+                ebook.getBook().getId(), ebook.getId(), ebook.getBucketName(), ebook.getObjectKey(),
+                ebook.getOriginalFilename(), ebook.getMimeType(), ebook.getSizeBytes(), ebook.getChecksumSha256()
         );
     }
 
     private void markIngestionQueued(Long ebookId, IngestionResponse response) {
         BookEbook ebook = bookEbookRepository.findById(ebookId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        Instant now = Instant.now();
+        EbookIngestionStatus ingestionStatus = normalizeIngestionStatus(response != null ? response.status() : null);
         ebook.setRagDocumentId(response != null ? response.documentId() : null);
         ebook.setRagJobId(response != null ? response.ingestionJobId() : null);
-        ebook.setIngestionStatus(normalizeIngestionStatus(response != null ? response.status() : null));
+        ebook.setIngestionStatus(ingestionStatus);
+        ebook.setIngestionStage(ingestionStatus == EbookIngestionStatus.INDEXED ? "indexed" : "queued");
         ebook.setIngestionLastError(null);
-        ebook.setIndexingRequestedAt(Instant.now());
+        ebook.setIndexingRequestedAt(now);
+        ebook.setIngestionLastCheckedAt(now);
+        ebook.setIngestionPollFailureCount(0);
+        ebook.setIngestionNextCheckAt(null);
+        ebook.setIndexingCompletedAt(ingestionStatus == EbookIngestionStatus.INDEXED ? now : null);
         bookEbookRepository.save(ebook);
     }
 
     private void markIngestionFailed(Long ebookId, String errorCode) {
         BookEbook ebook = bookEbookRepository.findById(ebookId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
-        ebook.setIngestionStatus(EbookIngestionStatus.FAILED);
+        ebook.setIngestionStatus(EbookIngestionStatus.INDEX_FAILED);
+        ebook.setIngestionStage("request_failed");
         ebook.setIngestionLastError(truncate(errorCode, 1000));
         ebook.setIndexingRequestedAt(Instant.now());
+        ebook.setIngestionLastCheckedAt(Instant.now());
+        ebook.setIngestionPollFailureCount(0);
+        ebook.setIngestionNextCheckAt(null);
+        ebook.setIndexingCompletedAt(null);
         bookEbookRepository.save(ebook);
     }
 
@@ -106,7 +127,11 @@ public class EbookRagIngestionAsyncProcessor {
             return EbookIngestionStatus.QUEUED;
         }
         try {
-            return EbookIngestionStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
+            String normalized = status.trim().toUpperCase(Locale.ROOT);
+            if ("FAILED".equals(normalized)) {
+                return EbookIngestionStatus.INDEX_FAILED;
+            }
+            return EbookIngestionStatus.valueOf(normalized);
         } catch (IllegalArgumentException exception) {
             return EbookIngestionStatus.QUEUED;
         }

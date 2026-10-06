@@ -192,6 +192,18 @@ public class BookController implements BookApiDocs {
         ));
     }
 
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping("/{bookId}/ebooks/{bookEbookId}/reindex")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookManagementResponse>> reindexBookEbook(
+            @PathVariable Long bookId,
+            @PathVariable Long bookEbookId) {
+        return ResponseEntity.accepted().body(ApiResponse.success(
+                "Đã xếp hàng re-index ebook",
+                bookEbookService.reindexEbook(bookId, bookEbookId)
+        ));
+    }
+
     // Xóa đầu sách trong hệ thống
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{bookId}")
