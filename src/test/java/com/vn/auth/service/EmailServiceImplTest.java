@@ -9,7 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 import org.thymeleaf.context.IContext;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,6 +27,28 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class EmailServiceImplTest {
+
+    @Test
+    @DisplayName("Password-reset template declares Vietnamese and presentation-only layout tables")
+    void passwordResetTemplate_shouldKeepAccessibleLayoutAndEscapedMemberName() {
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setPrefix("templates/");
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        TemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
+        Context context = new Context(Locale.forLanguageTag("vi"));
+        context.setVariable("fullName", "Phúc <script>");
+        context.setVariable("resetLink", "https://library.test/reset-password?token=test-only-token");
+
+        String html = templateEngine.process("password-reset", context);
+
+        assertThat(html).contains("lang=\"vi\"");
+        assertThat(html.split("role=\"presentation\"", -1)).hasSize(3);
+        assertThat(html).contains("Phúc &lt;script&gt;");
+        assertThat(html).contains("href=\"https://library.test/reset-password?token=test-only-token\"");
+    }
 
     @Test
     @DisplayName("Verification email uses configured sender and renders a 9-digit code")

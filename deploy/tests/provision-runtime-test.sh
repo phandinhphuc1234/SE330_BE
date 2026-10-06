@@ -39,11 +39,65 @@ printf '%s' 'TEST_ANOTHER_KEY_9876543210' | bash "$test_root/scripts/provision-r
 grep -q "^GEMINI_API_KEY=${fake_key}$" "$RUNTIME_ENV_FILE"
 test "$(grep '^POSTGRES_PASSWORD=' "$RUNTIME_ENV_FILE")" = "$first_database_secret"
 
+# A Docker stub keeps initial-password repair tests entirely local and read-only.
+docker() {
+  case "$1" in
+    version) [[ "${PROVISION_TEST_RAG_DATABASE_STATE:-absent}" != 'docker-error' ]] ;;
+    ps)
+      if [[ "${PROVISION_TEST_RAG_DATABASE_STATE:-absent}" == 'container' ]]; then
+        printf 'test-rag-container\n'
+      fi
+      ;;
+    volume)
+      if [[ "${PROVISION_TEST_RAG_DATABASE_STATE:-absent}" == 'volume' ]]; then
+        printf 'quanlythuvien_rag_postgres_data\n'
+      fi
+      ;;
+    *) return 1 ;;
+  esac
+}
+export -f docker
+export INITIALIZE_RAG_DATABASE_B64 PROVISION_TEST_RAG_DATABASE_STATE
+INITIALIZE_RAG_DATABASE_B64="$(printf '%s' 'false' | base64 | tr -d '\n')"
+sed -i 's/^RAG_POSTGRES_PASSWORD=.*/RAG_POSTGRES_PASSWORD=short_initial_password/' "$RUNTIME_ENV_FILE"
+bash "$test_root/scripts/provision-runtime.sh" < /dev/null > "$test_dir/run.log"
+grep -q '^RAG_POSTGRES_PASSWORD=short_initial_password$' "$RUNTIME_ENV_FILE"
+
+# Existing/stopped containers, existing volumes, or Docker failure refuse repair
+# atomically. Even an empty initialized database must not have its password changed.
+INITIALIZE_RAG_DATABASE_B64="$(printf '%s' 'true' | base64 | tr -d '\n')"
+runtime_before_repair="$(sha256sum "$RUNTIME_ENV_FILE")"
+for state in container volume docker-error; do
+  PROVISION_TEST_RAG_DATABASE_STATE="$state"
+  if bash "$test_root/scripts/provision-runtime.sh" < /dev/null > "$test_dir/run.log" 2>&1; then
+    printf 'Expected initial RAG password repair to refuse state %s\n' "$state" >&2
+    exit 1
+  fi
+  test "$(sha256sum "$RUNTIME_ENV_FILE")" = "$runtime_before_repair"
+done
+
+# Explicit initial setup with no container/volume repairs only the RAG password.
+PROVISION_TEST_RAG_DATABASE_STATE='absent'
+bash "$test_root/scripts/provision-runtime.sh" < /dev/null > "$test_dir/run.log"
+grep -Eq '^RAG_POSTGRES_PASSWORD=[a-f0-9]{64}$' "$RUNTIME_ENV_FILE"
+repaired_rag_secret="$(grep '^RAG_POSTGRES_PASSWORD=' "$RUNTIME_ENV_FILE")"
+test "$(grep '^POSTGRES_PASSWORD=' "$RUNTIME_ENV_FILE")" = "$first_database_secret"
+grep -q "^GEMINI_API_KEY=${fake_key}$" "$RUNTIME_ENV_FILE"
+if grep -Fq "${repaired_rag_secret#*=}" "$test_dir/run.log"; then
+  printf 'RAG database password leaked to provisioning log\n' >&2
+  exit 1
+fi
+bash "$test_root/scripts/provision-runtime.sh" < /dev/null > "$test_dir/run.log"
+test "$(grep '^RAG_POSTGRES_PASSWORD=' "$RUNTIME_ENV_FILE")" = "$repaired_rag_secret"
+unset INITIALIZE_RAG_DATABASE_B64
+
 # Default/unchanged keeps an already enabled RAG and requires no stdin key.
 unset RAG_ENABLED_INPUT_B64
 bash "$test_root/scripts/provision-runtime.sh" < /dev/null > "$test_dir/run.log"
 grep -q '^RAG_ENABLED=true$' "$RUNTIME_ENV_FILE"
-printf 'Provisioning tests passed: atomic failure, v1, secret redaction, idempotency.\n'
+printf 'Provisioning tests passed: atomic failure, v1, secret redaction, idempotency, guarded initial RAG database setup.\n'
 
 # FLOW: empty runtime/key -> safe failure -> fake key via stdin -> v1 runtime
 # -> repeat + preserve credentials -> unchanged preserves RAG. No provider call.
+# Initial RAG setup also refuses existing containers/volumes and Docker errors,
+# then repairs a short initial password without touching Library/provider credentials.
