@@ -29,6 +29,9 @@
 - CI/test, image security scan và deploy phải thành công ở **commit mới**.
 - `/healthz` trả 200/UP; `/api/books` trả 200 và dữ liệu thật.
 - CORS cho đúng frontend origin; login và refresh session chạy được.
+- Refresh dùng HttpOnly cookie: frontend lấy token ở `GET /api/auth/csrf`,
+  rồi gửi header `X-XSRF-TOKEN` khi `POST /api/auth/refresh`. Cookie đơn thuần
+  không đủ để gọi refresh; các API Bearer và webhook có chữ ký giữ contract cũ.
 - Chọn ebook production có quyền đọc, PDF hiển thị được và ingestion `INDEXED`.
 - Kiểm tra `Find passages`, một câu hỏi có evidence, citation nhảy đúng trang,
   và một câu hỏi ngoài sách có thể abstain. Không tự retry câu hỏi tạo LLM.

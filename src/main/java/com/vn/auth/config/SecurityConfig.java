@@ -3,6 +3,7 @@ package com.vn.auth.config;
 import com.vn.shared.exception.ErrorCode;
 import com.vn.auth.security.JwtAuthFilter;
 import com.vn.auth.security.SecurityErrorResponseWriter;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 //
@@ -19,6 +20,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -40,8 +43,12 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 // Logout được xử lý bằng endpoint /api/auth/logout để clear Redis + cookie.
                 .logout(logout -> logout.disable())
-                // 1. Tắt CSRF (REST API dùng JWT, không cần CSRF)
-                .csrf(csrf -> csrf.disable())
+                // Bearer APIs do not use ambient credentials. Refresh does use an
+                // HttpOnly cookie, so it must prove possession of a CSRF token.
+                .csrf(csrf -> csrf
+                        .requireCsrfProtectionMatcher(SecurityConfig::requiresCookieAuthCsrf)
+                        .csrfTokenRepository(new CookieCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
 
                 // 2. Cấu hình CORS
                 .cors(Customizer.withDefaults())
@@ -65,6 +72,7 @@ public class SecurityConfig {
                                 "/api/auth/resend-verification", "/api/auth/forgot-password", "/api/auth/reset-password")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify-email").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
                         // Catalog public read endpoints, gồm metadata ebook an toàn để render trang
                         // sách.
                         .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/*", "/api/books/*/ebook",
@@ -108,6 +116,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .build();
+    }
+
+    static boolean requiresCookieAuthCsrf(HttpServletRequest request) {
+        return "POST".equals(request.getMethod())
+                && "/api/auth/refresh".equals(request.getServletPath());
     }
 
     // BCrypt để hash password khi register và verify khi login

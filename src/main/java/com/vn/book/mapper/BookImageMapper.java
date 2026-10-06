@@ -19,6 +19,9 @@ public class BookImageMapper {
     }
 
     public BookCoverManagementResponse toCoverManagementResponse(BookImage image, String oldImageStatus) {
+        if (image == null) {
+            return null;
+        }
         BookCoverImageResponse coverImage = toCoverImageResponse(image);
         return new BookCoverManagementResponse(
                 image.getId(),

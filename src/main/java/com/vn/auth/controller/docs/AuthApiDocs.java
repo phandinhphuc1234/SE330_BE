@@ -9,6 +9,7 @@ import com.vn.auth.dto.request.ResendVerificationRequest;
 import com.vn.auth.dto.request.VerifyEmailCodeRequest;
 import com.vn.shared.dto.ApiResponse;
 import com.vn.auth.dto.response.AuthResponse;
+import com.vn.auth.dto.response.AuthCsrfTokenResponse;
 import com.vn.auth.security.MemberUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,9 +18,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 
 @Tag(name = "Authentication", description = "APIs for registration, login, email verification, token refresh and logout")
 public interface AuthApiDocs {
+
+    @SecurityRequirements
+    @Operation(summary = "Get refresh CSRF token", description = "Returns the token/header name and sets the matching HttpOnly cookie. Send the token in X-XSRF-TOKEN when refreshing a session.")
+    ResponseEntity<ApiResponse<AuthCsrfTokenResponse>> csrfToken(@Parameter(hidden = true) CsrfToken token);
 
     @SecurityRequirements
     @Operation(
@@ -70,7 +76,7 @@ public interface AuthApiDocs {
     @SecurityRequirements
     @Operation(
             summary = "Refresh access token",
-            description = "Use refresh token from HttpOnly cookie to get a new access token. The refresh token is rotated."
+            description = "Use refresh token from HttpOnly cookie plus X-XSRF-TOKEN from GET /api/auth/csrf to get a new access token. The refresh token is rotated."
     )
     ResponseEntity<ApiResponse<AuthResponse>> refresh(
             @Parameter(hidden = true) String refreshToken,

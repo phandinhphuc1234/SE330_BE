@@ -11,6 +11,7 @@ import com.vn.auth.dto.request.VerifyEmailCodeRequest;
 import com.vn.shared.dto.ApiResponse;
 import com.vn.auth.dto.response.AuthResult;
 import com.vn.auth.dto.response.AuthResponse;
+import com.vn.auth.dto.response.AuthCsrfTokenResponse;
 import com.vn.shared.exception.AppException;
 import com.vn.shared.exception.ErrorCode;
 import com.vn.auth.security.MemberUserDetails;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,6 +35,16 @@ public class AuthController implements AuthApiDocs {
     private final AuthService authService;
     private final PasswordManagementService passwordManagementService;
     private final RefreshTokenCookieService refreshTokenCookieService;
+
+    // A same-origin/CORS-approved browser reads this token, while the matching
+    // cookie stays HttpOnly. Cross-site forms cannot supply the custom header.
+    @GetMapping("/csrf")
+    public ResponseEntity<ApiResponse<AuthCsrfTokenResponse>> csrfToken(CsrfToken token) {
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-store")
+                .body(ApiResponse.success("CSRF token", new AuthCsrfTokenResponse(
+                        token.getToken(), token.getHeaderName())));
+    }
 
     // ── POST /api/auth/register ──
     // Đăng ký tài khoản → gửi email xác nhận

@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.FileSystems;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,8 +51,10 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
                 .metadata(metadata)
                 .build();
         Path stagedFile = null;
+        Path stagingDirectory = null;
         try {
-            stagedFile = Files.createTempFile("ebook-upload-", ".pdf");
+            stagingDirectory = createStagingDirectory();
+            stagedFile = Files.createTempFile(stagingDirectory, "source-", ".pdf");
             try (InputStream input = new DigestInputStream(file.getInputStream(), digest)) {
                 Files.copy(input, stagedFile, StandardCopyOption.REPLACE_EXISTING);
             }
@@ -64,6 +68,7 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         } finally {
             deleteStagedFile(stagedFile);
+            deleteStagedFile(stagingDirectory);
         }
 
         String checksum = HexFormat.of().formatHex(digest.digest());
@@ -71,6 +76,16 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
                 properties.ebookBucket(), objectKey, file.getOriginalFilename(), file.getContentType(),
                 file.getSize(), checksum, Instant.now()
         );
+    }
+
+    static Path createStagingDirectory() throws IOException {
+        // On production Linux only the service owner may access the staged PDF.
+        // A private random parent also isolates the file from shared /tmp entries.
+        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            return Files.createTempDirectory("ebook-upload-",
+                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")));
+        }
+        return Files.createTempDirectory("ebook-upload-");
     }
 
     @Override

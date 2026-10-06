@@ -19,6 +19,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -71,8 +75,11 @@ class S3EbookObjectStorageServiceTest {
         when(ebookS3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenAnswer(invocation -> {
                     RequestBody body = invocation.getArgument(1);
-                    assertThat(body.contentStreamProvider().newStream().readAllBytes()).isEqualTo(content);
-                    assertThat(body.contentStreamProvider().newStream().readAllBytes()).isEqualTo(content);
+                    for (int attempt = 0; attempt < 2; attempt++) {
+                        try (InputStream input = body.contentStreamProvider().newStream()) {
+                            assertThat(input.readAllBytes()).isEqualTo(content);
+                        }
+                    }
                     return PutObjectResponse.builder().build();
                 });
         when(ebookS3Client.headObject(any(HeadObjectRequest.class)))
@@ -103,7 +110,9 @@ class S3EbookObjectStorageServiceTest {
         when(ebookS3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenAnswer(invocation -> {
                     RequestBody body = invocation.getArgument(1);
-                    body.contentStreamProvider().newStream().readAllBytes();
+                    try (InputStream input = body.contentStreamProvider().newStream()) {
+                        input.readAllBytes();
+                    }
                     return PutObjectResponse.builder().build();
                 });
         when(ebookS3Client.headObject(any(HeadObjectRequest.class)))
@@ -118,5 +127,19 @@ class S3EbookObjectStorageServiceTest {
     private String sha256(byte[] content) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         return HexFormat.of().formatHex(digest.digest(content));
+    }
+
+    @Test
+    void uploadStagingDirectory_shouldBePrivateOnPosixSystems() throws Exception {
+        Path directory = S3EbookObjectStorageService.createStagingDirectory();
+        try {
+            assertThat(directory).isDirectory();
+            if (Files.getFileStore(directory).supportsFileAttributeView("posix")) {
+                assertThat(Files.getPosixFilePermissions(directory))
+                        .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+            }
+        } finally {
+            Files.delete(directory);
+        }
     }
 }
