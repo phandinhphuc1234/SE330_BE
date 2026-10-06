@@ -25,8 +25,9 @@ RUN groupadd --system app \
     && useradd --system --gid app --create-home app
 
 # Dependencies are installed in the builder and copied as a locked virtualenv.
-# The production image does not need the base image's pip or its vendored libs.
-RUN /usr/local/bin/python -m pip uninstall --yes pip
+# The production image does not need base-image build tools or their vendored libs.
+# Application setuptools remains installed in the locked virtualenv.
+RUN /usr/local/bin/python -m pip uninstall --yes pip setuptools wheel
 
 COPY --from=builder /app/.venv /app/.venv
 

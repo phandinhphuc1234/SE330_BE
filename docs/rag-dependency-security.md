@@ -23,6 +23,7 @@ Các phiên bản dưới đây là phiên bản được resolve trong `rag-ser
 | cryptography | 50.0.2 |
 | fsspec | 2026.7.0 |
 | lxml | 6.1.3 |
+| LangSmith | 0.8.18 |
 | nltk | 3.10.3 |
 | Pillow | 12.3.0 |
 | pyasn1 | 0.6.4 |
@@ -42,6 +43,10 @@ Các phiên bản dưới đây là phiên bản được resolve trong `rag-ser
   Pip của virtualenv 26.2.1 vẫn bundle urllib3 2.7.0 dù ứng dụng đã dùng 2.8.0;
   security floor của lockfile không nâng được bản vendored này. Builder vẫn có
   pip/Poetry để tạo virtualenv. Không xóa package ứng dụng.
+- Quét lại với vulnerability database mới phát hiện thêm LangSmith cần >=0.8.18.
+  Nâng riêng dòng 0.8.x; không bật tracing. Bỏ setuptools/wheel toàn cục của base
+  image (build-only) vì chúng bundle jaraco.context/wheel cũ. Setuptools 84.0.0
+  của ứng dụng vẫn giữ nguyên trong virtualenv, bao gồm các bản vendored đã vá.
 
 ## Cách kiểm chứng
 
@@ -65,6 +70,7 @@ khởi tạo trên VPS, vẫn phải upload/index PDF demo và kiểm tra câu t
 - [Pipeline bị chặn](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/37474831282).
 - [FastAPI release notes](https://fastapi.tiangolo.com/release-notes/).
 - [Starlette release notes](https://www.starlette.io/release-notes/).
+- [LangSmith security advisory](https://github.com/langchain-ai/langsmith-sdk/security/advisories/GHSA-f4xh-w4cj-qxq8).
 
 Flow: dependency floors → lockfile → tests → runtime image → Trivy → PR merge
 → immutable images → deploy Azure → smoke test backend/frontend.
