@@ -1,6 +1,20 @@
+from types import SimpleNamespace
+
+import pytest
 from fastapi.testclient import TestClient
 
+from app.core import internal_auth
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def configured_internal_auth(monkeypatch):
+    # Tests must not inherit a developer's ignored .env or require a real key.
+    monkeypatch.setattr(
+        internal_auth,
+        "get_settings",
+        lambda: SimpleNamespace(rag_internal_api_key="test-only-internal-service-key"),
+    )
 
 
 def test_legacy_web_routes_are_not_exposed() -> None:
@@ -29,6 +43,17 @@ def test_internal_ingestion_rejects_missing_service_credential() -> None:
 
     assert response.status_code == 401
     assert response.json()["error_code"] == "INVALID_INTERNAL_API_KEY"
+
+
+@pytest.mark.parametrize("path", ["/internal/ingestions", "/internal/answers"])
+def test_internal_routes_fail_closed_when_server_key_is_unconfigured(monkeypatch, path):
+    monkeypatch.setattr(
+        internal_auth, "get_settings", lambda: SimpleNamespace(rag_internal_api_key="")
+    )
+    response = TestClient(app).post(path, json={})
+
+    assert response.status_code == 503
+    assert response.json()["error_code"] == "INTERNAL_AUTH_NOT_CONFIGURED"
 
 
 def test_internal_answer_rejects_missing_service_credential() -> None:
