@@ -85,7 +85,9 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
             return Files.createTempDirectory("ebook-upload-",
                     PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")));
         }
-        return Files.createTempDirectory("ebook-upload-");
+        // Windows profiles inherit the owner's private ACL rather than the
+        // machine-wide temporary directory's permissions.
+        return Files.createTempDirectory(Path.of(System.getProperty("user.home")), ".ebook-upload-");
     }
 
     @Override

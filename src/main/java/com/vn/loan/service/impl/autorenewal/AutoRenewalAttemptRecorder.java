@@ -46,6 +46,9 @@ public class AutoRenewalAttemptRecorder {
         if (code == null) {
             throw new IllegalArgumentException("Auto-renewal failure reason must be provided");
         }
+        if (borrow == null) {
+            throw new IllegalArgumentException("Borrow record must be provided");
+        }
         return autoRenewalAttemptRepository.save(baseAttempt(borrow, jobLogId, attemptedAt)
                 .result(AutoRenewalAttemptResult.FAILED)
                 .reasonCode(code.name())
