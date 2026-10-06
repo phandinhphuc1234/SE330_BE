@@ -1,0 +1,138 @@
+package com.vn.member.service.impl.staff;
+
+import com.vn.member.dto.staff.internal.StaffMemberStats;
+import com.vn.member.entity.Member;
+import com.vn.loan.enums.BorrowStatus;
+import com.vn.ebook.enums.EbookLoanStatus;
+import com.vn.loan.enums.ReservationStatus;
+import com.vn.loan.repository.BorrowRecordRepository;
+import com.vn.ebook.repository.EbookLoanRepository;
+import com.vn.loan.repository.ReservationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Component
+@RequiredArgsConstructor
+public class StaffMemberStatsLoader {
+
+    private final BorrowRecordRepository borrowRecordRepository;
+    private final EbookLoanRepository ebookLoanRepository;
+    private final ReservationRepository reservationRepository;
+
+    // Load thống kê theo batch cho một trang member để tránh query từng member một.
+    public Map<Long, StaffMemberStats> loadStats(List<Member> members, Instant now) {
+        List<Long> memberIds = members.stream()
+                .map(Member::getId)
+                .toList();
+
+        if (memberIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, StaffMemberStats> statsByMemberId = new HashMap<>();
+        for (Long memberId : memberIds) {
+            statsByMemberId.put(memberId, StaffMemberStats.empty());
+        }
+
+        applyBorrowCounts(statsByMemberId, memberIds, now);
+        applyEbookLoanCounts(statsByMemberId, memberIds, now);
+        applyUnpaidFineTotals(statsByMemberId, memberIds);
+        applyActiveHoldCounts(statsByMemberId, memberIds);
+        return statsByMemberId;
+    }
+
+    // Cộng ebook_loans vào các thống kê loan chung cho màn staff member.
+    private void applyEbookLoanCounts(Map<Long, StaffMemberStats> statsByMemberId,
+                                      Collection<Long> memberIds,
+                                      Instant now) {
+        List<Object[]> rows = ebookLoanRepository.summarizeEbookLoanCountsByMemberIds(
+                memberIds,
+                EbookLoanStatus.ACTIVE,
+                now
+        );
+
+        for (Object[] row : rows) {
+            Long memberId = (Long) row[0];
+            StaffMemberStats current = statsByMemberId.getOrDefault(memberId, StaffMemberStats.empty());
+            statsByMemberId.put(memberId, current.plusLoanCounts(
+                    toLong(row[1]),
+                    toLong(row[2]),
+                    toLong(row[3]),
+                    toLong(row[4])
+            ));
+        }
+    }
+
+    // Lấy các số liệu từ borrow_records: active/open/overdue/history.
+    private void applyBorrowCounts(Map<Long, StaffMemberStats> statsByMemberId,
+                                   Collection<Long> memberIds,
+                                   Instant now) {
+        List<Object[]> rows = borrowRecordRepository.summarizeBorrowCountsByMemberIds(
+                memberIds,
+                BorrowStatus.activeStatuses(),
+                BorrowStatus.openStatuses(),
+                BorrowStatus.OVERDUE,
+                BorrowStatus.BORROWED,
+                now
+        );
+
+        for (Object[] row : rows) {
+            Long memberId = (Long) row[0];
+            StaffMemberStats current = statsByMemberId.getOrDefault(memberId, StaffMemberStats.empty());
+            statsByMemberId.put(memberId, current.withBorrowCounts(
+                    toLong(row[1]),
+                    toLong(row[2]),
+                    toLong(row[3]),
+                    toLong(row[4])
+            ));
+        }
+    }
+
+    // Lấy tổng tiền phạt chưa paid và chưa waived từ borrow_records.
+    private void applyUnpaidFineTotals(Map<Long, StaffMemberStats> statsByMemberId,
+                                       Collection<Long> memberIds) {
+        List<Object[]> rows = borrowRecordRepository.summarizeUnpaidFineTotalsByMemberIds(memberIds);
+        for (Object[] row : rows) {
+            Long memberId = (Long) row[0];
+            StaffMemberStats current = statsByMemberId.getOrDefault(memberId, StaffMemberStats.empty());
+            statsByMemberId.put(memberId, current.withUnpaidFineTotal(toBigDecimal(row[1])));
+        }
+    }
+
+    // Lấy số reservation/hold đang hoạt động của từng member.
+    private void applyActiveHoldCounts(Map<Long, StaffMemberStats> statsByMemberId,
+                                       Collection<Long> memberIds) {
+        List<Object[]> rows = reservationRepository.summarizeActiveHoldCountsByMemberIds(
+                memberIds,
+                ReservationStatus.activeStatuses()
+        );
+        for (Object[] row : rows) {
+            Long memberId = (Long) row[0];
+            StaffMemberStats current = statsByMemberId.getOrDefault(memberId, StaffMemberStats.empty());
+            statsByMemberId.put(memberId, current.withActiveHoldsCount(toLong(row[1])));
+        }
+    }
+
+    // JPQL aggregate trả về Number tùy dialect, nên ép về long ở một điểm duy nhất.
+    private long toLong(Object value) {
+        return value == null ? 0L : ((Number) value).longValue();
+    }
+
+    // JPQL sum với BigDecimal thường trả BigDecimal, nhưng vẫn fallback cho Number để an toàn.
+    private BigDecimal toBigDecimal(Object value) {
+        if (value == null) {
+            return BigDecimal.ZERO;
+        }
+        if (value instanceof BigDecimal decimal) {
+            return decimal;
+        }
+        return BigDecimal.valueOf(((Number) value).doubleValue());
+    }
+}

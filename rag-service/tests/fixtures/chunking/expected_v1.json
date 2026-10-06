@@ -1,0 +1,1470 @@
+{
+  "cases": [
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chương 1",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-e10792f8a1f6"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "chunk_hash": "e10792f8a1f603d09a29a552b62efc3478882af35c05d233c990ae2d461f093f",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chương 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 38,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-e10792f8a1f6"
+          },
+          "text": "Chương 1\n\nMinh trở về thư viện cũ và tìm thấy tấm bản đồ bên trong một cuốn sổ. Cậu quyết định giữ kín bí mật này cho đến khi gặp được người thủ thư."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 2,
+            "chapterTitle": "Chương 2",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-bdd71137c8b4"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 2,
+            "chapter_number": "2",
+            "chapter_source_page": 2,
+            "chapter_title": "Chương 2",
+            "chunk_hash": "bdd71137c8b4b16d0f7edc70d6ebe195819b4f3cd544917ed2491c9ab9b1179d",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "section_path": [
+              "Chương 2"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 54,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-bdd71137c8b4"
+          },
+          "text": "Cuối chương cũ, Minh cất tấm bản đồ vào túi áo rồi đóng cửa phòng đọc.\n\nChương 2\n\nLan xuất hiện tại bến tàu khi mặt trời vừa lên. Cô mang theo một chiếc chìa khóa bạc và bắt đầu hành trình tìm người anh đã mất tích."
+        }
+      ],
+      "id": "vi_mid_page_chapter",
+      "knownLimitations": [
+        "Metadata chương mới áp dụng cả phần cuối chương cũ trên cùng trang."
+      ],
+      "language": "vi",
+      "pages": [
+        {
+          "cleaned": "Chương 1\n\nMinh trở về thư viện cũ và tìm thấy tấm bản đồ bên trong một cuốn sổ. Cậu quyết định giữ kín bí mật này cho đến khi gặp được người thủ thư.",
+          "input": "Chương 1\n\nMinh trở về thư viện cũ và tìm thấy tấm bản đồ bên trong một cuốn sổ. Cậu quyết định giữ kín bí mật này cho đến khi gặp được người thủ thư.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "Cuối chương cũ, Minh cất tấm bản đồ vào túi áo rồi đóng cửa phòng đọc.\n\nChương 2\n\nLan xuất hiện tại bến tàu khi mặt trời vừa lên. Cô mang theo một chiếc chìa khóa bạc và bắt đầu hành trình tìm người anh đã mất tích.",
+          "input": "Cuối chương cũ, Minh cất tấm bản đồ vào túi áo rồi đóng cửa phòng đọc.\n\nChương 2\n\nLan xuất hiện tại bến tàu khi mặt trời vừa lên. Cô mang theo một chiếc chìa khóa bạc và bắt đầu hành trình tìm người anh đã mất tích.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 2,
+            "chapter_source_page": 2,
+            "chapter_title": "Chương 2",
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "Tiêu đề chương mới nằm giữa trang, trong vùng tám dòng đầu.",
+      "qualityReport": {
+        "avg_chunk_chars": 182,
+        "avg_chunk_tokens": 46,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 215,
+        "max_chunk_tokens": 54,
+        "min_chunk_chars": 149,
+        "min_chunk_tokens": 38,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 1",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-f15f3346cfc3"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "chunk_hash": "f15f3346cfc38d43bf1ba498186032166dc76f055997d644b01293db0bbb52b4",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chapter 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 39,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-f15f3346cfc3"
+          },
+          "text": "Chapter 1\n\nMira entered the old library and found a folded map beneath a wooden drawer. She promised to return before sunrise with the missing silver key."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 1",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-a64ac1cde731"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "chunk_hash": "a64ac1cde731755f1c81e72920769782057ef61a6befa11f563468c1ed142631",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "section_path": [
+              "Chapter 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 155,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-a64ac1cde731"
+          },
+          "text": "Mira checked the first corridor before closing the library.\n\nShe placed the folded map beside the wooden drawer.\n\nA distant bell announced the end of the evening.\n\nThe caretaker returned slowly from the eastern room.\n\nThey counted the empty chairs around the reading table.\n\nOne small lamp still glowed near the open window.\n\nMira wrote a final note inside her travel diary.\n\nThe caretaker locked the gate and watched the street.\n\nThe old journey ended beside the quiet stone bridge.\n\nChapter 2\n\nA new journey began at the harbor. Tomas carried a red compass and waited for the first boat to reach the distant island."
+        }
+      ],
+      "id": "en_mid_page_chapter",
+      "knownLimitations": [
+        "The late chapter heading is missed and old chapter metadata is carried forward."
+      ],
+      "language": "en",
+      "pages": [
+        {
+          "cleaned": "Chapter 1\n\nMira entered the old library and found a folded map beneath a wooden drawer. She promised to return before sunrise with the missing silver key.",
+          "input": "Chapter 1\n\nMira entered the old library and found a folded map beneath a wooden drawer. She promised to return before sunrise with the missing silver key.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "Mira checked the first corridor before closing the library.\n\nShe placed the folded map beside the wooden drawer.\n\nA distant bell announced the end of the evening.\n\nThe caretaker returned slowly from the eastern room.\n\nThey counted the empty chairs around the reading table.\n\nOne small lamp still glowed near the open window.\n\nMira wrote a final note inside her travel diary.\n\nThe caretaker locked the gate and watched the street.\n\nThe old journey ended beside the quiet stone bridge.\n\nChapter 2\n\nA new journey began at the harbor. Tomas carried a red compass and waited for the first boat to reach the distant island.",
+          "input": "Mira checked the first corridor before closing the library.\n\nShe placed the folded map beside the wooden drawer.\n\nA distant bell announced the end of the evening.\n\nThe caretaker returned slowly from the eastern room.\n\nThey counted the empty chairs around the reading table.\n\nOne small lamp still glowed near the open window.\n\nMira wrote a final note inside her travel diary.\n\nThe caretaker locked the gate and watched the street.\n\nThe old journey ended beside the quiet stone bridge.\n\nChapter 2\n\nA new journey began at the harbor. Tomas carried a red compass and waited for the first boat to reach the distant island.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "A real chapter heading occurs beyond the first eight non-empty lines.",
+      "qualityReport": {
+        "avg_chunk_chars": 385.5,
+        "avg_chunk_tokens": 97,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 617,
+        "max_chunk_tokens": 155,
+        "min_chunk_chars": 154,
+        "min_chunk_tokens": 39,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chương 1",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-ab6e6d39ab80"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "chunk_hash": "ab6e6d39ab8028afb3956f7574d26ccb7f0b1e7e61b519265b5589513bc040d6",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chương 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 67,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-ab6e6d39ab80"
+          },
+          "text": "Chương 1\n\nAn tìm thấy chiếc đồng hồ trong ngăn kéo cũ. Cậu nghe tiếng chuông ngân lên và biết rằng chuyến hành trình đầu tiên đã kết thúc.\n\nChương 2\n\nBình mở cửa ngôi nhà bên hồ và nhìn thấy một lá thư mới. Người viết lá thư hẹn cậu trở lại thư viện vào sáng hôm sau."
+        }
+      ],
+      "id": "vi_two_chapters_one_page",
+      "knownLimitations": [
+        "Một chunk chứa cả hai chương nhưng metadata chỉ giữ chương đầu."
+      ],
+      "language": "vi",
+      "pages": [
+        {
+          "cleaned": "Chương 1\n\nAn tìm thấy chiếc đồng hồ trong ngăn kéo cũ. Cậu nghe tiếng chuông ngân lên và biết rằng chuyến hành trình đầu tiên đã kết thúc.\n\nChương 2\n\nBình mở cửa ngôi nhà bên hồ và nhìn thấy một lá thư mới. Người viết lá thư hẹn cậu trở lại thư viện vào sáng hôm sau.",
+          "input": "Chương 1\n\nAn tìm thấy chiếc đồng hồ trong ngăn kéo cũ. Cậu nghe tiếng chuông ngân lên và biết rằng chuyến hành trình đầu tiên đã kết thúc.\n\nChương 2\n\nBình mở cửa ngôi nhà bên hồ và nhìn thấy một lá thư mới. Người viết lá thư hẹn cậu trở lại thư viện vào sáng hôm sau.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "page_number": 1
+          }
+        }
+      ],
+      "purpose": "Hai chương ngắn nằm trên cùng một trang PDF.",
+      "qualityReport": {
+        "avg_chunk_chars": 267,
+        "avg_chunk_tokens": 67,
+        "chunk_count": 1,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 267,
+        "max_chunk_tokens": 67,
+        "min_chunk_chars": 267,
+        "min_chunk_tokens": 67,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 1",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-459c6a8df0df"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "chunk_hash": "459c6a8df0dfcee4cb6b7a5b3237790089e3117652600130fa2ec56384685ebb",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chapter 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 67,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-459c6a8df0df"
+          },
+          "text": "Chapter 1\n\nAda found the old watch inside a drawer. Its final chime marked the end of her first journey through the quiet village.\n\nChapter 2\n\nBen opened the lakeside house and discovered a fresh letter. The writer asked him to return to the library the next morning."
+        }
+      ],
+      "id": "en_two_chapters_one_page",
+      "knownLimitations": [
+        "One chunk contains both chapters with only the first chapter's metadata."
+      ],
+      "language": "en",
+      "pages": [
+        {
+          "cleaned": "Chapter 1\n\nAda found the old watch inside a drawer. Its final chime marked the end of her first journey through the quiet village.\n\nChapter 2\n\nBen opened the lakeside house and discovered a fresh letter. The writer asked him to return to the library the next morning.",
+          "input": "Chapter 1\n\nAda found the old watch inside a drawer. Its final chime marked the end of her first journey through the quiet village.\n\nChapter 2\n\nBen opened the lakeside house and discovered a fresh letter. The writer asked him to return to the library the next morning.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "page_number": 1
+          }
+        }
+      ],
+      "purpose": "Two short chapters share one parsed PDF page.",
+      "qualityReport": {
+        "avg_chunk_chars": 267,
+        "avg_chunk_tokens": 67,
+        "chunk_count": 1,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 267,
+        "max_chunk_tokens": 67,
+        "min_chunk_chars": 267,
+        "min_chunk_tokens": 67,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chương 1",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-d3c658547738"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "chunk_hash": "d3c6585477381badb77585f8a03e6de6936a3d33e2ddd2d179f40b988405512a",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "mixed_unknown",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chương 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 27,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-d3c658547738"
+          },
+          "text": "Chương 1\n\nSau một đêm tìm kiếm trong thư viện, Minh nhận ra chiếc chìa khóa bạc mà cậu cần vẫn nằm ở dưới"
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chương 1",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-df03af4c28a6"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "chunk_hash": "df03af4c28a63da13f003f16864c8e74428fb7460eccac1795c32edf5ce149de",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "mixed_unknown",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "section_path": [
+              "Chương 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 32,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-df03af4c28a6"
+          },
+          "text": "bậc cửa của phòng đọc cũ, nơi Lan đã đặt nó trước khi rời đi. Cậu quay lại lấy chiếc chìa khóa rồi mở ngăn tủ chứa bản đồ."
+        }
+      ],
+      "id": "vi_cross_page_sentence",
+      "knownLimitations": [
+        "Không chunk nào chứa toàn bộ câu qua trang; overlap không nối hai trang."
+      ],
+      "language": "vi",
+      "pages": [
+        {
+          "cleaned": "Chương 1\n\nSau một đêm tìm kiếm trong thư viện, Minh nhận ra chiếc chìa khóa bạc mà cậu cần vẫn nằm ở dưới",
+          "input": "Chương 1\n\nSau một đêm tìm kiếm trong thư viện, Minh nhận ra chiếc chìa khóa bạc mà cậu cần vẫn nằm ở dưới",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "bậc cửa của phòng đọc cũ, nơi Lan đã đặt nó trước khi rời đi. Cậu quay lại lấy chiếc chìa khóa rồi mở ngăn tủ chứa bản đồ.",
+          "input": "bậc cửa của phòng đọc cũ, nơi Lan đã đặt nó trước khi rời đi. Cậu quay lại lấy chiếc chìa khóa rồi mở ngăn tủ chứa bản đồ.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 1",
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "Một câu chưa kết thúc ở trang 1 tiếp tục sang trang 2.",
+      "qualityReport": {
+        "avg_chunk_chars": 113.5,
+        "avg_chunk_tokens": 29.5,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 122,
+        "max_chunk_tokens": 32,
+        "min_chunk_chars": 105,
+        "min_chunk_tokens": 27,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 1",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-b1418d08182e"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "chunk_hash": "b1418d08182e906ee863c0155643ed9ec519a7b33b61cd52e030aa8d7782fe84",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chapter 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 31,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-b1418d08182e"
+          },
+          "text": "Chapter 1\n\nAfter searching the library all night, Mira finally realized that the silver key she needed was hidden beneath"
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 1",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-f09a0625bef6"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_number": "1",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "chunk_hash": "f09a0625bef63adf418b9f7a0df923f0b793daac379775bea6c46a405e9ff41b",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "section_path": [
+              "Chapter 1"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 37,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-f09a0625bef6"
+          },
+          "text": "the old reading room doorstep, exactly where Tomas had left it before departing. She retrieved the key and opened the cabinet containing the map."
+        }
+      ],
+      "id": "en_cross_page_sentence",
+      "knownLimitations": [
+        "No chunk contains the whole cross-page sentence; overlap stays within one page."
+      ],
+      "language": "en",
+      "pages": [
+        {
+          "cleaned": "Chapter 1\n\nAfter searching the library all night, Mira finally realized that the silver key she needed was hidden beneath",
+          "input": "Chapter 1\n\nAfter searching the library all night, Mira finally realized that the silver key she needed was hidden beneath",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "the old reading room doorstep, exactly where Tomas had left it before departing. She retrieved the key and opened the cabinet containing the map.",
+          "input": "the old reading room doorstep, exactly where Tomas had left it before departing. She retrieved the key and opened the cabinet containing the map.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 1",
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "A sentence starts on page 1 and ends on page 2.",
+      "qualityReport": {
+        "avg_chunk_chars": 133,
+        "avg_chunk_tokens": 34,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 145,
+        "max_chunk_tokens": 37,
+        "min_chunk_chars": 121,
+        "min_chunk_tokens": 31,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-6c184a5b2346"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "chunk_hash": "6c184a5b23466b716f5935fe3f4b31812926e5776b593860f8519ec3b0b8e3c3",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 34,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-6c184a5b2346"
+          },
+          "text": "Lan nói: “Đừng làm mất chiếc chìa khóa này.” Minh gật đầu và đặt nó vào một chiếc hộp nhỏ, bên cạnh tấm bản đồ của thư viện."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-fce604e51031"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "chunk_hash": "fce604e5103155869754a473226cb7c23d56caaf03deee9cfdeeb5d4bccf124e",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 32,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-fce604e51031"
+          },
+          "text": "Sáng hôm sau, họ đi qua cây cầu đá và dừng lại trước một ngôi nhà cũ. Trong phòng khách, một lá thư đang chờ họ trên bàn."
+        }
+      ],
+      "id": "vi_no_chapter_heading",
+      "knownLimitations": [],
+      "language": "vi",
+      "pages": [
+        {
+          "cleaned": "Lan nói: “Đừng làm mất chiếc chìa khóa này.” Minh gật đầu và đặt nó vào một chiếc hộp nhỏ, bên cạnh tấm bản đồ của thư viện.",
+          "input": "Lan nói: “Đừng làm mất chiếc chìa khóa này.” Minh gật đầu và đặt nó vào một chiếc hộp nhỏ, bên cạnh tấm bản đồ của thư viện.",
+          "metadata": {
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "Sáng hôm sau, họ đi qua cây cầu đá và dừng lại trước một ngôi nhà cũ. Trong phòng khách, một lá thư đang chờ họ trên bàn.",
+          "input": "Sáng hôm sau, họ đi qua cây cầu đá và dừng lại trước một ngôi nhà cũ. Trong phòng khách, một lá thư đang chờ họ trên bàn.",
+          "metadata": {
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "Sách không có tiêu đề chương vẫn phải giữ text, dấu tiếng Việt và citation.",
+      "qualityReport": {
+        "avg_chunk_chars": 122.5,
+        "avg_chunk_tokens": 33,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 124,
+        "max_chunk_tokens": 34,
+        "min_chunk_chars": 121,
+        "min_chunk_tokens": 32,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-ca4c1292eac9"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "chunk_hash": "ca4c1292eac99c58e5d94a85b22c4166b62b6e1e1d56b532ee0cd58589971825",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 33,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-ca4c1292eac9"
+          },
+          "text": "Mira said, \"Do not lose this silver key.\" Tomas nodded and placed it inside a small box beside the folded map of the old library."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-d4cbd61cf21f"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "chunk_hash": "d4cbd61cf21fcbb5429494d38f36cc2ec4640f4138ce06182f6aca867c6270a0",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 34,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-d4cbd61cf21f"
+          },
+          "text": "The next morning they crossed the stone bridge and stopped outside a quiet house. A sealed letter waited for them on the table inside."
+        }
+      ],
+      "id": "en_no_chapter_heading",
+      "knownLimitations": [],
+      "language": "en",
+      "pages": [
+        {
+          "cleaned": "Mira said, \"Do not lose this silver key.\" Tomas nodded and placed it inside a small box beside the folded map of the old library.",
+          "input": "Mira said, \"Do not lose this silver key.\" Tomas nodded and placed it inside a small box beside the folded map of the old library.",
+          "metadata": {
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "The next morning they crossed the stone bridge and stopped outside a quiet house. A sealed letter waited for them on the table inside.",
+          "input": "The next morning they crossed the stone bridge and stopped outside a quiet house. A sealed letter waited for them on the table inside.",
+          "metadata": {
+            "chapter_detected": false,
+            "chapter_detected_on_page": false,
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "A book without chapter headings keeps dialogue and page citations.",
+      "qualityReport": {
+        "avg_chunk_chars": 131.5,
+        "avg_chunk_tokens": 33.5,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 134,
+        "max_chunk_tokens": 34,
+        "min_chunk_chars": 129,
+        "min_chunk_tokens": 33,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chương 3",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-b3c7c644708e"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "3",
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 3",
+            "chunk_hash": "b3c7c644708e785e8860090659a0f266f7dca8568476e445fece87954c4ee179",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chương 3"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 34,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-b3c7c644708e"
+          },
+          "text": "Chương 3\n\nMinh bước vào căn phòng phủ bụi và nhận ra dấu chân trên sàn. Người thủ thư nói rằng đã nhiều năm không ai quay lại nơi này."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chương 3",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-89419793f067"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_number": "3",
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 3",
+            "chunk_hash": "89419793f067028fe2acc2ea91295bafe903d5cffe21bbc4bf6fe3c010e173ac",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "section_path": [
+              "Chương 3"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 32,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-89419793f067"
+          },
+          "text": "Cậu lần theo dấu chân đến cửa sổ rồi nhìn ra khu vườn. Một chiếc ghế gỗ đã bị dịch chuyển, để lộ chiếc hộp nhỏ nằm bên dưới."
+        }
+      ],
+      "id": "vi_chapter_carry_forward",
+      "knownLimitations": [],
+      "language": "vi",
+      "pages": [
+        {
+          "cleaned": "Chương 3\n\nMinh bước vào căn phòng phủ bụi và nhận ra dấu chân trên sàn. Người thủ thư nói rằng đã nhiều năm không ai quay lại nơi này.",
+          "input": "Chương 3\n\nMinh bước vào căn phòng phủ bụi và nhận ra dấu chân trên sàn. Người thủ thư nói rằng đã nhiều năm không ai quay lại nơi này.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 3",
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "Cậu lần theo dấu chân đến cửa sổ rồi nhìn ra khu vườn. Một chiếc ghế gỗ đã bị dịch chuyển, để lộ chiếc hộp nhỏ nằm bên dưới.",
+          "input": "Cậu lần theo dấu chân đến cửa sổ rồi nhìn ra khu vườn. Một chiếc ghế gỗ đã bị dịch chuyển, để lộ chiếc hộp nhỏ nằm bên dưới.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chương 3",
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "Nhận diện tiêu đề đầu trang và carry-forward sang trang tiếp theo.",
+      "qualityReport": {
+        "avg_chunk_chars": 129,
+        "avg_chunk_tokens": 33,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 134,
+        "max_chunk_tokens": 34,
+        "min_chunk_chars": 124,
+        "min_chunk_tokens": 32,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 3",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-acc96648b2d5"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "3",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 3",
+            "chunk_hash": "acc96648b2d5ab3fe6b48306a116dd5cdbf9058ebff368379f2c874938698c26",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chapter 3"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 37,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-acc96648b2d5"
+          },
+          "text": "Chapter 3\n\nMira entered a dusty room and noticed footprints across the wooden floor. The librarian said nobody had returned to this room for years."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 3",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "vectorId": "doc-7-chunk-1-1a6e9af71048"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_number": "3",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 3",
+            "chunk_hash": "1a6e9af7104897ad4d9402b717bc22dbbc32b7927f0dcaea796ab928e002e3b4",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 2,
+            "pageStart": 2,
+            "page_number": 2,
+            "section_path": [
+              "Chapter 3"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 35,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-1a6e9af71048"
+          },
+          "text": "She followed the footprints toward the window and looked into the garden. A wooden chair had been moved to reveal a small box beneath it."
+        }
+      ],
+      "id": "en_chapter_carry_forward",
+      "knownLimitations": [],
+      "language": "en",
+      "pages": [
+        {
+          "cleaned": "Chapter 3\n\nMira entered a dusty room and noticed footprints across the wooden floor. The librarian said nobody had returned to this room for years.",
+          "input": "Chapter 3\n\nMira entered a dusty room and noticed footprints across the wooden floor. The librarian said nobody had returned to this room for years.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 3",
+            "page_number": 1
+          }
+        },
+        {
+          "cleaned": "She followed the footprints toward the window and looked into the garden. A wooden chair had been moved to reveal a small box beneath it.",
+          "input": "She followed the footprints toward the window and looked into the garden. A wooden chair had been moved to reveal a small box beneath it.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": false,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 3",
+            "page_number": 2
+          }
+        }
+      ],
+      "purpose": "Detect a page-top heading and carry its metadata to the next page.",
+      "qualityReport": {
+        "avg_chunk_chars": 142,
+        "avg_chunk_tokens": 36,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 147,
+        "max_chunk_tokens": 37,
+        "min_chunk_chars": 137,
+        "min_chunk_tokens": 35,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    },
+    {
+      "chunks": [
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 4",
+            "chunkIndex": 0,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-0-94ea6d1f5feb"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "4",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 4",
+            "chunk_hash": "94ea6d1f5feb589e219b839a547c24305fcff5dd108e404da447e37aec21852a",
+            "chunk_index": 0,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chapter 4"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 625,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-0-94ea6d1f5feb"
+          },
+          "text": "Chapter 4\n\nMira arrived at the library before dawn and found the front door unlocked. A trail of wet footprints led from the entrance to the reading room, where a lamp still burned beside an open notebook.\n\nThe first notebook page described a narrow path through the northern forest. It mentioned three stone markers, a fallen oak tree, and a shallow stream that travelers could cross only when the morning rain had stopped.\n\nTomas examined the next page and discovered a drawing of an abandoned tower. Beneath the drawing, the unknown writer had listed the names of four villagers who once guarded the bridge leading toward the eastern coast.\n\nThey asked the librarian whether she recognized those names or the shape of the tower. She remembered a traveler who had visited many years earlier, carrying a red compass and refusing to explain where he had found it.\n\nMira compared the notebook drawing with the folded map from the wooden cabinet. The tower appeared on both documents, but one route passed through the forest while the other followed a winding road beside the river.\n\nOutside the window, the market vendors began arranging fruit and bread on their tables. The town looked peaceful, yet the distant bell sounded twice instead of once, a signal the librarian associated with an approaching storm.\n\nTomas packed the silver key, the red compass, and a small bottle of clean water. He also took a length of rope because the old bridge might be damaged, and they could not rely on finding another crossing.\n\nBefore leaving, Mira wrote down the exact order of the stone markers described in the notebook. She wanted to avoid confusing an ordinary trail with the hidden path that led toward the abandoned tower beyond the forest.\n\nThe librarian gave them a lantern and warned them to return before the evening fog reached the river. She explained that the coast road became difficult to follow when the wind pushed heavy clouds over the distant hills.\n\nThey walked past the market and crossed the narrow square near the fountain. At the edge of town, an elderly gardener pointed toward the forest and said that a stranger had taken the same route earlier that morning.\n\nMira and Tomas followed the stranger's footprints until the path divided beside a broken wooden sign. They stopped to inspect the compass, compared the river with their map, and chose the branch that climbed toward the northern trees.\n\nWhen they finally reached the first stone marker, the sun had risen above the forest."
+        },
+        {
+          "citation": {
+            "bookId": 101,
+            "chapterIndex": 1,
+            "chapterTitle": "Chapter 4",
+            "chunkIndex": 1,
+            "documentId": "doc_ebook_55",
+            "documentInternalId": 7,
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "vectorId": "doc-7-chunk-1-2f5fb19a7518"
+          },
+          "metadata": {
+            "bookId": 101,
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_number": "4",
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 4",
+            "chunk_hash": "2f5fb19a7518f658bf142d47939419cb72ad268b6bab75a23c2a3a5cd6716d63",
+            "chunk_index": 1,
+            "chunk_level": "child",
+            "chunk_overlap": 64,
+            "chunk_quality_status": "PASS",
+            "chunk_size": 512,
+            "chunker": "llamaindex_sentence_splitter",
+            "chunking_strategy": "library_pdf_narrative",
+            "chunking_strategy_version": "v1",
+            "cleaning_quality_status": "GOOD",
+            "cleaning_version": "pdf-clean-v1.0.0",
+            "documentId": "doc_ebook_55",
+            "document_id": 7,
+            "document_profile": "novel_narrative",
+            "ebookId": 55,
+            "pageEnd": 1,
+            "pageStart": 1,
+            "page_number": 1,
+            "section_path": [
+              "Chapter 4"
+            ],
+            "sourceType": "LIBRARY_EBOOK",
+            "token_count": 443,
+            "token_counter": "approx_whitespace_char_v1",
+            "vector_id": "doc-7-chunk-1-2f5fb19a7518"
+          },
+          "text": "Mira and Tomas followed the stranger's footprints until the path divided beside a broken wooden sign. They stopped to inspect the compass, compared the river with their map, and chose the branch that climbed toward the northern trees.\n\nWhen they finally reached the first stone marker, the sun had risen above the forest. Mira opened the notebook again and read the next instruction aloud, knowing that the most difficult part of their journey was still ahead.\n\nBeyond the marker, a narrow stream crossed the path and disappeared under a fallen oak. Tomas tested the stones with his walking stick while Mira checked whether the notebook mentioned a safer place to cross the water.\n\nThey found a low wooden platform beside the eastern bank of the stream. Its boards were old but dry, and a line of fresh footprints suggested that another traveler had used the crossing only a short time earlier.\n\nAfter reaching the opposite bank, Mira noticed a blue ribbon tied to a branch. She compared its color with a note in the map and realized that the hidden trail turned uphill instead of continuing beside the stream.\n\nTomas climbed first and pulled the rope across a steep patch of loose earth. From the top of the slope, he could see the abandoned tower standing beyond a clearing surrounded by tall trees and thick morning mist.\n\nThe tower door remained closed, but a shallow groove around its handle matched the shape of the silver key. Mira removed the key from its box and carefully checked the drawing before deciding whether to open the entrance.\n\nInside the tower, the travelers discovered a spiral staircase and a wall covered with faded symbols. They stopped at the bottom step, lit the borrowed lantern, and agreed to record every new detail before climbing farther."
+        }
+      ],
+      "id": "en_long_page_overlap",
+      "knownLimitations": [],
+      "language": "en",
+      "pages": [
+        {
+          "cleaned": "Chapter 4\n\nMira arrived at the library before dawn and found the front door unlocked. A trail of wet footprints led from the entrance to the reading room, where a lamp still burned beside an open notebook.\n\nThe first notebook page described a narrow path through the northern forest. It mentioned three stone markers, a fallen oak tree, and a shallow stream that travelers could cross only when the morning rain had stopped.\n\nTomas examined the next page and discovered a drawing of an abandoned tower. Beneath the drawing, the unknown writer had listed the names of four villagers who once guarded the bridge leading toward the eastern coast.\n\nThey asked the librarian whether she recognized those names or the shape of the tower. She remembered a traveler who had visited many years earlier, carrying a red compass and refusing to explain where he had found it.\n\nMira compared the notebook drawing with the folded map from the wooden cabinet. The tower appeared on both documents, but one route passed through the forest while the other followed a winding road beside the river.\n\nOutside the window, the market vendors began arranging fruit and bread on their tables. The town looked peaceful, yet the distant bell sounded twice instead of once, a signal the librarian associated with an approaching storm.\n\nTomas packed the silver key, the red compass, and a small bottle of clean water. He also took a length of rope because the old bridge might be damaged, and they could not rely on finding another crossing.\n\nBefore leaving, Mira wrote down the exact order of the stone markers described in the notebook. She wanted to avoid confusing an ordinary trail with the hidden path that led toward the abandoned tower beyond the forest.\n\nThe librarian gave them a lantern and warned them to return before the evening fog reached the river. She explained that the coast road became difficult to follow when the wind pushed heavy clouds over the distant hills.\n\nThey walked past the market and crossed the narrow square near the fountain. At the edge of town, an elderly gardener pointed toward the forest and said that a stranger had taken the same route earlier that morning.\n\nMira and Tomas followed the stranger's footprints until the path divided beside a broken wooden sign. They stopped to inspect the compass, compared the river with their map, and chose the branch that climbed toward the northern trees.\n\nWhen they finally reached the first stone marker, the sun had risen above the forest. Mira opened the notebook again and read the next instruction aloud, knowing that the most difficult part of their journey was still ahead.\n\nBeyond the marker, a narrow stream crossed the path and disappeared under a fallen oak. Tomas tested the stones with his walking stick while Mira checked whether the notebook mentioned a safer place to cross the water.\n\nThey found a low wooden platform beside the eastern bank of the stream. Its boards were old but dry, and a line of fresh footprints suggested that another traveler had used the crossing only a short time earlier.\n\nAfter reaching the opposite bank, Mira noticed a blue ribbon tied to a branch. She compared its color with a note in the map and realized that the hidden trail turned uphill instead of continuing beside the stream.\n\nTomas climbed first and pulled the rope across a steep patch of loose earth. From the top of the slope, he could see the abandoned tower standing beyond a clearing surrounded by tall trees and thick morning mist.\n\nThe tower door remained closed, but a shallow groove around its handle matched the shape of the silver key. Mira removed the key from its box and carefully checked the drawing before deciding whether to open the entrance.\n\nInside the tower, the travelers discovered a spiral staircase and a wall covered with faded symbols. They stopped at the bottom step, lit the borrowed lantern, and agreed to record every new detail before climbing farther.",
+          "input": "Chapter 4\n\nMira arrived at the library before dawn and found the front door unlocked. A trail of wet footprints led from the entrance to the reading room, where a lamp still burned beside an open notebook.\n\nThe first notebook page described a narrow path through the northern forest. It mentioned three stone markers, a fallen oak tree, and a shallow stream that travelers could cross only when the morning rain had stopped.\n\nTomas examined the next page and discovered a drawing of an abandoned tower. Beneath the drawing, the unknown writer had listed the names of four villagers who once guarded the bridge leading toward the eastern coast.\n\nThey asked the librarian whether she recognized those names or the shape of the tower. She remembered a traveler who had visited many years earlier, carrying a red compass and refusing to explain where he had found it.\n\nMira compared the notebook drawing with the folded map from the wooden cabinet. The tower appeared on both documents, but one route passed through the forest while the other followed a winding road beside the river.\n\nOutside the window, the market vendors began arranging fruit and bread on their tables. The town looked peaceful, yet the distant bell sounded twice instead of once, a signal the librarian associated with an approaching storm.\n\nTomas packed the silver key, the red compass, and a small bottle of clean water. He also took a length of rope because the old bridge might be damaged, and they could not rely on finding another crossing.\n\nBefore leaving, Mira wrote down the exact order of the stone markers described in the notebook. She wanted to avoid confusing an ordinary trail with the hidden path that led toward the abandoned tower beyond the forest.\n\nThe librarian gave them a lantern and warned them to return before the evening fog reached the river. She explained that the coast road became difficult to follow when the wind pushed heavy clouds over the distant hills.\n\nThey walked past the market and crossed the narrow square near the fountain. At the edge of town, an elderly gardener pointed toward the forest and said that a stranger had taken the same route earlier that morning.\n\nMira and Tomas followed the stranger's footprints until the path divided beside a broken wooden sign. They stopped to inspect the compass, compared the river with their map, and chose the branch that climbed toward the northern trees.\n\nWhen they finally reached the first stone marker, the sun had risen above the forest. Mira opened the notebook again and read the next instruction aloud, knowing that the most difficult part of their journey was still ahead.\n\nBeyond the marker, a narrow stream crossed the path and disappeared under a fallen oak. Tomas tested the stones with his walking stick while Mira checked whether the notebook mentioned a safer place to cross the water.\n\nThey found a low wooden platform beside the eastern bank of the stream. Its boards were old but dry, and a line of fresh footprints suggested that another traveler had used the crossing only a short time earlier.\n\nAfter reaching the opposite bank, Mira noticed a blue ribbon tied to a branch. She compared its color with a note in the map and realized that the hidden trail turned uphill instead of continuing beside the stream.\n\nTomas climbed first and pulled the rope across a steep patch of loose earth. From the top of the slope, he could see the abandoned tower standing beyond a clearing surrounded by tall trees and thick morning mist.\n\nThe tower door remained closed, but a shallow groove around its handle matched the shape of the silver key. Mira removed the key from its box and carefully checked the drawing before deciding whether to open the entrance.\n\nInside the tower, the travelers discovered a spiral staircase and a wall covered with faded symbols. They stopped at the bottom step, lit the borrowed lantern, and agreed to record every new detail before climbing farther.",
+          "metadata": {
+            "chapter_detected": true,
+            "chapter_detected_on_page": true,
+            "chapter_index": 1,
+            "chapter_source_page": 1,
+            "chapter_title": "Chapter 4",
+            "page_number": 1
+          }
+        }
+      ],
+      "purpose": "A long single page exercises actual splitting and overlap at the 512/64 baseline.",
+      "qualityReport": {
+        "avg_chunk_chars": 2134,
+        "avg_chunk_tokens": 534,
+        "chunk_count": 2,
+        "duplicate_chunk_ratio": 0,
+        "error_count": 0,
+        "errors": [],
+        "max_chunk_chars": 2497,
+        "max_chunk_tokens": 625,
+        "min_chunk_chars": 1771,
+        "min_chunk_tokens": 443,
+        "status": "PASS",
+        "warning_count": 0,
+        "warnings": []
+      }
+    }
+  ],
+  "config": {
+    "chunk_overlap": 64,
+    "chunk_size": 512,
+    "max_chunks_per_document": 1000,
+    "pdf_clean_collapse_spaces": true,
+    "pdf_clean_header_footer_bottom_lines": 3,
+    "pdf_clean_header_footer_detection_enabled": true,
+    "pdf_clean_header_footer_min_repeat_ratio": 0.4,
+    "pdf_clean_header_footer_removal_enabled": false,
+    "pdf_clean_header_footer_top_lines": 3,
+    "pdf_clean_max_blank_lines": 2,
+    "pdf_clean_normalize_unicode": true,
+    "pdf_cleaning_version": "pdf-clean-v1.0.0"
+  },
+  "schemaVersion": 1,
+  "strategy": {
+    "name": "library_pdf_narrative",
+    "version": "v1"
+  }
+}

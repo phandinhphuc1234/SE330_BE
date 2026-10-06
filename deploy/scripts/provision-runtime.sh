@@ -52,6 +52,12 @@ command -v openssl >/dev/null 2>&1 || fail 'openssl is required to generate runt
 public_api_base_url="$(decode_required PUBLIC_API_BASE_URL_B64)"
 frontend_origin="$(decode_required FRONTEND_ORIGIN_B64)"
 swagger_enabled="$(decode_required SWAGGER_ENABLED_B64)"
+rag_enabled_input='unchanged'
+if [[ -n "${RAG_ENABLED_INPUT_B64:-}" ]]; then
+  rag_enabled_input="$(decode_required RAG_ENABLED_INPUT_B64)"
+fi
+[[ "$rag_enabled_input" == 'unchanged' || "$rag_enabled_input" == 'true' || "$rag_enabled_input" == 'false' ]] || \
+  fail 'rag_enabled must be unchanged, true, or false.'
 public_api_base_url="${public_api_base_url%/}"
 frontend_origin="${frontend_origin%/}"
 validate_http_url PUBLIC_API_BASE_URL "$public_api_base_url"
@@ -162,14 +168,52 @@ ensure_secret REDIS_PASSWORD 32
 ensure_secret JWT_SECRET 32
 ensure_secret EBOOK_READING_SESSION_SECRET 32
 
-# Bước 14: RAG, payment và object storage hiện chưa dùng nên mặc định tắt/local.
-# Credential vẫn được sinh để không còn giá trị mẫu nếu một client bị bật nhầm.
+# Bước 14: RAG và payment mặc định tắt. Vẫn sinh credential riêng cho database,
+# Redis, service-to-service authentication và object storage để lúc bật RAG
+# không phải dùng password mẫu hay dùng chung secret với Spring Boot.
 ensure_secret OBJECT_STORAGE_ACCESS_KEY 16
 ensure_secret OBJECT_STORAGE_SECRET_KEY 32
 ensure_setting RAG_ENABLED 'false'
+ensure_setting RAG_SERVICE_URL 'http://rag-api:8000'
+ensure_setting RAG_POSTGRES_DB 'rag_db'
+ensure_setting RAG_POSTGRES_USER 'rag_app'
+ensure_secret RAG_POSTGRES_PASSWORD 32
+ensure_secret RAG_REDIS_PASSWORD 32
+ensure_secret RAG_INTERNAL_API_KEY 32
+ensure_secret QDRANT_API_KEY 32
+ensure_setting RAG_ARTIFACT_BUCKET 'rag-artifacts'
+ensure_setting LIBRARY_EBOOK_BUCKET 'library-private'
+ensure_setting LIBRARY_TEMP_BUCKET 'library-temp'
 ensure_setting VNPAY_ENABLED 'false'
 ensure_setting OBJECT_STORAGE_ENDPOINT 'http://127.0.0.1:8333'
 ensure_setting OBJECT_STORAGE_PUBLIC_ENDPOINT 'http://127.0.0.1:8333'
+
+# Opt-in RAG: dung baseline v1 cho demo, khong reindex hay doi embedding hien co.
+# Provider key do user quan ly trong GitHub Secrets, truyen qua SSH stdin.
+# Neu key hien co hop le thi giu nguyen; khong rotate credential tu dong.
+if [[ "$rag_enabled_input" != 'unchanged' ]]; then
+  set_value RAG_ENABLED "$rag_enabled_input"
+fi
+if [[ "$rag_enabled_input" == 'true' ]]; then
+  supplied_gemini_key=''
+  IFS= read -r supplied_gemini_key || true
+  current_gemini_key="$(get_value GEMINI_API_KEY)"
+  if [[ -z "$current_gemini_key" || "$current_gemini_key" == *CHANGE_ME* ]]; then
+    [[ "$supplied_gemini_key" =~ ^[A-Za-z0-9_-]{20,}$ ]] || \
+      fail 'Configure GEMINI_API_KEY in GitHub Secrets or the protected VPS runtime before enabling RAG.'
+    set_value GEMINI_API_KEY "$supplied_gemini_key"
+  fi
+  unset supplied_gemini_key current_gemini_key
+  set_value CHUNKING_STRATEGY_VERSION 'v1'
+  set_value LLM_PROVIDER 'gemini'
+  set_value LLM_MODEL 'gemini-2.5-flash'
+  ensure_setting EMBEDDING_PROVIDER 'gemini'
+  ensure_setting EMBEDDING_MODEL 'gemini-embedding-2'
+  ensure_setting EMBEDDING_DIM '3072'
+  ensure_setting EMBEDDING_VERSION 'gemini-embedding-2-3072-v1'
+  ensure_setting EMBEDDING_TEXT_POLICY 'gemini_search_title_text_v1'
+  ensure_setting RETRIEVAL_MODE 'hybrid'
+fi
 
 # Bước 15: cập nhật URL/CORS theo input hiện tại. Đây là dữ liệu public, không
 # phải secret, và được phép thay đổi khi chuyển từ IP HTTP sang HTTPS/domain.

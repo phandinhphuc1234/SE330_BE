@@ -1,0 +1,295 @@
+x-database-environment: &database-environment
+  POSTGRES_URL: postgresql+asyncpg://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-rag_db}
+  POSTGRES_URL_SYNC: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-rag_db}
+
+x-bucket-environment: &bucket-environment
+  OBJECT_STORAGE_ENDPOINT: http://seaweedfs:8333
+  OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
+  OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-admin}
+  OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-secret}
+  LIBRARY_EBOOK_BUCKET: ${LIBRARY_EBOOK_BUCKET:-library-private}
+  LIBRARY_TEMP_BUCKET: ${LIBRARY_TEMP_BUCKET:-library-temp}
+  RAG_ARTIFACT_BUCKET: ${RAG_ARTIFACT_BUCKET:-rag-artifacts}
+
+x-storage-environment: &storage-environment
+  <<: *bucket-environment
+  STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
+  STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-./data/uploads}
+  # Compatibility alias only. It must not create a fourth bucket.
+  RAG_SOURCE_BUCKET: ${RAG_SOURCE_BUCKET:-library-private}
+
+x-app-environment: &app-environment
+  <<: [*database-environment, *storage-environment]
+  APP_ENV: ${APP_ENV:-development}
+  APP_DEBUG: ${APP_DEBUG:-true}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_JSON: ${LOG_JSON:-false}
+  ENABLE_API_DOCS: ${ENABLE_API_DOCS:-false}
+  RAG_INTERNAL_API_KEY: "${RAG_INTERNAL_API_KEY:-}"
+  REDIS_URL: redis://redis:6379/0
+  CELERY_BROKER_URL: redis://redis:6379/0
+  CELERY_RESULT_BACKEND: redis://redis:6379/0
+  QDRANT_URL: http://qdrant:6333
+  QDRANT_API_KEY: "${QDRANT_API_KEY:-}"
+  QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-rag_chunks}
+  # Keep Docker defaults aligned with the current Gemini embedding decision.
+  # .env can still override these values per environment.
+  EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-gemini}
+  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-2}
+  EMBEDDING_DIM: ${EMBEDDING_DIM:-3072}
+  EMBEDDING_FALLBACK_MODEL: ${EMBEDDING_FALLBACK_MODEL:-gemini-embedding-001}
+  EMBEDDING_VERSION: ${EMBEDDING_VERSION:-gemini-embedding-2-3072-v1}
+  EMBEDDING_TEXT_POLICY: ${EMBEDDING_TEXT_POLICY:-gemini_search_title_text_v1}
+  EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-8}
+  EMBEDDING_MAX_RETRIES: ${EMBEDDING_MAX_RETRIES:-5}
+  EMBEDDING_RETRY_BASE_DELAY_SECONDS: ${EMBEDDING_RETRY_BASE_DELAY_SECONDS:-2}
+  EMBEDDING_RETRY_MAX_DELAY_SECONDS: ${EMBEDDING_RETRY_MAX_DELAY_SECONDS:-60}
+  EMBEDDING_RETRY_JITTER_SECONDS: ${EMBEDDING_RETRY_JITTER_SECONDS:-0.5}
+  EMBEDDING_DISTANCE_METRIC: ${EMBEDDING_DISTANCE_METRIC:-Cosine}
+  LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+  OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+  GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+  LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+  LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.1}
+  LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-2048}
+  LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
+  ANSWER_RETRIEVAL_TOP_K: ${ANSWER_RETRIEVAL_TOP_K:-6}
+  ANSWER_SCORE_THRESHOLD: ${ANSWER_SCORE_THRESHOLD:-0.60}
+  ANSWER_MAX_CONTEXT_CHARS: ${ANSWER_MAX_CONTEXT_CHARS:-12000}
+  CHUNK_SIZE: ${CHUNK_SIZE:-512}
+  CHUNK_OVERLAP: ${CHUNK_OVERLAP:-64}
+  CHUNKING_STRATEGY_VERSION: ${CHUNKING_STRATEGY_VERSION:-v1}
+  MAX_CHUNKS_PER_DOCUMENT: ${MAX_CHUNKS_PER_DOCUMENT:-1000}
+  MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-100}
+  INGESTION_ALLOWED_EXTENSIONS: '${INGESTION_ALLOWED_EXTENSIONS:-[".pdf"]}'
+  RETRIEVAL_TOP_K: ${RETRIEVAL_TOP_K:-10}
+  RERANKER_TOP_K: ${RERANKER_TOP_K:-3}
+  HYBRID_VECTOR_WEIGHT: ${HYBRID_VECTOR_WEIGHT:-0.7}
+  HYBRID_KEYWORD_WEIGHT: ${HYBRID_KEYWORD_WEIGHT:-0.3}
+
+x-app-image: &app-image
+  image: professional-rag-platform-app:local
+  build:
+    context: .
+    dockerfile: infra/docker/Dockerfile.api
+
+services:
+  api:
+    <<: *app-image
+    ports:
+      - "${RAG_API_PORT:-8000}:8000"
+    environment: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./app:/app/app
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    networks:
+      default:
+      library-platform-net:
+        aliases:
+          - rag-api
+
+  worker:
+    <<: *app-image
+    environment: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./app:/app/app
+    command: celery -A app.jobs.celery_app worker --loglevel=info
+    networks:
+      - default
+
+  beat:
+    <<: *app-image
+    environment: *app-environment
+    profiles:
+      - scheduled-jobs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+    command: celery -A app.jobs.celery_app beat --loglevel=info
+    networks:
+      - default
+
+  migrate:
+    <<: *app-image
+    environment: *database-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - tools
+    command: alembic upgrade head
+    networks:
+      - default
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rag_db}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${RAG_POSTGRES_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - default
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${RAG_REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    restart: unless-stopped
+    # Local-only debug ports. RAG talks to Qdrant through rag-internal-net.
+    # In production you can remove this whole ports block if you do not need
+    # to inspect Qdrant from the VPS host.
+    ports:
+      - "127.0.0.1:${QDRANT_HTTP_PORT:-6333}:6333"
+      - "127.0.0.1:${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - default
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:3.85
+    restart: unless-stopped
+    # Advertise the Docker DNS name but bind every interface so the service is
+    # reachable from both rag-internal-net and library-platform-net.
+    command: server -ip=seaweedfs -ip.bind=0.0.0.0 -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -filer -filer.port=8888 -master.port=9333 -volume.port=8080
+    configs:
+      - source: seaweedfs-s3-config
+        target: /etc/seaweedfs/s3.json
+    ports:
+      - "${SEAWEEDFS_S3_PORT:-8333}:8333"
+      - "${SEAWEEDFS_FILER_PORT:-8888}:8888"
+      - "${SEAWEEDFS_MASTER_PORT:-9333}:9333"
+      - "${SEAWEEDFS_VOLUME_PORT:-18080}:8080"
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      # The master becomes ready well before the embedded filer/S3 gateway.
+      # Dependants must wait for the S3 port that they actually use.
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8333"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      default:
+      library-platform-net:
+        aliases:
+          - rag-seaweedfs
+
+  seaweedfs-init:
+    image: amazon/aws-cli:2.17.57
+    restart: "no"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        aws_s3() {
+          aws --endpoint-url "$${OBJECT_STORAGE_ENDPOINT}" \
+            --cli-connect-timeout 2 \
+            --cli-read-timeout 5 \
+            "$$@"
+        }
+
+        attempt=0
+        until aws_s3 s3api list-buckets >/dev/null 2>&1; do
+          attempt=$$((attempt + 1))
+          if [ "$${attempt}" -ge 30 ]; then
+            echo "SeaweedFS S3 did not become ready in time" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+
+        for bucket in "$${LIBRARY_EBOOK_BUCKET}" "$${LIBRARY_TEMP_BUCKET}" "$${RAG_ARTIFACT_BUCKET}"; do
+          aws_s3 s3api head-bucket --bucket "$${bucket}" >/dev/null 2>&1 ||
+          aws_s3 s3api create-bucket --bucket "$${bucket}"
+        done
+    environment:
+      <<: *bucket-environment
+      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_ACCESS_KEY:-admin}
+      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_SECRET_KEY:-secret}
+      AWS_DEFAULT_REGION: ${OBJECT_STORAGE_REGION:-us-east-1}
+      AWS_EC2_METADATA_DISABLED: "true"
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    networks:
+      - default
+
+volumes:
+  pgdata:
+  qdrant_data:
+  seaweedfs_data:
+
+configs:
+  seaweedfs-s3-config:
+    content: |
+      {
+        "identities": [
+          {
+            "name": "rag-platform",
+            "credentials": [
+              {
+                "accessKey": "${OBJECT_STORAGE_ACCESS_KEY:-admin}",
+                "secretKey": "${OBJECT_STORAGE_SECRET_KEY:-secret}"
+              }
+            ],
+            "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+          }
+        ]
+      }
+
+networks:
+  default:
+    name: rag-internal-net
+  library-platform-net:
+    external: true

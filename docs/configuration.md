@@ -1,0 +1,97 @@
+# Configuration ownership
+
+The repository contains two deployable applications: the Spring Boot library
+API and the Python RAG service. Configuration files are grouped by runtime
+instead of duplicating one complete environment per service.
+
+## Local integrated stack
+
+| File | Responsibility |
+| --- | --- |
+| `.env` | Real local values used for Compose interpolation. It is ignored by Git. |
+| `.env.example` | Safe template for every value accepted by the integrated local stack. |
+| `compose.yaml` | Spring Boot, library PostgreSQL and library Redis. |
+| `compose.rag.yaml` | Optional RAG API, worker, migration, PostgreSQL, Redis, Qdrant and SeaweedFS overlay. |
+| `scripts/dev-up.ps1` | Builds and starts the integrated stack. |
+| `scripts/dev-down.ps1` | Stops containers without deleting named volumes. |
+| `scripts/dev-logs.ps1` | Follows logs for all or selected services. |
+
+Start the complete local stack:
+
+```powershell
+.\scripts\dev-up.ps1
+```
+
+Start it with the optional Celery Beat scheduler:
+
+```powershell
+.\scripts\dev-up.ps1 -ScheduledJobs
+```
+
+The browser calls Spring Boot. Spring Boot calls `http://rag-api:8000` through
+Docker DNS. RAG infrastructure ports are bound to loopback for diagnostics and
+must not be published directly on a production firewall.
+
+The public ebook AI endpoints are protected independently from the PDF reader:
+
+- `EBOOK_AI_ASK_REQUESTS_PER_WINDOW` and
+  `EBOOK_AI_SEARCH_REQUESTS_PER_WINDOW` set per-member/per-ebook limits.
+- `EBOOK_AI_RATE_LIMIT_WINDOW` controls the Redis-backed window.
+- `EBOOK_AI_RATE_LIMIT_FAIL_OPEN=false` is the safe production default: if the
+  cost guard is unavailable, AI calls pause while normal ebook reading remains
+  available.
+- `RAG_CONNECT_TIMEOUT` and `RAG_READ_TIMEOUT` bound Spring-to-RAG calls.
+- `RAG_INGESTION_SYNC_MAX_POLL_FAILURES` limits consecutive status-poll
+  failures before the ebook is moved to terminal `INDEX_FAILED`.
+- `RAG_INGESTION_SYNC_INITIAL_RETRY_DELAY` and
+  `RAG_INGESTION_SYNC_MAX_RETRY_DELAY` bound exponential polling backoff.
+
+Staff can use the management re-index action after a terminal failure. That
+request sends `forceReindex=true`, so RAG creates a new job even when the PDF
+checksum matches an already indexed document. Normal upload requests leave the
+flag false and retain idempotent job reuse.
+
+`Ask this book` is not retried automatically because repeating a generation
+request can duplicate provider cost. The frontend exposes an explicit retry so
+the member decides whether to submit again.
+
+## Standalone RAG development
+
+`rag-service/.env` and `rag-service/.env.example` belong only to developers who
+run the Python service outside the integrated repository Compose stack. The old
+standalone Compose definitions are preserved under
+`rag-service/infra/compose/standalone/`; they are not used by the normal library
+development or production commands.
+
+If an existing checkout still keeps RAG-only values in `rag-service/.env`, copy
+missing values into the ignored root `.env` without printing secrets:
+
+```powershell
+.\scripts\config\migrate-rag-env.ps1
+```
+
+## Production
+
+| File | Responsibility |
+| --- | --- |
+| `deploy/runtime.env.example` | Template used by provisioning on the VPS. |
+| `$HOME/.config/quanlythuvien/backend.env` | Real production values on the VPS; never committed. |
+| `deploy/compose.production.yaml` | Core Spring, PostgreSQL and Redis production definition. |
+| `deploy/compose.rag.production.yaml` | Private RAG production overlay, loaded only when `RAG_ENABLED=true`. |
+| `deploy/scripts/*.sh` | Provisioning, preflight, deployment and rollback behavior. |
+
+Production does not load the repository root `.env` or `rag-service/.env`.
+GitHub secrets are used only to establish deployment and provision the protected
+runtime file; applications receive configuration through container environment
+variables.
+
+## Secret rules
+
+- Never place an SSH private key in any `.env` file.
+- Keep local SSH keys as dedicated `.pem` files protected by filesystem access
+  controls.
+- Keep `.env`, `rag-service/.env` and production `runtime.env` out of Git.
+- Commit examples with placeholders, never real API keys, passwords or tokens.
+- Use the same `RAG_INTERNAL_API_KEY` in Spring and RAG; never expose it to the
+  frontend.
+

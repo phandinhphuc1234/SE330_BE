@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "vi_mid_page_chapter",
+      "language": "vi",
+      "purpose": "Tiêu đề chương mới nằm giữa trang, trong vùng tám dòng đầu.",
+      "knownLimitations": ["Metadata chương mới áp dụng cả phần cuối chương cũ trên cùng trang."],
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chương 1", "Minh trở về thư viện cũ và tìm thấy tấm bản đồ bên trong một cuốn sổ. Cậu quyết định giữ kín bí mật này cho đến khi gặp được người thủ thư."]},
+        {"pageNumber": 2, "paragraphs": ["Cuối chương cũ, Minh cất tấm bản đồ vào túi áo rồi đóng cửa phòng đọc.", "Chương 2", "Lan xuất hiện tại bến tàu khi mặt trời vừa lên. Cô mang theo một chiếc chìa khóa bạc và bắt đầu hành trình tìm người anh đã mất tích."]}
+      ]
+    },
+    {
+      "id": "en_mid_page_chapter",
+      "language": "en",
+      "purpose": "A real chapter heading occurs beyond the first eight non-empty lines.",
+      "knownLimitations": ["The late chapter heading is missed and old chapter metadata is carried forward."],
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chapter 1", "Mira entered the old library and found a folded map beneath a wooden drawer. She promised to return before sunrise with the missing silver key."]},
+        {"pageNumber": 2, "paragraphs": ["Mira checked the first corridor before closing the library.", "She placed the folded map beside the wooden drawer.", "A distant bell announced the end of the evening.", "The caretaker returned slowly from the eastern room.", "They counted the empty chairs around the reading table.", "One small lamp still glowed near the open window.", "Mira wrote a final note inside her travel diary.", "The caretaker locked the gate and watched the street.", "The old journey ended beside the quiet stone bridge.", "Chapter 2", "A new journey began at the harbor. Tomas carried a red compass and waited for the first boat to reach the distant island."]}
+      ]
+    },
+    {
+      "id": "vi_two_chapters_one_page",
+      "language": "vi",
+      "purpose": "Hai chương ngắn nằm trên cùng một trang PDF.",
+      "knownLimitations": ["Một chunk chứa cả hai chương nhưng metadata chỉ giữ chương đầu."],
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chương 1", "An tìm thấy chiếc đồng hồ trong ngăn kéo cũ. Cậu nghe tiếng chuông ngân lên và biết rằng chuyến hành trình đầu tiên đã kết thúc.", "Chương 2", "Bình mở cửa ngôi nhà bên hồ và nhìn thấy một lá thư mới. Người viết lá thư hẹn cậu trở lại thư viện vào sáng hôm sau."]}
+      ]
+    },
+    {
+      "id": "en_two_chapters_one_page",
+      "language": "en",
+      "purpose": "Two short chapters share one parsed PDF page.",
+      "knownLimitations": ["One chunk contains both chapters with only the first chapter's metadata."],
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chapter 1", "Ada found the old watch inside a drawer. Its final chime marked the end of her first journey through the quiet village.", "Chapter 2", "Ben opened the lakeside house and discovered a fresh letter. The writer asked him to return to the library the next morning."]}
+      ]
+    },
+    {
+      "id": "vi_cross_page_sentence",
+      "language": "vi",
+      "purpose": "Một câu chưa kết thúc ở trang 1 tiếp tục sang trang 2.",
+      "knownLimitations": ["Không chunk nào chứa toàn bộ câu qua trang; overlap không nối hai trang."],
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chương 1", "Sau một đêm tìm kiếm trong thư viện, Minh nhận ra chiếc chìa khóa bạc mà cậu cần vẫn nằm ở dưới"]},
+        {"pageNumber": 2, "paragraphs": ["bậc cửa của phòng đọc cũ, nơi Lan đã đặt nó trước khi rời đi. Cậu quay lại lấy chiếc chìa khóa rồi mở ngăn tủ chứa bản đồ."]}
+      ]
+    },
+    {
+      "id": "en_cross_page_sentence",
+      "language": "en",
+      "purpose": "A sentence starts on page 1 and ends on page 2.",
+      "knownLimitations": ["No chunk contains the whole cross-page sentence; overlap stays within one page."],
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chapter 1", "After searching the library all night, Mira finally realized that the silver key she needed was hidden beneath"]},
+        {"pageNumber": 2, "paragraphs": ["the old reading room doorstep, exactly where Tomas had left it before departing. She retrieved the key and opened the cabinet containing the map."]}
+      ]
+    },
+    {
+      "id": "vi_no_chapter_heading",
+      "language": "vi",
+      "purpose": "Sách không có tiêu đề chương vẫn phải giữ text, dấu tiếng Việt và citation.",
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Lan nói: “Đừng làm mất chiếc chìa khóa này.” Minh gật đầu và đặt nó vào một chiếc hộp nhỏ, bên cạnh tấm bản đồ của thư viện."]},
+        {"pageNumber": 2, "paragraphs": ["Sáng hôm sau, họ đi qua cây cầu đá và dừng lại trước một ngôi nhà cũ. Trong phòng khách, một lá thư đang chờ họ trên bàn."]}
+      ]
+    },
+    {
+      "id": "en_no_chapter_heading",
+      "language": "en",
+      "purpose": "A book without chapter headings keeps dialogue and page citations.",
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Mira said, \"Do not lose this silver key.\" Tomas nodded and placed it inside a small box beside the folded map of the old library."]},
+        {"pageNumber": 2, "paragraphs": ["The next morning they crossed the stone bridge and stopped outside a quiet house. A sealed letter waited for them on the table inside."]}
+      ]
+    },
+    {
+      "id": "vi_chapter_carry_forward",
+      "language": "vi",
+      "purpose": "Nhận diện tiêu đề đầu trang và carry-forward sang trang tiếp theo.",
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chương 3", "Minh bước vào căn phòng phủ bụi và nhận ra dấu chân trên sàn. Người thủ thư nói rằng đã nhiều năm không ai quay lại nơi này."]},
+        {"pageNumber": 2, "paragraphs": ["Cậu lần theo dấu chân đến cửa sổ rồi nhìn ra khu vườn. Một chiếc ghế gỗ đã bị dịch chuyển, để lộ chiếc hộp nhỏ nằm bên dưới."]}
+      ]
+    },
+    {
+      "id": "en_chapter_carry_forward",
+      "language": "en",
+      "purpose": "Detect a page-top heading and carry its metadata to the next page.",
+      "pages": [
+        {"pageNumber": 1, "paragraphs": ["Chapter 3", "Mira entered a dusty room and noticed footprints across the wooden floor. The librarian said nobody had returned to this room for years."]},
+        {"pageNumber": 2, "paragraphs": ["She followed the footprints toward the window and looked into the garden. A wooden chair had been moved to reveal a small box beneath it."]}
+      ]
+    },
+    {
+      "id": "en_long_page_overlap",
+      "language": "en",
+      "purpose": "A long single page exercises actual splitting and overlap at the 512/64 baseline.",
+      "pages": [
+        {"pageNumber": 1, "paragraphs": [
+          "Chapter 4",
+          "Mira arrived at the library before dawn and found the front door unlocked. A trail of wet footprints led from the entrance to the reading room, where a lamp still burned beside an open notebook.",
+          "The first notebook page described a narrow path through the northern forest. It mentioned three stone markers, a fallen oak tree, and a shallow stream that travelers could cross only when the morning rain had stopped.",
+          "Tomas examined the next page and discovered a drawing of an abandoned tower. Beneath the drawing, the unknown writer had listed the names of four villagers who once guarded the bridge leading toward the eastern coast.",
+          "They asked the librarian whether she recognized those names or the shape of the tower. She remembered a traveler who had visited many years earlier, carrying a red compass and refusing to explain where he had found it.",
+          "Mira compared the notebook drawing with the folded map from the wooden cabinet. The tower appeared on both documents, but one route passed through the forest while the other followed a winding road beside the river.",
+          "Outside the window, the market vendors began arranging fruit and bread on their tables. The town looked peaceful, yet the distant bell sounded twice instead of once, a signal the librarian associated with an approaching storm.",
+          "Tomas packed the silver key, the red compass, and a small bottle of clean water. He also took a length of rope because the old bridge might be damaged, and they could not rely on finding another crossing.",
+          "Before leaving, Mira wrote down the exact order of the stone markers described in the notebook. She wanted to avoid confusing an ordinary trail with the hidden path that led toward the abandoned tower beyond the forest.",
+          "The librarian gave them a lantern and warned them to return before the evening fog reached the river. She explained that the coast road became difficult to follow when the wind pushed heavy clouds over the distant hills.",
+          "They walked past the market and crossed the narrow square near the fountain. At the edge of town, an elderly gardener pointed toward the forest and said that a stranger had taken the same route earlier that morning.",
+          "Mira and Tomas followed the stranger's footprints until the path divided beside a broken wooden sign. They stopped to inspect the compass, compared the river with their map, and chose the branch that climbed toward the northern trees.",
+          "When they finally reached the first stone marker, the sun had risen above the forest. Mira opened the notebook again and read the next instruction aloud, knowing that the most difficult part of their journey was still ahead.",
+          "Beyond the marker, a narrow stream crossed the path and disappeared under a fallen oak. Tomas tested the stones with his walking stick while Mira checked whether the notebook mentioned a safer place to cross the water.",
+          "They found a low wooden platform beside the eastern bank of the stream. Its boards were old but dry, and a line of fresh footprints suggested that another traveler had used the crossing only a short time earlier.",
+          "After reaching the opposite bank, Mira noticed a blue ribbon tied to a branch. She compared its color with a note in the map and realized that the hidden trail turned uphill instead of continuing beside the stream.",
+          "Tomas climbed first and pulled the rope across a steep patch of loose earth. From the top of the slope, he could see the abandoned tower standing beyond a clearing surrounded by tall trees and thick morning mist.",
+          "The tower door remained closed, but a shallow groove around its handle matched the shape of the silver key. Mira removed the key from its box and carefully checked the drawing before deciding whether to open the entrance.",
+          "Inside the tower, the travelers discovered a spiral staircase and a wall covered with faded symbols. They stopped at the bottom step, lit the borrowed lantern, and agreed to record every new detail before climbing farther."
+        ]}
+      ]
+    }
+  ]
+}

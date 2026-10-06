@@ -1,0 +1,40 @@
+package com.vn.book.mapper;
+
+import com.vn.book.dto.response.BookCoverImageResponse;
+import com.vn.book.dto.response.BookCoverManagementResponse;
+import com.vn.book.entity.BookImage;
+import com.vn.book.service.image.BookImageUrlResolverFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class BookImageMapper {
+
+    private final BookImageUrlResolverFactory bookImageUrlResolverFactory;
+
+    // Mapper chỉ biết resolve ảnh qua factory, không biết ảnh đến từ Cloudinary hay provider khác.
+    public BookCoverImageResponse toCoverImageResponse(BookImage image) {
+        return bookImageUrlResolverFactory.resolve(image);
+    }
+
+    public BookCoverManagementResponse toCoverManagementResponse(BookImage image, String oldImageStatus) {
+        if (image == null) {
+            return null;
+        }
+        BookCoverImageResponse coverImage = toCoverImageResponse(image);
+        return new BookCoverManagementResponse(
+                image.getId(),
+                image.getBook().getId(),
+                image.getProvider().name(),
+                image.getPublicId(),
+                coverImage.originalUrl(),
+                coverImage.thumbnailUrl(),
+                coverImage.detailUrl(),
+                image.getAltText(),
+                image.getPrimaryImage(),
+                image.getStatus().name(),
+                oldImageStatus
+        );
+    }
+}

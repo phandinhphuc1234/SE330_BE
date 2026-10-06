@@ -1,5 +1,13 @@
 # RAG Batch Ingestion Job Plan
 
+> **Trạng thái: historical proposal - chưa áp dụng.** Source hiện tại dùng
+> Spring Boot chủ động `POST /internal/ingestions`, sau đó scheduler Spring poll
+> `GET /internal/ingestions/{jobId}` để đồng bộ trạng thái. Không dùng RAG pull
+> batch hoặc callback về Spring ở thời điểm này. Giữ tài liệu để tham khảo nếu
+> sau này chuyển sang kiến trúc batch/outbox; không dùng nó làm contract hiện tại.
+> Contract đang áp dụng nằm tại
+> [Spring Boot - RAG ingestion contract](../../rag-service/docs/integration/springboot-rag-ingestion-contract.md).
+
 Tài liệu này ghi lại hướng chuyển RAG ingestion từ kiểu Spring Boot gọi RAG ngay
 sau upload sang kiểu batch job để làm sau khi pipeline RAG đã được test ổn.
 

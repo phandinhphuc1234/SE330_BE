@@ -1,0 +1,13 @@
+# Docker Compose loads this file automatically.
+# This file keeps the runtime production-like where possible without relying on
+# Compose reset tags that are not supported by every local installation.
+services:
+  api:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+
+  worker:
+    restart: unless-stopped
+
+  beat:
+    restart: unless-stopped

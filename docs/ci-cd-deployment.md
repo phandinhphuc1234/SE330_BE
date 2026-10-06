@@ -1,32 +1,37 @@
 # CI/CD production trên một VPS
 
 Pipeline này chỉ có một môi trường chạy thật: `production`. Pull request dùng để
-kiểm tra source; mọi commit được đưa vào `main` sẽ được đóng gói thành đúng một
-Docker image bất biến và deploy lên VPS khi biến repository `CD_ENABLED=true`.
+kiểm tra cả Spring và RAG; mọi commit được đưa vào `main` sẽ được đóng gói thành
+hai Docker image bất biến. VPS luôn deploy Spring, còn RAG chỉ được khởi động khi
+`RAG_ENABLED=true` trong runtime env. CD chỉ chạy khi repository variable
+`CD_ENABLED=true`.
 
 ## Luồng tự động
 
 ```text
 pull request -> Maven verify + JaCoCo + CodeQL
+             -> Pytest + coverage cho RAG
        merge main
-            -> build Docker image
-            -> push GHCR bằng tag commit và digest
+            -> build Spring image + RAG image
+            -> push cả hai lên GHCR bằng tag commit và digest
             -> tạo SBOM/provenance
             -> quét HIGH/CRITICAL bằng Trivy
             -> SSH vào VPS
             -> kiểm tra Docker và runtime env
             -> kiểm tra Flyway V22
-            -> pg_dump PostgreSQL
+            -> pg_dump PostgreSQL của Spring
+            -> nếu RAG bật: backup RAG DB, init bucket, Alembic, thay API/worker
             -> pull và thay library-service
             -> Docker healthcheck
             -> public healthcheck, nếu đã cấu hình URL
             -> thành công hoặc rollback application image
 ```
 
-Không có bước build source trên VPS. Image được deploy luôn có dạng:
+Không có bước build source trên VPS. Hai image được deploy luôn có dạng:
 
 ```text
 ghcr.io/phandinhphuc1234/se330-be@sha256:<digest>
+ghcr.io/phandinhphuc1234/se330-rag@sha256:<digest>
 ```
 
 Pipeline không tự rollback schema. Migration mới phải tương thích ngược với
@@ -34,12 +39,13 @@ application version trước; khôi phục database là thao tác có chủ đí
 
 ## Thành phần trong repository
 
-- `.github/workflows/backend-ci.yml`: CI, build image và deploy tự động.
+- `.github/workflows/backend-ci.yml`: CI, build hai image và deploy tự động.
 - `.github/workflows/vps-bootstrap.yml`: cài Docker CE và Compose v2 thủ công.
 - `.github/workflows/vps-provision-runtime.yml`: sinh runtime secret trực tiếp trên VPS.
 - `.github/workflows/vps-preflight.yml`: kiểm tra SSH/VPS/database thủ công.
 - `.github/workflows/rollback-production.yml`: deploy lại một image digest cũ.
-- `deploy/compose.production.yaml`: stack PostgreSQL, Redis và backend production.
+- `deploy/compose.production.yaml`: stack Spring, PostgreSQL và Redis production.
+- `deploy/compose.rag.production.yaml`: RAG overlay private, không publish host port.
 - `deploy/scripts/preflight.sh`: kiểm tra VPS mà không in secret.
 - `deploy/scripts/deploy.sh`: backup, deploy, healthcheck và rollback application.
 - `deploy/nginx`: template reverse proxy HTTPS.
@@ -146,6 +152,43 @@ chmod 600 "$HOME/.config/quanlythuvien/backend.env"
 Không được để lại `CHANGE_ME`, `example.com`, localhost callback hoặc mật khẩu
 demo. Nếu không dùng VNPAY/RAG, giữ `VNPAY_ENABLED=false` và `RAG_ENABLED=false`.
 
+### Bật RAG production
+
+Không bật RAG chỉ bằng cách đổi một cờ. Trước tiên cần điền trong
+`$HOME/.config/quanlythuvien/backend.env`:
+
+```text
+RAG_ENABLED=true
+RAG_POSTGRES_DB=rag_db
+RAG_POSTGRES_USER=rag_app
+RAG_POSTGRES_PASSWORD=<url-safe-secret>
+RAG_REDIS_PASSWORD=<url-safe-secret>
+RAG_INTERNAL_API_KEY=<at-least-32-characters>
+RAG_CONNECT_TIMEOUT=3s
+RAG_READ_TIMEOUT=30s
+EBOOK_AI_RATE_LIMIT_ENABLED=true
+EBOOK_AI_ASK_REQUESTS_PER_WINDOW=10
+EBOOK_AI_SEARCH_REQUESTS_PER_WINDOW=30
+EBOOK_AI_RATE_LIMIT_WINDOW=1m
+EBOOK_AI_RATE_LIMIT_FAIL_OPEN=false
+QDRANT_API_KEY=<url-safe-secret>
+OBJECT_STORAGE_ACCESS_KEY=<url-safe-secret>
+OBJECT_STORAGE_SECRET_KEY=<url-safe-secret>
+GEMINI_API_KEY=<required-by-default-for-embeddings>
+OPENAI_API_KEY=<required-by-default-for-generation>
+```
+
+Nếu dùng cùng một provider cho embedding và generation, đổi
+`EMBEDDING_PROVIDER`/`LLM_PROVIDER` tương ứng và chỉ cấu hình key thực sự cần.
+Preflight sẽ chặn deploy nếu provider key, internal key, database/storage
+credential hoặc tối thiểu 8 GiB dung lượng trống chưa đạt. Với resource limits
+mặc định, nên dùng VPS tối thiểu khoảng 6 GiB RAM; máy nhỏ hơn cần đo tải và chỉnh
+limits trước khi bật.
+
+RAG API, RAG PostgreSQL, RAG Redis, Qdrant và SeaweedFS chỉ ở trong Docker
+network `quanlythuvien-production`. Frontend không gọi `rag-api` trực tiếp;
+frontend gọi Spring và Spring xác thực sang RAG bằng `RAG_INTERNAL_API_KEY`.
+
 ## Bootstrap database một lần
 
 Migration V22 là data-fix lịch sử và không chạy trên database rỗng. Trước khi
@@ -196,12 +239,15 @@ Trước mỗi lần thay application, script tạo PostgreSQL custom dump và c
 ```text
 $HOME/backups/quanlythuvien/library-<UTC timestamp>.dump
 $HOME/backups/quanlythuvien/library-<UTC timestamp>.dump.sha256
+$HOME/backups/quanlythuvien/rag-<UTC timestamp>.dump
+$HOME/backups/quanlythuvien/rag-<UTC timestamp>.dump.sha256
 ```
 
 Image và commit đang chạy được ghi tại:
 
 ```text
 $HOME/apps/quanlythuvien/state/current-image
+$HOME/apps/quanlythuvien/state/current-rag-image
 $HOME/apps/quanlythuvien/state/current-commit
 ```
 
@@ -254,9 +300,18 @@ khác nhau; mở UFW không tự thay đổi rule của Azure.
 ## Kiểm tra sau deploy
 
 ```bash
+export APP_IMAGE="$(cat "$HOME/apps/quanlythuvien/state/current-image")"
+
 docker compose --project-name quanlythuvien \
   --env-file "$HOME/.config/quanlythuvien/backend.env" \
   -f "$HOME/apps/quanlythuvien/compose.production.yaml" ps
+
+# Chỉ thêm overlay này khi RAG_ENABLED=true:
+export RAG_IMAGE="$(cat "$HOME/apps/quanlythuvien/state/current-rag-image")"
+docker compose --project-name quanlythuvien \
+  --env-file "$HOME/.config/quanlythuvien/backend.env" \
+  -f "$HOME/apps/quanlythuvien/compose.production.yaml" \
+  -f "$HOME/apps/quanlythuvien/compose.rag.production.yaml" ps
 
 curl --fail https://api.library.example.com/healthz
 ```

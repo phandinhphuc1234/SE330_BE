@@ -1,0 +1,56 @@
+package com.vn.ebook.repository;
+
+import com.vn.ebook.entity.BookEbook;
+import com.vn.ebook.enums.BookEbookStatus;
+import com.vn.ebook.enums.EbookIngestionStatus;
+import com.vn.shared.enums.MediaProvider;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Collection;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+public interface BookEbookRepository extends JpaRepository<BookEbook, Long> {
+
+    // publicId được build cố định theo pdf/{isbn}/main.pdf nên upload lại sẽ update metadata row hiện có.
+    Optional<BookEbook> findByProviderAndPublicId(MediaProvider provider, String publicId);
+
+    Optional<BookEbook> findFirstByBookIdOrderByIdDesc(Long bookId);
+
+    // Public catalog chỉ lấy ebook ACTIVE mới nhất của một đầu sách để render trạng thái đọc/mượn.
+    @EntityGraph(attributePaths = {"book"})
+    Optional<BookEbook> findFirstByBookIdAndStatusOrderByIdDesc(Long bookId, BookEbookStatus status);
+
+    // Staff/admin thao tác theo cả bookId và ebookId để tránh sửa nhầm ebook của sách khác.
+    @EntityGraph(attributePaths = {"book"})
+    Optional<BookEbook> findByIdAndBookId(Long id, Long bookId);
+
+    // Lock row ebook khi cấp loan để số active loan không vượt max_concurrent_loans.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"book"})
+    @Query("""
+            select ebook
+            from BookEbook ebook
+            where ebook.id = :id
+            """)
+    Optional<BookEbook> findLockedById(@Param("id") Long id);
+
+    @Query("""
+            select ebook.id
+            from BookEbook ebook
+            where ebook.ragJobId is not null
+              and ebook.ingestionStatus in :statuses
+              and (ebook.ingestionNextCheckAt is null or ebook.ingestionNextCheckAt <= :now)
+            order by ebook.indexingRequestedAt asc nulls first, ebook.id asc
+            """)
+    List<Long> findIngestionSyncCandidateIds(@Param("statuses") Collection<EbookIngestionStatus> statuses,
+                                              @Param("now") Instant now,
+                                              Pageable pageable);
+}

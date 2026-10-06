@@ -1,5 +1,7 @@
 # Library Management System · Java Backend
 
+[![Backend CI/CD](https://github.com/phandinhphuc1234/SE330_BE/actions/workflows/backend-ci.yml/badge.svg?branch=main)](https://github.com/phandinhphuc1234/SE330_BE/actions/workflows/backend-ci.yml)
+
 Backend quản lý thư viện, hỗ trợ bạn đọc tra cứu và đặt giữ sách; hỗ trợ thủ thư
 quản lý bản sách, mượn/trả, gia hạn và theo dõi quá hạn. Dự án tập trung vào
 quy tắc nghiệp vụ, tính toàn vẹn dữ liệu và API có thể kiểm thử, vận hành.
@@ -75,7 +77,7 @@ flowchart LR
 
 | Thành phần | Công nghệ và vai trò |
 | --- | --- |
-| Runtime & API | Java 21, Spring Boot 4.0.6, Spring MVC, Bean Validation, Springdoc OpenAPI |
+| Runtime & API | Java 21, Spring Boot 4.0.8, Spring MVC, Bean Validation, Springdoc OpenAPI |
 | Bảo mật | Spring Security, JWT access token, refresh token qua HttpOnly cookie, BCrypt |
 | Lưu trữ | PostgreSQL 16, Spring Data JPA/Specifications, JDBC batch, Flyway V1–V42 |
 | Redis | Refresh token, blacklist/revocation, giới hạn yêu cầu email, idempotency và cache phiên đọc ebook; chưa có cache catalog |
@@ -164,14 +166,15 @@ Xem [API contract](docs/api-contract.md) và Swagger để biết request/status
 
 ## Kiểm thử, CI & số đo
 
-Snapshot báo cáo local ngày **08/09/2026**, đọc từ Surefire và JaCoCo:
+Snapshot CI của commit `f2a3cd3` trên `main` ngày **14/09/2026**, đọc từ
+Surefire và JaCoCo artifact của workflow:
 
 | Chỉ số | Kết quả |
 | --- | --- |
-| Test | 207; 0 failures, 0 errors, 0 skipped |
-| Instruction coverage | 52.39% |
-| Line coverage | 50.03% |
-| Branch coverage | 34.14% |
+| Test | 216; 0 failures, 0 errors, 0 skipped |
+| Instruction coverage | 52.74% |
+| Line coverage | 50.28% |
+| Branch coverage | 34.74% |
 
 Đây là kết quả của lần chạy đã lưu, không phải cam kết cho mọi commit hoặc badge
 CI hiện tại. [Workflow](.github/workflows/backend-ci.yml) cấu hình `mvn verify`
@@ -199,8 +202,9 @@ cũ, không phản ánh việc API catalog đã có cache.
   vòng đời reset token/session và nâng cấp Flyway từ snapshot tương thích.
 - CSV import chạy trong executor của ứng dụng; chưa có cơ chế tự khôi phục job
   đang chạy sau khi process dừng. Redis và PostgreSQL không commit nguyên tử cùng nhau.
-- Chưa công bố bản triển khai production hoặc kết quả tải production.
-  Tích hợp email, storage và payment cần kiểm chứng riêng trước khi công khai demo.
+- Repository có pipeline build image, scan và triển khai VPS kèm health check,
+  nhưng không cam kết public demo luôn hoạt động hoặc xem kết quả tải local là
+  số đo production. Email, storage và payment cần kiểm chứng theo từng môi trường.
 - RAG để giai đoạn sau; không nằm trong cam kết hoàn thành của bản demo này.
 
 ## Tài liệu bổ sung

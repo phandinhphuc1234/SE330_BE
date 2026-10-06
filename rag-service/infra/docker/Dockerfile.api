@@ -1,0 +1,35 @@
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_REQUESTS_TIMEOUT=120
+
+RUN pip install --no-cache-dir poetry==2.2.1
+COPY pyproject.toml poetry.lock README.md ./
+RUN poetry config requests.max-retries 5 \
+    && poetry install --only main --no-root \
+    && rm -rf /root/.cache/pypoetry /root/.cache/pip
+
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN groupadd --system app \
+    && useradd --system --gid app --create-home app
+
+COPY --from=builder /app/.venv /app/.venv
+
+COPY app ./app
+COPY alembic.ini ./
+COPY alembic ./alembic
+
+USER app
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -22,6 +22,13 @@ fail() {
   exit 1
 }
 
+read_setting() {
+  local key="$1"
+  local line
+  line="$(grep -E "^${key}=" "$RUNTIME_ENV_FILE" | tail -n 1 || true)"
+  printf '%s' "${line#*=}"
+}
+
 # Bước 4: kiểm tra các công cụ bắt buộc và quyền truy cập Docker daemon của
 # tài khoản deploy hiện tại.
 command -v docker >/dev/null 2>&1 || fail 'Docker Engine is not installed or is not on PATH.'
@@ -71,6 +78,87 @@ for variable_name in "${required_variables[@]}"; do
   fi
 done
 
+rag_enabled="$(read_setting RAG_ENABLED)"
+[[ "$rag_enabled" == 'true' || "$rag_enabled" == 'false' ]] || \
+  fail 'RAG_ENABLED must be true or false.'
+
+# Khi RAG được bật, kiểm tra riêng toàn bộ credential/data dependency trước khi
+# Compose pull image hay chạy migration. Các secret này phải URL/JSON-safe vì
+# chúng được dùng trong connection URL và SeaweedFS S3 configuration.
+if [[ "$rag_enabled" == 'true' ]]; then
+  rag_required_variables=(
+    RAG_POSTGRES_DB
+    RAG_POSTGRES_USER
+    RAG_POSTGRES_PASSWORD
+    RAG_REDIS_PASSWORD
+    RAG_INTERNAL_API_KEY
+    QDRANT_API_KEY
+    OBJECT_STORAGE_ACCESS_KEY
+    OBJECT_STORAGE_SECRET_KEY
+    LIBRARY_EBOOK_BUCKET
+    LIBRARY_TEMP_BUCKET
+    RAG_ARTIFACT_BUCKET
+  )
+
+  for variable_name in "${rag_required_variables[@]}"; do
+    value="$(read_setting "$variable_name")"
+    [[ -n "$value" ]] || fail "$variable_name is required when RAG_ENABLED=true."
+    [[ "$value" != *CHANGE_ME* && "$value" != *example.com* ]] || \
+      fail "$variable_name still contains a template value."
+  done
+
+  for variable_name in RAG_POSTGRES_PASSWORD RAG_REDIS_PASSWORD RAG_INTERNAL_API_KEY \
+    QDRANT_API_KEY OBJECT_STORAGE_ACCESS_KEY OBJECT_STORAGE_SECRET_KEY; do
+    value="$(read_setting "$variable_name")"
+    [[ "$value" =~ ^[A-Za-z0-9._~-]+$ ]] || \
+      fail "$variable_name must contain only URL-safe letters, digits, dot, underscore, tilde, or hyphen."
+  done
+
+  for variable_name in RAG_POSTGRES_PASSWORD RAG_REDIS_PASSWORD QDRANT_API_KEY \
+    OBJECT_STORAGE_SECRET_KEY; do
+    value="$(read_setting "$variable_name")"
+    (( ${#value} >= 24 )) || fail "$variable_name must contain at least 24 characters."
+  done
+  object_storage_access_key="$(read_setting OBJECT_STORAGE_ACCESS_KEY)"
+  (( ${#object_storage_access_key} >= 12 )) || \
+    fail 'OBJECT_STORAGE_ACCESS_KEY must contain at least 12 characters.'
+  rag_internal_api_key="$(read_setting RAG_INTERNAL_API_KEY)"
+  (( ${#rag_internal_api_key} >= 32 )) || fail 'RAG_INTERNAL_API_KEY must contain at least 32 characters.'
+
+  embedding_provider="$(read_setting EMBEDDING_PROVIDER)"
+  embedding_provider="${embedding_provider:-gemini}"
+  llm_provider="$(read_setting LLM_PROVIDER)"
+  llm_provider="${llm_provider:-openai}"
+
+  case "$embedding_provider" in
+    gemini)
+      provider_api_key="$(read_setting GEMINI_API_KEY)"
+      [[ -n "$provider_api_key" && "$provider_api_key" != *CHANGE_ME* ]] || \
+        fail 'GEMINI_API_KEY is required for EMBEDDING_PROVIDER=gemini.'
+      ;;
+    openai)
+      provider_api_key="$(read_setting OPENAI_API_KEY)"
+      [[ -n "$provider_api_key" && "$provider_api_key" != *CHANGE_ME* ]] || \
+        fail 'OPENAI_API_KEY is required for EMBEDDING_PROVIDER=openai.'
+      ;;
+    *) fail "Unsupported EMBEDDING_PROVIDER: $embedding_provider" ;;
+  esac
+
+  case "$llm_provider" in
+    gemini)
+      provider_api_key="$(read_setting GEMINI_API_KEY)"
+      [[ -n "$provider_api_key" && "$provider_api_key" != *CHANGE_ME* ]] || \
+        fail 'GEMINI_API_KEY is required for LLM_PROVIDER=gemini.'
+      ;;
+    openai)
+      provider_api_key="$(read_setting OPENAI_API_KEY)"
+      [[ -n "$provider_api_key" && "$provider_api_key" != *CHANGE_ME* ]] || \
+        fail 'OPENAI_API_KEY is required for LLM_PROVIDER=openai.'
+      ;;
+    *) fail "Unsupported LLM_PROVIDER: $llm_provider" ;;
+  esac
+fi
+
 # Notification delivery is optional, but an enabled worker must have a real
 # Resend API key and verified sender. This keeps the application from starting
 # with an active worker that immediately moves every queue item to DEAD.
@@ -104,17 +192,29 @@ if (( ${#jwt_value} < 64 )); then
   fail 'JWT_SECRET must contain at least 64 characters.'
 fi
 
-# Bước 9: yêu cầu tối thiểu 2 GiB trống để pull image, ghi log và tạo backup.
+# Bước 9: core backend cần tối thiểu 2 GiB trống. Khi RAG bật, yêu cầu 8 GiB vì
+# còn Python image, Qdrant, object storage và backup database RAG.
 available_kb="$(df -Pk "$HOME" | awk 'NR == 2 {print $4}')"
-if [[ -z "$available_kb" || "$available_kb" -lt 2097152 ]]; then
-  fail 'At least 2 GiB of free disk space is required before deployment.'
+required_kb=2097152
+required_disk_message='At least 2 GiB of free disk space is required before deployment.'
+if [[ "$rag_enabled" == 'true' ]]; then
+  required_kb=8388608
+  required_disk_message='At least 8 GiB of free disk space is required when RAG is enabled.'
+fi
+if [[ -z "$available_kb" || "$available_kb" -lt "$required_kb" ]]; then
+  fail "$required_disk_message"
 fi
 
 # Bước 10: nhờ Docker Compose parse toàn bộ cấu hình với runtime env. Lệnh config
 # chỉ kiểm tra cú pháp/substitution, không khởi động container.
 export RUNTIME_ENV_FILE
+compose_files=(-f "$DEPLOY_ROOT/compose.production.yaml")
+if [[ "$rag_enabled" == 'true' ]]; then
+  compose_files+=(-f "$DEPLOY_ROOT/compose.rag.production.yaml")
+fi
 APP_IMAGE='ghcr.io/phandinhphuc1234/se330-be:preflight' \
-  docker compose --env-file "$RUNTIME_ENV_FILE" -f "$DEPLOY_ROOT/compose.production.yaml" config --quiet
+RAG_IMAGE='ghcr.io/phandinhphuc1234/se330-rag:preflight' \
+  docker compose --env-file "$RUNTIME_ENV_FILE" "${compose_files[@]}" config --quiet
 
 # Bước 11 (tùy chọn --database): khởi động riêng PostgreSQL/Redis rồi kiểm tra DB
 # có bảng lịch sử Flyway và migration V22 đã thành công. Điều này chặn database
@@ -122,11 +222,12 @@ APP_IMAGE='ghcr.io/phandinhphuc1234/se330-be:preflight' \
 if [[ "$CHECK_DATABASE" == '--database' ]]; then
   export RUNTIME_ENV_FILE
   export APP_IMAGE='ghcr.io/phandinhphuc1234/se330-be:preflight'
+  export RAG_IMAGE='ghcr.io/phandinhphuc1234/se330-rag:preflight'
   compose=(
     docker compose
     --project-name quanlythuvien
     --env-file "$RUNTIME_ENV_FILE"
-    -f "$DEPLOY_ROOT/compose.production.yaml"
+    "${compose_files[@]}"
   )
   "${compose[@]}" up -d --wait --wait-timeout 120 postgres redis
 

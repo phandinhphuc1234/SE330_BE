@@ -1,0 +1,303 @@
+package com.vn.book.controller;
+
+import com.vn.book.controller.docs.BookApiDocs;
+import com.vn.book.dto.request.BulkCreateBookCopiesRequest;
+import com.vn.book.dto.request.CreateBookCopyRequest;
+import com.vn.book.dto.request.CreateBookRequest;
+import com.vn.book.dto.request.UpdateBookAuthorsRequest;
+import com.vn.book.dto.request.UpdateBookRequest;
+import com.vn.shared.dto.ApiResponse;
+import com.vn.book.dto.response.BookCopyResponse;
+import com.vn.book.dto.response.BookCoverManagementResponse;
+import com.vn.book.dto.response.BookDetailResponse;
+import com.vn.book.dto.response.BookImportJobResponse;
+import com.vn.book.dto.response.BookSummaryResponse;
+import com.vn.shared.dto.PageMeta;
+import com.vn.ebook.dto.request.UpdateBookEbookRequest;
+import com.vn.ebook.dto.response.BookEbookManagementResponse;
+import com.vn.ebook.dto.response.BookEbookPublicResponse;
+import com.vn.ebook.dto.response.BookEbookUploadResponse;
+import com.vn.shared.exception.AppException;
+import com.vn.shared.exception.ErrorCode;
+import com.vn.auth.security.MemberUserDetails;
+import com.vn.book.service.BookCopyService;
+import com.vn.ebook.service.BookEbookService;
+import com.vn.book.service.BookImageService;
+import com.vn.book.service.BookImportService;
+import com.vn.book.service.BookService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/books")
+@RequiredArgsConstructor
+public class BookController implements BookApiDocs {
+
+    private final BookService bookService;
+    private final BookCopyService bookCopyService;
+    private final BookImageService bookImageService;
+    private final BookEbookService bookEbookService;
+    private final BookImportService bookImportService;
+
+    @GetMapping
+    @Override
+    public ResponseEntity<ApiResponse<List<BookSummaryResponse>>> searchBooks(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String isbn,
+            @RequestParam(required = false) Long authorId,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Boolean availableOnly,
+            @RequestParam(required = false) String language,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
+        Page<BookSummaryResponse> books = bookService.searchBooks(
+                q, title, isbn, authorId, author, categoryId, availableOnly, language, page, size, sort
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy danh sách sách thành công",
+                books.getContent(),
+                PageMeta.from(books)
+        ));
+    }
+    // Lấy chi tiêt thông tin sách
+    @GetMapping("/{bookId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookDetailResponse>> getBook(@PathVariable Long bookId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy chi tiết sách thành công",
+                bookService.getBook(bookId)
+        ));
+    }
+    // Tạo sách mới thành công
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping
+    @Override
+    public ResponseEntity<ApiResponse<BookDetailResponse>> createBook(@Valid @RequestBody CreateBookRequest request) {
+        BookDetailResponse book = bookService.createBook(request);
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/{bookId}")
+                        .buildAndExpand(book.id())
+                        .toUri())
+                .body(ApiResponse.success("Tạo sách thành công", book));
+    }
+    // Cập nhật thông tin sách
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PatchMapping("/{bookId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookDetailResponse>> updateBook(
+            @PathVariable Long bookId,
+            @Valid @RequestBody UpdateBookRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật sách thành công",
+                bookService.updateBook(bookId, request)
+        ));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping(value = "/{bookId}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookCoverManagementResponse>> addBookCover(
+            @PathVariable Long bookId,
+            @RequestPart("file") MultipartFile file) {
+        BookCoverManagementResponse cover = bookImageService.addCover(bookId, file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Thêm ảnh bìa sách thành công", cover));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PutMapping(value = "/{bookId}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookCoverManagementResponse>> updateBookCover(
+            @PathVariable Long bookId,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật ảnh bìa sách thành công",
+                bookImageService.updateCover(bookId, file)
+        ));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping(value = "/{bookId}/ebooks", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookUploadResponse>> uploadBookEbook(
+            @PathVariable Long bookId,
+            @RequestPart("file") MultipartFile file) {
+        // API quản trị chỉ upload/lưu metadata, chưa cấp URL đọc ebook cho member.
+        BookEbookUploadResponse ebook = bookEbookService.uploadMainPdf(bookId, file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Upload ebook PDF thành công", ebook));
+    }
+
+    // Public API cho trang chi tiết sách: chỉ trả metadata ebook, không trả publicId/URL PDF.
+    @GetMapping("/{bookId}/ebook")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookPublicResponse>> getBookEbookForCatalog(@PathVariable Long bookId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy thông tin ebook thành công",
+                bookEbookService.getPublicEbook(bookId)
+        ));
+    }
+
+    // Staff/admin dùng API này để load form quản trị ebook và xem metadata Cloudinary.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping("/{bookId}/ebooks/{bookEbookId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookManagementResponse>> getBookEbookForManagement(
+            @PathVariable Long bookId,
+            @PathVariable Long bookEbookId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy thông tin quản trị ebook thành công",
+                bookEbookService.getManagementEbook(bookId, bookEbookId)
+        ));
+    }
+
+    // Cập nhật policy/trạng thái ebook; thay thế file PDF vẫn dùng POST /{bookId}/ebooks.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PatchMapping("/{bookId}/ebooks/{bookEbookId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookManagementResponse>> updateBookEbook(
+            @PathVariable Long bookId,
+            @PathVariable Long bookEbookId,
+            @Valid @RequestBody UpdateBookEbookRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật thông tin ebook thành công",
+                bookEbookService.updateEbook(bookId, bookEbookId, request)
+        ));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping("/{bookId}/ebooks/{bookEbookId}/reindex")
+    @Override
+    public ResponseEntity<ApiResponse<BookEbookManagementResponse>> reindexBookEbook(
+            @PathVariable Long bookId,
+            @PathVariable Long bookEbookId) {
+        return ResponseEntity.accepted().body(ApiResponse.success(
+                "Đã xếp hàng re-index ebook",
+                bookEbookService.reindexEbook(bookId, bookEbookId)
+        ));
+    }
+
+    // Xóa đầu sách trong hệ thống
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{bookId}")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteBook(
+            @PathVariable Long bookId,
+            @AuthenticationPrincipal MemberUserDetails userDetails) {
+        bookService.deleteBook(bookId, getCurrentMemberId(userDetails));
+        return ResponseEntity.ok(ApiResponse.success("Xóa sách thành công", null));
+    }
+    // Lấy danh sách bản sao của đầu sách đó
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping("/{bookId}/copies")
+    @Override
+    public ResponseEntity<ApiResponse<List<BookCopyResponse>>> getBookCopies(
+            @PathVariable Long bookId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String barcode,
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false) String location) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy danh sách bản sao sách thành công",
+                bookCopyService.getBookCopies(bookId, status, barcode, condition, location)
+        ));
+    }
+    // Tạo 1 bản copy mới cho sách đó
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping("/{bookId}/copies")
+    @Override
+    public ResponseEntity<ApiResponse<BookCopyResponse>> createBookCopy(
+            @PathVariable Long bookId,
+            @Valid @RequestBody CreateBookCopyRequest request) {
+        BookCopyResponse copy = bookCopyService.createBookCopy(bookId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Tạo bản sao sách thành công", copy));
+    }
+    // Tạo nhiều bản copy vật lý cho cùng một sách bằng danh sách barcode rõ ràng
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping("/{bookId}/copies/bulk")
+    @Override
+    public ResponseEntity<ApiResponse<List<BookCopyResponse>>> createBookCopies(
+            @PathVariable Long bookId,
+            @Valid @RequestBody BulkCreateBookCopiesRequest request) {
+        List<BookCopyResponse> copies = bookCopyService.createBookCopies(bookId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Tạo danh sách bản sao sách thành công", copies));
+    }
+    // Import sách và bản copy từ CSV. Mỗi dòng CSV tương ứng một bản copy vật lý.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PostMapping(value = "/import-csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponse<BookImportJobResponse>> importBooksFromCsv(
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponse.success(
+                "Đã nhận file CSV và bắt đầu xử lý import",
+                bookImportService.startImportBooksFromCsv(file)
+        ));
+    }
+
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping("/import-csv/{jobId}")
+    @Override
+    public ResponseEntity<ApiResponse<BookImportJobResponse>> getBookImportJob(@PathVariable UUID jobId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Lấy trạng thái import CSV thành công",
+                bookImportService.getImportJob(jobId)
+        ));
+    }
+    // Endpoint trả về SSE stream để client lắng nghe sự kiện tiến trình import CSV.
+    // Dùng EventSource API trên frontend.
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @GetMapping(value = "/import-csv/{jobId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Override
+    public SseEmitter streamBookImportJobEvents(@PathVariable UUID jobId) {
+        return bookImportService.streamImportJobEvents(jobId);
+    }
+
+    // Cập nhật tác giả cho sách
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    @PutMapping("/{bookId}/authors")
+    @Override
+    public ResponseEntity<ApiResponse<BookDetailResponse>> updateBookAuthors(
+            @PathVariable Long bookId,
+            @Valid @RequestBody UpdateBookAuthorsRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Cập nhật tác giả của sách thành công",
+                bookService.updateBookAuthors(bookId, request)
+        ));
+    }
+    // Kiểm tra đăng nhập và trả về memberId của user hiện tại
+    private Long getCurrentMemberId(MemberUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        return userDetails.getMember().getId();
+    }
+}

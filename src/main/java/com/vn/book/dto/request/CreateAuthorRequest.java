@@ -1,0 +1,17 @@
+package com.vn.book.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record CreateAuthorRequest(
+        @NotBlank(message = "Tên tác giả không được để trống")
+        @Size(max = 100, message = "Tên tác giả tối đa 100 ký tự")
+        String name,
+
+        String bio,
+
+        @Size(max = 2048, message = "URL ảnh tác giả tối đa 2048 ký tự")
+        String imageUrl
+) {
+}
+

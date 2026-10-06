@@ -1,5 +1,11 @@
 # Phân tích hướng triển khai RAG và GraphRAG cho hệ thống quản lý thư viện
 
+> **Vai trò tài liệu:** tài liệu tham khảo cho backlog dài hạn. Hướng đang được
+> ưu tiên và tiêu chí MVP chính thức nằm tại
+> [Secure AI Ebook Reader](../secure-ai-ebook-reader-roadmap.md). GraphRAG,
+> multi-book search, recommendation và learning assistant được hoãn đến sau khi
+> hoàn thành hỏi đáp trên một ebook có citation và kiểm soát quyền truy cập.
+
 Tài liệu này phân tích nên dùng RAG vào việc gì trong project `QuanLyThuVien`,
 và nếu muốn nâng lên GraphRAG thì nên làm theo hướng nào để vừa thực tế, vừa
 đủ ấn tượng khi demo.
@@ -24,7 +30,8 @@ Member/Staff hỏi đáp trên nội dung ebook PDF đã upload
 
 - Ebook PDF upload vào SeaweedFS/S3.
 - Metadata ebook trong `book_ebooks`.
-- RAG ingestion status: `QUEUED`, `PROCESSING`, `CHUNKED`, `INDEXED`, `FAILED`.
+- RAG ingestion status: `QUEUED`, `PROCESSING`, `PARSED`, `CHUNKED`,
+  `EMBEDDING`, `EMBEDDED`, `INDEXING`, `INDEXED`, `FAILED`.
 - RAG service tách riêng khỏi Library Spring Boot.
 - Qdrant đã được định hướng cho vector search.
 
