@@ -57,6 +57,14 @@ provider key; core backend vẫn có thể deploy riêng trong thời gian chu�
   frontend được cấu hình. Webhook Resend kiểm tra chữ ký riêng.
 - Regression test xác nhận: thiếu token hoặc header sai trả 403; cookie + header
   đúng được đi tiếp; không tạo HTTP session; production cookie host-bound.
+- `CookieAuthSecurityIntegrationTest` kiểm tra thêm security chain/CORS/JWT filter,
+  AuthController và error handlers thật qua MockMvc (13 ca). Chỉ service/Redis/JWT
+  dependencies được mock, không gọi database/email/provider và không dùng key thật.
+  Các ca gồm: cookie không xác thực được API Bearer; Bearer hợp lệ vẫn logout được;
+  refresh thiếu/sai CSRF bị 403; CSRF hợp lệ vẫn cần refresh cookie/token hợp lệ;
+  refresh thành công rotate cookie; origin lạ bị chặn; preflight đúng origin được
+  phép gửi header CSRF; login JSON còn hoạt động nhưng form/text/plain bị 415.
+  Đây là kiểm thử tích hợp lớp web/security, không thay thế smoke test production.
 - Sonar `java:S4502` cảnh báo mọi custom CSRF matcher. Reviewer cần kiểm tra
   các điều kiện trên trước khi xử lý riêng issue; không thay quality gate/profile.
 - Nếu sau này thêm endpoint xác thực bằng cookie, phải cập nhật matcher và test
