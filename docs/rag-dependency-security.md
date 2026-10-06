@@ -36,10 +36,12 @@ Các phiên bản dưới đây là phiên bản được resolve trong `rag-ser
   này. FastAPI và Starlette phải được kiểm tra lại cùng nhau bằng regression test.
 - Nâng `datasets` trong nhóm `eval` lên 5.1.0: ràng buộc cũ giới hạn `fsspec`
   của lockfile dùng chung ở 2025.3.0. Nhóm `eval` không được cài trong image runtime.
-- Bỏ `pip` của Python base image ở stage runtime, trước khi copy virtualenv.
+- Bỏ `pip` của Python base image và bản pip được seed trong virtualenv ở stage runtime.
   Production không cài package lúc chạy; các thư viện vendored của công cụ build
   (bao gồm jaraco.context/wheel/urllib3) không cần tồn tại trong stage này.
-  Builder vẫn có pip/Poetry để tạo virtualenv. Không xóa package ứng dụng.
+  Pip của virtualenv 26.2.1 vẫn bundle urllib3 2.7.0 dù ứng dụng đã dùng 2.8.0;
+  security floor của lockfile không nâng được bản vendored này. Builder vẫn có
+  pip/Poetry để tạo virtualenv. Không xóa package ứng dụng.
 
 ## Cách kiểm chứng
 
