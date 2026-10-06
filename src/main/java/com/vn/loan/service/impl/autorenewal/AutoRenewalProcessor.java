@@ -67,6 +67,10 @@ public class AutoRenewalProcessor {
     private AutoRenewalResult processBorrow(BorrowRecord borrow, Long jobLogId) {
         Instant attemptedAt = clock.instant();
         AutoRenewalResultCode validationResult = circulationPolicyService.validateAutoRenewal(borrow);
+        if (validationResult == AutoRenewalResultCode.BORROW_NOT_FOUND) {
+            // No persisted borrow exists to own an attempt or notification.
+            return AutoRenewalResult.failed(validationResult);
+        }
         if (validationResult != AutoRenewalResultCode.SUCCESS) {
             AutoRenewalAttempt attempt = attemptRecorder.recordFailure(
                     borrow, jobLogId, attemptedAt, validationResult);

@@ -147,6 +147,22 @@ class AutoRenewalProcessorTest {
     }
 
     @Test
+    void processOne_shouldNotPersistAttempt_whenPolicyReportsMissingBorrow() {
+        BorrowRecord borrow = borrow();
+        when(borrowRecordRepository.findLockedForRenewalById(100L)).thenReturn(Optional.of(borrow));
+        when(circulationPolicyService.validateAutoRenewal(borrow))
+                .thenReturn(AutoRenewalResultCode.BORROW_NOT_FOUND);
+
+        AutoRenewalResult result = processor.processOne(100L, 900L);
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.code()).isEqualTo(AutoRenewalResultCode.BORROW_NOT_FOUND);
+        verify(attemptRecorder, never()).recordFailure(any(), any(), any(), any());
+        verify(renewalUseCase, never()).applyRenewal(any(), anyInt());
+        verify(notificationQueueService, never()).enqueueEmail(any());
+    }
+
+    @Test
     void processOne_shouldReturnFailed_whenBorrowNotFound() {
         when(borrowRecordRepository.findLockedForRenewalById(404L)).thenReturn(Optional.empty());
 

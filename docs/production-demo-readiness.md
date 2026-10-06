@@ -41,3 +41,23 @@
 Không dùng 777 unit/integration test hoặc số liệu retrieval offline để khẳng
 định end-to-end production đã chạy. Không bật RAG nếu VPS thiếu tài nguyên hoặc
 provider key; core backend vẫn có thể deploy riêng trong thời gian chuẩn bị.
+
+## Review CSRF chọn lọc trước release
+
+- Không tắt CSRF toàn cục: `POST /api/auth/refresh` luôn đi qua `CsrfFilter`.
+  GET bootstrap trả token trong JSON `Cache-Control: no-store`; frontend gửi
+  `X-XSRF-TOKEN` cùng cookie, không đọc cookie HttpOnly bằng JavaScript.
+- Giữ `XorCsrfTokenRequestAttributeHandler` của Spring để bảo vệ BREACH. Token
+  trong JSON là dạng masked; cookie giữ token gốc, Spring tự so khớp sau giải mã.
+- HTTPS dùng `__Host-XSRF-TOKEN`, Secure + HttpOnly + Path=/, không Domain;
+  dự án khác trên cùng domain cha không được inject cookie parent-domain này.
+  HTTP local dùng `XSRF-TOKEN`; tên header/body contract không đổi.
+- API được bảo vệ còn lại chỉ xác thực bằng Bearer header trong `JwtAuthFilter`,
+  không lấy danh tính từ cookie. Login/register nhận JSON; CORS chỉ cho origin
+  frontend được cấu hình. Webhook Resend kiểm tra chữ ký riêng.
+- Regression test xác nhận: thiếu token hoặc header sai trả 403; cookie + header
+  đúng được đi tiếp; không tạo HTTP session; production cookie host-bound.
+- Sonar `java:S4502` cảnh báo mọi custom CSRF matcher. Reviewer cần kiểm tra
+  các điều kiện trên trước khi xử lý riêng issue; không thay quality gate/profile.
+- Nếu sau này thêm endpoint xác thực bằng cookie, phải cập nhật matcher và test
+  trong cùng thay đổi. Không suy ra Bearer-only chỉ vì application stateless.

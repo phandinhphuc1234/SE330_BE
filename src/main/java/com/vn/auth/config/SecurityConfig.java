@@ -3,6 +3,7 @@ package com.vn.auth.config;
 import com.vn.shared.exception.ErrorCode;
 import com.vn.auth.security.JwtAuthFilter;
 import com.vn.auth.security.SecurityErrorResponseWriter;
+import com.vn.auth.security.cookie.CookieProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +34,7 @@ public class SecurityConfig {
     // Inject JwtAuthFilter để thêm vào chuỗi filter
     private final JwtAuthFilter jwtAuthFilter;
     private final SecurityErrorResponseWriter securityErrorResponseWriter;
+    private final CookieProperties cookieProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,8 +49,8 @@ public class SecurityConfig {
                 // HttpOnly cookie, so it must prove possession of a CSRF token.
                 .csrf(csrf -> csrf
                         .requireCsrfProtectionMatcher(SecurityConfig::requiresCookieAuthCsrf)
-                        .csrfTokenRepository(new CookieCsrfTokenRepository())
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                        .csrfTokenRepository(cookieCsrfTokenRepository(cookieProperties))
+                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()))
 
                 // 2. Cấu hình CORS
                 .cors(Customizer.withDefaults())
@@ -121,6 +123,18 @@ public class SecurityConfig {
     static boolean requiresCookieAuthCsrf(HttpServletRequest request) {
         return "POST".equals(request.getMethod())
                 && "/api/auth/refresh".equals(request.getServletPath());
+    }
+
+    static CookieCsrfTokenRepository cookieCsrfTokenRepository(CookieProperties properties) {
+        CookieCsrfTokenRepository repository = new CookieCsrfTokenRepository();
+        // HTTPS uses a host-only cookie prefix so another project/subdomain cannot
+        // inject a parent-domain CSRF cookie. Local HTTP keeps a compatible name.
+        repository.setCookieName(properties.isRefreshTokenSecure() ? "__Host-XSRF-TOKEN" : "XSRF-TOKEN");
+        repository.setCookiePath("/");
+        repository.setCookieCustomizer(cookie -> cookie
+                .secure(properties.isRefreshTokenSecure())
+                .sameSite(properties.getRefreshTokenSameSite()));
+        return repository;
     }
 
     // BCrypt để hash password khi register và verify khi login
