@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from time import perf_counter
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError as PydanticValidationError
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import LLMError
+from app.core.logger import get_logger
+from app.core.metrics import record_answer, record_retrieval
 from app.generation.citation_builder import build_citations, source_id_for
 from app.generation.llm_client import ConfiguredLLMClient, LLMClient
 from app.generation.prompt_builder import PROMPT_VERSION, PromptEvidence, build_answer_prompt
@@ -21,6 +24,7 @@ from app.retrieval.retrieval_pipeline import RetrievalPipeline
 
 
 ABSTENTION_MESSAGE = "Không đủ bằng chứng trong ebook để trả lời câu hỏi này."
+logger = get_logger(__name__)
 
 
 class _LLMAnswer(BaseModel):
@@ -64,6 +68,28 @@ class AnswerGenerator:
         self.llm_client = llm_client or ConfiguredLLMClient(settings=self.settings)
 
     async def generate(self, request: EbookAnswerRequest) -> EbookAnswerResponse:
+        started_at = perf_counter()
+        try:
+            response = await self._generate(request)
+        except Exception as error:
+            reason = error.error_code if isinstance(error, LLMError) else "ANSWER_GENERATION_FAILED"
+            record_answer(outcome="error", reason=reason)
+            logger.warning(
+                "library_ebook_answer_failed", ebook_id=request.ebook_id,
+                mode=request.retrieval_mode or self.settings.retrieval_mode,
+                error_code=reason, duration_ms=round((perf_counter() - started_at) * 1000, 2),
+            )
+            raise
+        logger.info(
+            "library_ebook_answer_completed", ebook_id=request.ebook_id,
+            mode=request.retrieval_mode or self.settings.retrieval_mode,
+            grounded=response.grounded, abstained=response.abstained,
+            reason=response.reason, citation_count=len(response.citations),
+            duration_ms=round((perf_counter() - started_at) * 1000, 2),
+        )
+        return response
+
+    async def _generate(self, request: EbookAnswerRequest) -> EbookAnswerResponse:
         threshold = max(
             request.score_threshold or self.settings.answer_score_threshold,
             self.settings.answer_score_threshold,
@@ -79,6 +105,10 @@ class AnswerGenerator:
                 max_context_chars=self.settings.answer_max_context_chars,
                 retrieval_mode=request.retrieval_mode,
             )
+        )
+        record_retrieval(
+            mode=request.retrieval_mode or self.settings.retrieval_mode,
+            result_count=retrieval.result_count,
         )
         eligible = [
             hit
@@ -123,6 +153,7 @@ class AnswerGenerator:
         if not citations:
             return self._abstain("INVALID_CITATIONS")
 
+        record_answer(outcome="grounded")
         return EbookAnswerResponse(
             answer=draft.answer.strip(),
             grounded=True,
@@ -133,6 +164,7 @@ class AnswerGenerator:
         )
 
     def _abstain(self, reason: str) -> EbookAnswerResponse:
+        record_answer(outcome="abstained", reason=reason)
         return EbookAnswerResponse(
             answer=ABSTENTION_MESSAGE,
             grounded=False,

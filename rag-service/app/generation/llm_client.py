@@ -7,6 +7,7 @@ from typing import Any, Protocol
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import LLMError
+from app.core.metrics import observe_stage, record_provider_error
 
 
 class LLMClient(Protocol):
@@ -31,15 +32,20 @@ class ConfiguredLLMClient:
                 operation = self._complete_gemini(system_prompt, user_prompt)
             else:
                 raise LLMError("Unsupported LLM provider", error_code="LLM_PROVIDER_UNSUPPORTED")
-            return await asyncio.wait_for(operation, timeout=self.settings.llm_timeout_seconds)
-        except LLMError:
+            with observe_stage("llm_generation"):
+                return await asyncio.wait_for(operation, timeout=self.settings.llm_timeout_seconds)
+        except LLMError as error:
+            record_provider_error(provider=provider, error_code=error.error_code)
             raise
         except TimeoutError as error:
+            record_provider_error(provider=provider, error_code="LLM_TIMEOUT")
             raise LLMError("LLM request timed out", error_code="LLM_TIMEOUT") from error
         except Exception as error:  # noqa: BLE001 - provider SDK exceptions vary.
             status = getattr(error, "status_code", None) or getattr(error, "code", None)
             if status == 429:
+                record_provider_error(provider=provider, error_code="LLM_RATE_LIMITED")
                 raise LLMError("LLM provider quota or rate limit reached", error_code="LLM_RATE_LIMITED") from error
+            record_provider_error(provider=provider, error_code="LLM_PROVIDER_FAILED")
             raise LLMError("LLM provider request failed", error_code="LLM_PROVIDER_FAILED") from error
 
     async def _complete_openai(self, system_prompt: str, user_prompt: str) -> str:

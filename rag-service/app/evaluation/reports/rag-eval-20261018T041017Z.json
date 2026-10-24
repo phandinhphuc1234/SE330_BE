@@ -1,0 +1,97 @@
+{
+  "dataset": {
+    "name": "gift-of-the-magi-library-rag",
+    "version": "1.0.0",
+    "itemCount": 2,
+    "selectedItemIds": [
+      "unknown-city",
+      "unknown-maiden-name"
+    ]
+  },
+  "generatedAt": "2026-10-18T04:10:17.466178+00:00",
+  "topK": 3,
+  "llmRequestIntervalSeconds": 30.0,
+  "modes": {
+    "hybrid": {
+      "summary": {
+        "errorCount": 2,
+        "scopeViolations": 0,
+        "precision@3": 0.0,
+        "recall@3": 0.0,
+        "hitRate@3": 0.0,
+        "reciprocalRank": 0.0,
+        "nDCG@3": 0.0,
+        "retrievalLatencyMs": 832.9986499884399
+      },
+      "items": [
+        {
+          "id": "unknown-city",
+          "question": "In which city does the story explicitly take place?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 1007.3219999903813
+          },
+          "scopeViolations": 0,
+          "errorType": "HTTPStatusError",
+          "errorPhase": "answer",
+          "httpStatus": 502,
+          "errorCode": "LLM_RATE_LIMITED"
+        },
+        {
+          "id": "unknown-maiden-name",
+          "question": "What was Della's surname before she married Jim?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 658.6752999864984
+          },
+          "scopeViolations": 0,
+          "errorType": "HTTPStatusError",
+          "errorPhase": "answer",
+          "httpStatus": 502,
+          "errorCode": "LLM_RATE_LIMITED"
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Golden labels apply to the supplied PDF/chunk version; re-label after re-chunking.",
+    "Answer-point coverage is lexical and is not a semantic faithfulness score.",
+    "Citation relevance does not prove every claim is entailed by the source."
+  ]
+}

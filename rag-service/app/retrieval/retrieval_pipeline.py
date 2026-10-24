@@ -7,6 +7,7 @@ from dataclasses import replace
 
 from app.core.config import Settings, get_settings
 from app.core.logger import get_logger
+from app.core.metrics import observe_stage
 from app.indexing import LibraryVectorSearchScope, SearchResult
 from app.retrieval.context_expander import ContextCompressor, ContextExpander, PostgresNeighborChunkSource
 from app.retrieval.hybrid_retriever import fuse_search_results
@@ -98,7 +99,8 @@ class RetrievalPipeline:
             MAX_LIBRARY_RETRIEVAL_TOP_K,
             max(top_k, top_k * self.settings.hybrid_candidate_multiplier),
         )
-        rewrites = await self.query_rewriter.rewrite(request.query)
+        with observe_stage("query_rewrite"):
+            rewrites = await self.query_rewriter.rewrite(request.query)
         if trace is not None:
             trace.parameters.update(candidateK=candidate_k, rewriteCount=len(rewrites),
                                     vectorWeight=self.settings.hybrid_vector_weight,
@@ -128,12 +130,13 @@ class RetrievalPipeline:
                 trace.record("graph_candidates", graph_results)
 
         try:
-            keyword_sets = await asyncio.gather(
-                *[
-                    self.keyword_retriever.search(rewrite, candidate_k, scope=scope)
-                    for rewrite in rewrites
-                ]
-            )
+            with observe_stage("bm25_search"):
+                keyword_sets = await asyncio.gather(
+                    *[
+                        self.keyword_retriever.search(rewrite, candidate_k, scope=scope)
+                        for rewrite in rewrites
+                    ]
+                )
         except Exception as error:  # noqa: BLE001 - database driver failures vary.
             if not self.settings.hybrid_fail_open:
                 raise
@@ -165,20 +168,22 @@ class RetrievalPipeline:
             )
             return replace(response, results=[_search_result_to_hit(result) for result in processed])
 
-        fused = fuse_search_results(
-            vector_results=vector_results,
-            keyword_result_sets=keyword_sets,
-            vector_weight=self.settings.hybrid_vector_weight,
-            keyword_weight=self.settings.hybrid_keyword_weight,
-            graph_results=graph_results,
-            graph_weight=self.settings.graph_rrf_weight,
-            rrf_k=self.settings.hybrid_rrf_k,
-            limit=candidate_k,
-            trace=trace,
-        )
+        with observe_stage("rrf_fusion"):
+            fused = fuse_search_results(
+                vector_results=vector_results,
+                keyword_result_sets=keyword_sets,
+                vector_weight=self.settings.hybrid_vector_weight,
+                keyword_weight=self.settings.hybrid_keyword_weight,
+                graph_results=graph_results,
+                graph_weight=self.settings.graph_rrf_weight,
+                rrf_k=self.settings.hybrid_rrf_k,
+                limit=candidate_k,
+                trace=trace,
+            )
         if trace is not None:
             trace.record("rrf_candidates", fused)
-        reranked = await self.reranker.rerank(request.query, fused, candidate_k)
+        with observe_stage("rerank"):
+            reranked = await self.reranker.rerank(request.query, fused, candidate_k)
         if trace is not None:
             trace.record("reranked_candidates", reranked)
         if request.score_threshold is not None:
@@ -198,6 +203,10 @@ class RetrievalPipeline:
 
         logger.info(
             "library_hybrid_retrieval_completed",
+            mode=mode,
+            book_id=request.book_id,
+            ebook_id=request.ebook_id,
+            document_id=request.document_id,
             top_k=top_k,
             dense_count=len(dense_response.results),
             keyword_count=sum(len(results) for results in keyword_sets),
@@ -220,10 +229,11 @@ class RetrievalPipeline:
         max_context_chars: int | None,
     ) -> list[SearchResult]:
         try:
-            expanded = await self.context_expander.expand(
-                results,
-                window=self.settings.context_expansion_window,
-            )
+            with observe_stage("context_expansion"):
+                expanded = await self.context_expander.expand(
+                    results,
+                    window=self.settings.context_expansion_window,
+                )
         except Exception as error:
             if not self.settings.hybrid_fail_open:
                 raise
@@ -231,11 +241,12 @@ class RetrievalPipeline:
             # otherwise successful dense fallback into a failed answer call.
             logger.warning("context_expansion_failed_seed_fallback", error_type=type(error).__name__)
             expanded = results
-        return await self.context_compressor.compress(
-            query,
-            expanded,
-            max_context_chars=max_context_chars or self.settings.answer_max_context_chars,
-        )
+        with observe_stage("context_compression"):
+            return await self.context_compressor.compress(
+                query,
+                expanded,
+                max_context_chars=max_context_chars or self.settings.answer_max_context_chars,
+            )
 
 
 def _hit_to_search_result(hit: LibraryVectorRetrievalHit) -> SearchResult:

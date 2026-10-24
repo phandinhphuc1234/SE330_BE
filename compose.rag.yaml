@@ -104,6 +104,11 @@ x-rag-app-image: &rag-app-image
     dockerfile: infra/docker/Dockerfile.api
 
 services:
+  prometheus:
+    # Inherits the optional monitoring profile from compose.yaml.
+    volumes:
+      - ./prometheus/prometheus.rag.yml:/etc/prometheus/prometheus.yml:ro
+
   # Extends the Spring service declared by compose.yaml. The browser continues
   # to call Spring Boot; only Spring Boot can call the private RAG API.
   library-service:

@@ -31,7 +31,7 @@ async def test_internal_answer_route_maps_request_and_response():
 
     assert generator.requests[0].question == "What happened?"
     assert generator.requests[0].ebook_id == 55
-    assert response.model_dump(by_alias=True)["promptVersion"] == "library-ebook-answer-v1"
+    assert response.model_dump(by_alias=True)["promptVersion"] == "library-ebook-answer-v2"
     assert response.citations[0]["ebookId"] == 55
 
 

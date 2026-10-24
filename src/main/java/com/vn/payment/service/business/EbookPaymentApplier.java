@@ -85,6 +85,8 @@ public class EbookPaymentApplier implements PaymentBusinessApplier {
         }
 
         Instant now = clock.instant();
+        // Paid re-borrow has the same unique-index constraint as the free flow.
+        ebookLoanRepository.expireElapsedActiveLoans(payment.getMemberId(), ebook.getId(), now);
         if (ebookLoanRepository.existsByMemberIdAndBookEbookIdAndStatusAndExpiredAtAfter(
                 payment.getMemberId(), ebook.getId(), EbookLoanStatus.ACTIVE, now)) {
             markFulfillment(payment, "ALREADY_HAS_ACTIVE_LOAN", "Member already has an active ebook loan");

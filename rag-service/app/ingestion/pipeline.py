@@ -464,7 +464,10 @@ class IngestionPipeline:
                     exc_info=True,
                 )
                 if job is not None:
-                    failed_job = await get_ingestion_job(session, job.id)
+                    # rollback() expires ORM instances even with expire_on_commit=False.
+                    # Reading job.id here can trigger implicit async IO/MissingGreenlet
+                    # and leave the persisted job PROCESSING instead of FAILED.
+                    failed_job = await get_ingestion_job(session, ingestion_job_id)
                     if failed_job is None:
                         raise
                     # Persist the final failure on the job row so the API can expose it.

@@ -6,6 +6,7 @@ from typing import Any, Protocol
 
 from app.core.config import Settings, get_settings
 from app.core.logger import get_logger
+from app.core.metrics import observe_stage
 from app.indexing import (
     EmbeddingTextBuilder,
     GeminiEmbeddingProvider,
@@ -119,7 +120,8 @@ class LibraryVectorRetrievalService:
             embedding_version=self.settings.embedding_version,
         )
         built_query = self.text_builder.build_query_text(request.query)
-        query_vector = await self.embedding_provider.embed_query(built_query.text)
+        with observe_stage("query_embedding"):
+            query_vector = await self.embedding_provider.embed_query(built_query.text)
         vector_query = build_library_vector_search_query(
             query_vector=query_vector,
             top_k=top_k,
@@ -129,11 +131,15 @@ class LibraryVectorRetrievalService:
         )
 
         started_at = perf_counter()
-        search_results = await self.vector_store.search(vector_query)
+        with observe_stage("dense_vector_search"):
+            search_results = await self.vector_store.search(vector_query)
         latency_ms = round((perf_counter() - started_at) * 1000, 3)
 
         logger.info(
             "library_vector_retrieval_completed",
+            book_id=request.book_id,
+            ebook_id=request.ebook_id,
+            document_id=request.document_id,
             top_k=top_k,
             result_count=len(search_results),
             latency_ms=latency_ms,

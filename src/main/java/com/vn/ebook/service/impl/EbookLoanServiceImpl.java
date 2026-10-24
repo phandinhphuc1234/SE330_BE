@@ -78,6 +78,9 @@ public class EbookLoanServiceImpl implements EbookLoanService {
             throw new AppException(ErrorCode.EBOOK_NOT_AVAILABLE);
         }
 
+        // A stale ACTIVE row must leave the partial unique index before a new loan.
+        ebookLoanRepository.expireElapsedActiveLoans(memberId, lockedEbook.getId(), now);
+
         // 4. Check nếu đã có loan ACTIVE rồi thì trả về loan đó (idempotent).
         return ebookLoanRepository.findFirstByMemberIdAndBookIdAndBookEbookIdAndStatusAndExpiredAtAfterOrderByExpiredAtDesc(
                 memberId, bookId, lockedEbook.getId(), EbookLoanStatus.ACTIVE, now)
