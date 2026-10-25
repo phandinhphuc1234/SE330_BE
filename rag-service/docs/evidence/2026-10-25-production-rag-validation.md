@@ -37,7 +37,16 @@ numbers into production measurements.
   checksums still match `production_verification.CHUNK_SHA256`. pypdf reading
   and a Pillow PNG encode/decode roundtrip passed. No provider requests, DB
   writes, relabeling or threshold changes were used in this compatibility check.
-- Fresh local image scan, patch PR CI and a new main release remain required.
+- Fresh local image scanning with the updated vulnerability database confirmed
+  the PDF/image findings were resolved, but exposed another CRITICAL advisory:
+  [GHSA-6q48-6c7w-9gw2](https://github.com/advisories/GHSA-6q48-6c7w-9gw2).
+  Certifi 2026.5.20 trusts affected emSign roots. Add runtime floor
+  `>=2026.10.19,<2027.0`; the resolver selected **2026.10.23**. The final lock
+  differs from PR #37 in exactly **three versions**: certifi, pillow and pypdf.
+  No TLS verification is disabled.
+- [PR #38](https://github.com/phandinhphuc1234/SE330_BE/pull/38) tracks these
+  patches. Full tests and image scanning are repeated after the certifi update.
+  A passing PR does not by itself prove a successful image scan or deployment.
 
 ## Production reference preparation
 
