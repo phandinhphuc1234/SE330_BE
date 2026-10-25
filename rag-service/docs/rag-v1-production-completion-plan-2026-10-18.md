@@ -433,3 +433,16 @@ Không thực hiện các mục này trước khi toàn bộ P0 ở Definition o
 Khi kết thúc ngày, đổi `Status` thành `DONE` chỉ khi Definition of Done đã được
 đánh dấu đầy đủ và Evidence ledger có bằng chứng. Nếu còn mục bị chặn, dùng
 `PARTIAL — BLOCKED BY <nguyên nhân>` thay vì tuyên bố hoàn thành.
+
+## 12. PostgreSQL technical corpus follow-up (25/10)
+
+Đã chuẩn bị corpus mới riêng với Magi: PDF PostgreSQL 16 Chapter 13, 22 trang,
+35 chunk v1, 40 câu chốt trước retrieval (30 dev/10 held-out). Đã upload/index
+production: book 3343 / ebook 11 / document 2 / job 2; inventory run 40180403668
+khớp source và cả 35 chunk hashes. Magi vẫn giữ nguyên.
+
+User duyệt push/PR, CI và benchmark **retrieval-only trên 30 dev cases** bằng
+chế độ `pg16-retrieval-dev`; chưa duyệt merge/deploy hay generation trong bước
+này. Không đổi gate/constant của Magi, không mở cổng, không ghép subset cho PASS.
+Chưa có retrieval/answer metric PostgreSQL trước khi workflow chạy thật.
+Chi tiết: [corpus preparation](evidence/2026-10-25-postgresql16-corpus-preparation.md).

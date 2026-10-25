@@ -1,0 +1,2063 @@
+{
+  "corpus": "postgresql16_concurrency_v1",
+  "version": "1.0.0",
+  "questionSpecSha256": "22930554efe7a7fa5a70a28683ad75c5fe6dd133991c647cedc78c99688addb2",
+  "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+  "mode": "offline-parse-clean-chunk-only",
+  "embeddingCalled": false,
+  "databaseWritten": false,
+  "retrievalMeasured": false,
+  "generationMeasured": false,
+  "parser": "pymupdf4llm",
+  "chunkingVersion": "v1",
+  "chunkSize": 512,
+  "chunkOverlap": 64,
+  "pageCount": 22,
+  "textPageCount": 22,
+  "chunkCount": 35,
+  "quality": {
+    "status": "PASS",
+    "chunk_count": 35,
+    "min_chunk_chars": 460,
+    "max_chunk_chars": 2650,
+    "avg_chunk_chars": 1745.0,
+    "min_chunk_tokens": 137,
+    "max_chunk_tokens": 663,
+    "avg_chunk_tokens": 440.37,
+    "duplicate_chunk_ratio": 0.0,
+    "error_count": 0,
+    "warning_count": 0,
+    "errors": [],
+    "warnings": []
+  },
+  "sourceBlockKinds": {
+    "heading": 22,
+    "paragraph": 135,
+    "definition": 19,
+    "table": 3,
+    "code": 11
+  },
+  "splitCounts": {
+    "dev": 30,
+    "heldout": 10
+  },
+  "anchorFailures": [],
+  "anchorAlternatives": [
+    {
+      "id": "pg-f06",
+      "block": "explicit-locking-032",
+      "indices": [
+        18,
+        19
+      ]
+    },
+    {
+      "id": "pg-m03",
+      "block": "transaction-iso-022",
+      "indices": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "pg-m03",
+      "block": "transaction-iso-041",
+      "indices": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": "pg-m04",
+      "block": "explicit-locking-065",
+      "indices": [
+        24,
+        25
+      ]
+    },
+    {
+      "id": "pg-m07",
+      "block": "applevel-consistency-014",
+      "indices": [
+        29,
+        30
+      ]
+    },
+    {
+      "id": "pg-s04",
+      "block": "transaction-iso-031",
+      "indices": [
+        7,
+        8
+      ]
+    }
+  ],
+  "relevancePolicy": "Each excerpt is an evidence group; overlapping chunks containing that excerpt are alternatives. Existing runner chunk recall uses their union, not group coverage.",
+  "chunks": [
+    {
+      "index": 0,
+      "sha256": "867b8a976da874f9f7d7653dfd2236b63341c2efc28e89b959935f347d6b25ce",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nTECHNICAL RAG DEMONSTRATION CORPUS\n\n# **PostgreSQL 16 Concurrency Control**\n\nChapter 13 of the official PostgreSQL documentation\n\nSections 13.1-13.7, including SQL examples and Tables 13.1-13.3.\n\n### **Snapshot and citation contract**\n\nSource snapshot retrieved on 2026-10-25. This is a re-typeset excerpt, not an official PostgreSQL PDF. Printed page numbers equal the PDF's one-based page positions. External cross-references retain their original labels; material outside Chapter 13 is not included.\n\nWording, SQL examples and table contents come from the official documentation. Web navigation and duplicate section menus are omitted; typographic quotes/dashes and nonbreaking spaces are normalized. The complete PostgreSQL Legal Notice is reproduced at the end.\n\nhttps://www.postgresql.org/docs/16/mvcc.html\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 1,
+      "pageEnd": 1,
+      "chunkingVersion": "v1",
+      "tokenCount": 229
+    },
+    {
+      "index": 1,
+      "sha256": "d27ddf85436a723f00bb5ddcd825c65f087659be2d97070381780f740719227e",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/mvcc.html\n\n## **Chapter 13. Concurrency Control**\n\nThis chapter describes the behavior of the PostgreSQL database system when two or more sessions try to access the same data at the same time. The goals in that situation are to allow efficient access for all sessions while maintaining strict data integrity. Every developer of database applications should be familiar with the topics covered in this chapter.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 2,
+      "pageEnd": 2,
+      "chunkingVersion": "v1",
+      "tokenCount": 137
+    },
+    {
+      "index": 2,
+      "sha256": "83c85663026a67d62d1b345a870bbe2e60461cf49ef695d6b6e485ce65d21e46",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/mvcc-intro.html\n\n## **13.1. Introduction**\n\nPostgreSQL provides a rich set of tools for developers to manage concurrent access to data. Internally, data consistency is maintained by using a multiversion model (Multiversion Concurrency Control, MVCC). This means that each SQL statement sees a snapshot of data (a database version) as it was some time ago, regardless of the current state of the underlying data. This prevents statements from viewing inconsistent data produced by concurrent transactions performing updates on the same data rows, providing transaction isolation for each database session. MVCC, by eschewing the locking methodologies of traditional database systems, minimizes lock contention in order to allow for reasonable performance in multiuser environments.\n\nThe main advantage of using the MVCC model of concurrency control rather than locking is that in MVCC locks acquired for querying (reading) data do not conflict with locks acquired for writing data, and so reading never blocks writing and writing never blocks reading. PostgreSQL maintains this guarantee even when providing the strictest level of transaction isolation through the use of an innovative Serializable Snapshot Isolation (SSI) level.\n\nTable- and row-level locking facilities are also available in PostgreSQL for applications which don't generally need full transaction isolation and prefer to explicitly manage particular points of conflict. However, proper use of MVCC will generally provide better performance than locks. In addition, application-defined advisory locks provide a mechanism for acquiring locks that are not tied to a single transaction.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 3,
+      "pageEnd": 3,
+      "chunkingVersion": "v1",
+      "tokenCount": 447
+    },
+    {
+      "index": 3,
+      "sha256": "7e8486701ab7d7b0a3661e46b0c188cc07533b14425f60e8ac0b4c22cb9941c4",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/transaction-iso.html\n\n## **13.2. Transaction Isolation**\n\nThe SQL standard defines four levels of transaction isolation. The most strict is Serializable, which is defined by the standard in a paragraph which says that any concurrent execution of a set of Serializable transactions is guaranteed to produce the same effect as running them one at a time in some order. The other three levels are defined in terms of phenomena, resulting from interaction between concurrent transactions, which must not occur at each level. The standard notes that due to the definition of Serializable, none of these phenomena are possible at that level. (This is hardly surprising -- if the effect of the transactions must be consistent with having been run one at a time, how could you see any phenomena caused by interactions?)\n\nThe phenomena which are prohibited at various levels are:\n\n#### **dirty read**\n\nA transaction reads data written by a concurrent uncommitted transaction.\n\n#### **nonrepeatable read**\n\nA transaction re-reads data it has previously read and finds that data has been modified by another transaction (that committed since the initial read).\n\n#### **phantom read**\n\nA transaction re-executes a query returning a set of rows that satisfy a search condition and finds that the set of rows satisfying the condition has changed due to another recently-committed transaction.\n\n#### **serialization anomaly**\n\nThe result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.\n\nThe SQL standard and PostgreSQL-implemented transaction isolation levels are described in Table 13.1.\n\nTable 13.1. Transaction Isolation Levels\n\n|Isolation Level|Dirty Read|Nonrepeatable Read|Phantom Read|Serialization Anomaly|\n|---|---|---|---|---|\n|Read uncommitted|Allowed, but not in PG|Possible|Possible|Possible|\n|Read committed|Not possible|Possible|Possible|Possible|\n|Repeatable read|Not possible|Not possible|Allowed, but not in PG|Possible|\n|Serializable|Not possible|Not possible|Not possible|Not possible|",
+      "pageStart": 4,
+      "pageEnd": 4,
+      "chunkingVersion": "v1",
+      "tokenCount": 539
+    },
+    {
+      "index": 4,
+      "sha256": "57af9a69ef59f1143b50306932130f0cd2b192217dfb29caa99b3a3682d8b945",
+      "text": "In PostgreSQL, you can request any of the four standard transaction isolation levels, but internally only three distinct isolation levels are implemented, i.e., PostgreSQL's Read Uncommitted mode behaves like Read Committed. This is because it is the only sensible way to map the standard isolation levels to PostgreSQL's multiversion concurrency control architecture.\n\nThe table also shows that PostgreSQL's Repeatable Read implementation does not allow phantom reads. This is acceptable under the SQL standard because the standard specifies which anomalies must not occur at certain isolation levels; higher guarantees are acceptable. The behavior of the available isolation levels is detailed in the following subsections.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 4,
+      "pageEnd": 4,
+      "chunkingVersion": "v1",
+      "tokenCount": 198
+    },
+    {
+      "index": 5,
+      "sha256": "5b912264343591ffd1902f115d74dd4887806074b75d513cbd6c0163261d50f1",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nTo set the transaction isolation level of a transaction, use the command SET TRANSACTION.\n\n### **Important**\n\nSome PostgreSQL data types and functions have special rules regarding transactional behavior. In particular, changes made to a sequence (and therefore the counter of a column declared using serial) are immediately visible to all other transactions and are not rolled back if the transaction that made the changes aborts. See Section 9.17 and Section 8.1.4.\n\n### **13.2.1. Read Committed Isolation Level**\n\nRead Committed is the default isolation level in PostgreSQL. When a transaction uses this isolation level, a SELECT query (without a FOR UPDATE/SHARE clause) sees only data committed before the query began; it never sees either uncommitted data or changes committed by concurrent transactions during the query's execution. In effect, a SELECT query sees a snapshot of the database as of the instant the query begins to run. However, SELECT does see the effects of previous updates executed within its own transaction, even though they are not yet committed. Also note that two successive SELECT commands can see different data, even though they are within a single transaction, if other transactions commit changes after the first SELECT starts and before the second SELECT starts.\n\nUPDATE, DELETE, SELECT FOR UPDATE, and SELECT FOR SHARE commands behave the same as SELECT in terms of searching for target rows: they will only find target rows that were committed as of the command start time. However, such a target row might have already been updated (or deleted or locked) by another concurrent transaction by the time it is found. In this case, the would-be updater will wait for the first updating transaction to commit or roll back (if it is still in progress). If the first updater rolls back, then its effects are negated and the second updater can proceed with updating the originally found row. If the first updater commits, the second updater will ignore the row if the first updater deleted it, otherwise it will attempt to apply its operation to the updated version of the row. The search condition of the command (the WHERE clause) is re-evaluated to see if the updated version of the row still matches the search condition. If so, the second updater proceeds with its operation using the updated version of the row.",
+      "pageStart": 5,
+      "pageEnd": 5,
+      "chunkingVersion": "v1",
+      "tokenCount": 596
+    },
+    {
+      "index": 6,
+      "sha256": "d3ce782d5c88d3472db664eeacda56bcdec479b7c71654304d9970f7100e6418",
+      "text": "The search condition of the command (the WHERE clause) is re-evaluated to see if the updated version of the row still matches the search condition. If so, the second updater proceeds with its operation using the updated version of the row. In the case of SELECT FOR UPDATE and SELECT FOR SHARE, this means it is the updated version of the row that is locked and returned to the client.\n\nINSERT with an ON CONFLICT DO UPDATE clause behaves similarly. In Read Committed mode, each row proposed for insertion will either insert or update. Unless there are unrelated errors, one of those two outcomes is guaranteed. If a conflict originates in another transaction whose effects are not yet visible to the INSERT, the UPDATE clause will affect that row, even though possibly no version of that row is conventionally visible to the command.\n\nINSERT with an ON CONFLICT DO NOTHING clause may have insertion not proceed for a row due to the outcome of another transaction whose effects are not visible to the INSERT snapshot. Again, this is only the case in Read Committed mode.\n\nMERGE allows the user to specify various combinations of INSERT, UPDATE and DELETE subcommands. A MERGE command with both INSERT and UPDATE subcommands looks similar to INSERT with an ON CONFLICT DO UPDATE clause but does not guarantee that either INSERT or UPDATE will occur. If MERGE attempts an UPDATE or DELETE and the row is concurrently updated but the join condition still passes for the current target and the current source tuple, then MERGE will behave the same as the UPDATE or DELETE commands and perform its action on the updated version of the row. However, because MERGE can specify several actions and they can be conditional, the conditions for each action are re-evaluated on the updated\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 5,
+      "pageEnd": 5,
+      "chunkingVersion": "v1",
+      "tokenCount": 461
+    },
+    {
+      "index": 7,
+      "sha256": "b28b144c9e8c444cd52e4e5f37bc02acc12d172878a0d8336f951a9e2211ef4f",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nversion of the row, starting from the first action, even if the action that had originally matched appears later in the list of actions. On the other hand, if the row is concurrently updated or deleted so that the join condition fails, then MERGE will evaluate the condition's NOT MATCHED actions next, and execute the first one that succeeds. If MERGE attempts an INSERT and a unique index is present and a duplicate row is concurrently inserted, then a uniqueness violation error is raised; MERGE does not attempt to avoid such errors by restarting evaluation of MATCHED conditions.\n\nBecause of the above rules, it is possible for an updating command to see an inconsistent snapshot: it can see the effects of concurrent updating commands on the same rows it is trying to update, but it does not see effects of those commands on other rows in the database. This behavior makes Read Committed mode unsuitable for commands that involve complex search conditions; however, it is just right for simpler cases. For example, consider updating bank balances with transactions like:\n\n##### `BEGIN;`\n\n```\nUPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 12345;\nUPDATE accounts SET balance = balance - 100.00 WHERE acctnum = 7534;\nCOMMIT;\n```\n\nIf two such transactions concurrently try to change the balance of account 12345, we clearly want the second transaction to start with the updated version of the account's row. Because each command is affecting only a predetermined row, letting it see the updated version of the row does not create any troublesome inconsistency.\n\nMore complex usage can produce undesirable results in Read Committed mode. For example, consider a DELETE command operating on data that is being both added and removed from its restriction criteria by another command, e.g., assume website is a two-row table with website.hits equaling 9 and 10:\n\n##### `BEGIN;`\n\n```\nUPDATE website SET hits = hits + 1;\n-- run from another session:  DELETE FROM website WHERE hits = 10;\nCOMMIT;\n```\n\nThe DELETE will have no effect even though there is a website.hits = 10 row before and after the UPDATE. This occurs because the pre-update row value 9 is skipped, and when the UPDATE completes and DELETE obtains a lock, the new row value is no longer 10 but 11, which no longer matches the criteria.",
+      "pageStart": 6,
+      "pageEnd": 6,
+      "chunkingVersion": "v1",
+      "tokenCount": 588
+    },
+    {
+      "index": 8,
+      "sha256": "7fce15b5c6c6dc996134e6153dae0ab91038a684a9b1859a3c6a8fc056d1e2dc",
+      "text": "This occurs because the pre-update row value 9 is skipped, and when the UPDATE completes and DELETE obtains a lock, the new row value is no longer 10 but 11, which no longer matches the criteria.\n\nBecause Read Committed mode starts each command with a new snapshot that includes all transactions committed up to that instant, subsequent commands in the same transaction will see the effects of the committed concurrent transaction in any case. The point at issue above is whether or not a single command sees an absolutely consistent view of the database.\n\nThe partial transaction isolation provided by Read Committed mode is adequate for many applications, and this mode is fast and simple to use; however, it is not sufficient for all cases. Applications that do complex queries and updates might require a more rigorously consistent view of the database than Read Committed mode provides.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 6,
+      "pageEnd": 6,
+      "chunkingVersion": "v1",
+      "tokenCount": 240
+    },
+    {
+      "index": 9,
+      "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\n### **13.2.2. Repeatable Read Isolation Level**\n\nThe Repeatable Read isolation level only sees data committed before the transaction began; it never sees either uncommitted data or changes committed by concurrent transactions during the transaction's execution. (However, each query does see the effects of previous updates executed within its own transaction, even though they are not yet committed.) This is a stronger guarantee than is required by the SQL standard for this isolation level, and prevents all of the phenomena described in Table 13.1 except for serialization anomalies. As mentioned above, this is specifically allowed by the standard, which only describes the minimum protections each isolation level must provide.\n\nThis level is different from Read Committed in that a query in a repeatable read transaction sees a snapshot as of the start of the first non-transaction-control statement in the transaction, not as of the start of the current statement within the transaction. Thus, successive SELECT commands within a single transaction see the same data, i.e., they do not see changes made by other transactions that committed after their own transaction started.\n\nApplications using this level must be prepared to retry transactions due to serialization failures.\n\nUPDATE, DELETE, MERGE, SELECT FOR UPDATE, and SELECT FOR SHARE commands behave the same as SELECT in terms of searching for target rows: they will only find target rows that were committed as of the transaction start time. However, such a target row might have already been updated (or deleted or locked) by another concurrent transaction by the time it is found. In this case, the repeatable read transaction will wait for the first updating transaction to commit or roll back (if it is still in progress). If the first updater rolls back, then its effects are negated and the repeatable read transaction can proceed with updating the originally found row. But if the first updater commits (and actually updated or deleted the row, not just locked it) then the repeatable read transaction will be rolled back with the message\n\n```\nERROR:  could not serialize access due to concurrent update\n```\n\nbecause a repeatable read transaction cannot modify or lock rows changed by other transactions after the repeatable read transaction began.\n\nWhen an application receives this error message, it should abort the current transaction and retry the whole transaction from the beginning.",
+      "pageStart": 7,
+      "pageEnd": 7,
+      "chunkingVersion": "v1",
+      "tokenCount": 626
+    },
+    {
+      "index": 10,
+      "sha256": "0b09e1adc667ad21d8c3b6877976437b9ad10aef540ce0f99e2e80c1b772e294",
+      "text": "When an application receives this error message, it should abort the current transaction and retry the whole transaction from the beginning. The second time through, the transaction will see the previously-committed change as part of its initial view of the database, so there is no logical conflict in using the new version of the row as the starting point for the new transaction's update.\n\nNote that only updating transactions might need to be retried; read-only transactions will never have serialization conflicts.\n\nThe Repeatable Read mode provides a rigorous guarantee that each transaction sees a completely stable view of the database. However, this view will not necessarily always be consistent with some serial (one at a time) execution of concurrent transactions of the same level. For example, even a read-only transaction at this level may see a control record updated to show that a batch has been completed but not see one of the detail records which is logically part of the batch because it read an earlier revision of the control record. Attempts to enforce business rules by transactions running at this isolation level are not likely to work correctly without careful use of explicit locks to block conflicting transactions.\n\nThe Repeatable Read isolation level is implemented using a technique known in academic database literature and in some other database products as Snapshot Isolation. Differences in behavior and performance may be observed when compared with systems that use a traditional locking technique that reduces concurrency. Some other systems may even offer Repeatable Read and Snapshot Isolation as distinct isolation levels with\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 7,
+      "pageEnd": 7,
+      "chunkingVersion": "v1",
+      "tokenCount": 434
+    },
+    {
+      "index": 11,
+      "sha256": "02422e17ab6310657ba5fb1b2f8afa98ef92a89fdadc431bf7701c058aabceec",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\ndifferent behavior. The permitted phenomena that distinguish the two techniques were not formalized by database researchers until after the SQL standard was developed, and are outside the scope of this manual. For a full treatment, please see [berenson95].\n\n### **Note**\n\nPrior to PostgreSQL version 9.1, a request for the Serializable transaction isolation level provided exactly the same behavior described here. To retain the legacy Serializable behavior, Repeatable Read should now be requested.\n\n### **13.2.3. Serializable Isolation Level**\n\nThe Serializable isolation level provides the strictest transaction isolation. This level emulates serial transaction execution for all committed transactions; as if transactions had been executed one after another, serially, rather than concurrently. However, like the Repeatable Read level, applications using this level must be prepared to retry transactions due to serialization failures. In fact, this isolation level works exactly the same as Repeatable Read except that it also monitors for conditions which could make execution of a concurrent set of serializable transactions behave in a manner inconsistent with all possible serial (one at a time) executions of those transactions. This monitoring does not introduce any blocking beyond that present in repeatable read, but there is some overhead to the monitoring, and detection of the conditions which could cause a serialization anomaly will trigger a serialization failure.\n\nAs an example, consider a table mytab, initially containing:\n\n```\n class | value\n-------+-------\n     1 |    10\n     1 |    20\n     2 |   100\n     2 |   200\n```\n\nSuppose that serializable transaction A computes:\n\n```\nSELECT SUM(value) FROM mytab WHERE class = 1;\n```\n\nand then inserts the result (30) as the value in a new row with class = 2. Concurrently, serializable transaction B computes:\n\n```\nSELECT SUM(value) FROM mytab WHERE class = 2;\n```\n\nand obtains the result 300, which it inserts in a new row with class = 1. Then both transactions try to commit.",
+      "pageStart": 8,
+      "pageEnd": 8,
+      "chunkingVersion": "v1",
+      "tokenCount": 521
+    },
+    {
+      "index": 12,
+      "sha256": "f8bfe05c024176afddcb5f9141ebeddea8a2f39342c6932c4858cd1045991de4",
+      "text": "Concurrently, serializable transaction B computes:\n\n```\nSELECT SUM(value) FROM mytab WHERE class = 2;\n```\n\nand obtains the result 300, which it inserts in a new row with class = 1. Then both transactions try to commit. If either transaction were running at the Repeatable Read isolation level, both would be allowed to commit; but since there is no serial order of execution consistent with the result, using Serializable transactions will allow one transaction to commit and will roll the other back with this message:\n\n```\nERROR:  could not serialize access due to read/write dependencies among transactions\n```\n\nThis is because if A had executed before B, B would have computed the sum 330, not 300, and similarly the other order would have resulted in a different sum computed by A.\n\nWhen relying on Serializable transactions to prevent anomalies, it is important that any data read from a permanent user table not be considered valid until the transaction which read it has successfully committed. This is true even for read-only transactions, except that data read within a deferrable read-only transaction is known to be valid as soon as it is read, because such a transaction waits until it can acquire a snapshot\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 8,
+      "pageEnd": 8,
+      "chunkingVersion": "v1",
+      "tokenCount": 322
+    },
+    {
+      "index": 13,
+      "sha256": "d0ea38111149b57a6312ff07d314ef6bf92d0e24a808bbe0fbf2c911b7213958",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nguaranteed to be free from such problems before starting to read any data. In all other cases applications must not depend on results read during a transaction that later aborted; instead, they should retry the transaction until it succeeds.\n\nTo guarantee true serializability PostgreSQL uses predicate locking, which means that it keeps locks which allow it to determine when a write would have had an impact on the result of a previous read from a concurrent transaction, had it run first. In PostgreSQL these locks do not cause any blocking and therefore can not play any part in causing a deadlock. They are used to identify and flag dependencies among concurrent Serializable transactions which in certain combinations can lead to serialization anomalies. In contrast, a Read Committed or Repeatable Read transaction which wants to ensure data consistency may need to take out a lock on an entire table, which could block other users attempting to use that table, or it may use SELECT FOR UPDATE or SELECT FOR SHARE which not only can block other transactions but cause disk access.\n\nPredicate locks in PostgreSQL, like in most other database systems, are based on data actually accessed by a transaction. These will show up in the pg_locks system view with a mode of SIReadLock. The particular locks acquired during execution of a query will depend on the plan used by the query, and multiple finer-grained locks (e.g., tuple locks) may be combined into fewer coarser-grained locks (e.g., page locks) during the course of the transaction to prevent exhaustion of the memory used to track the locks. A READ ONLY transaction may be able to release its SIRead locks before completion, if it detects that no conflicts can still occur which could lead to a serialization anomaly. In fact, READ ONLY transactions will often be able to establish that fact at startup and avoid taking any predicate locks. If you explicitly request a SERIALIZABLE READ ONLY DEFERRABLE transaction, it will block until it can establish this fact. (This is the only case where Serializable transactions block but Repeatable Read transactions don't.) On the other hand, SIRead locks often need to be kept past transaction commit, until overlapping read write transactions complete.\n\nConsistent use of Serializable transactions can simplify development.",
+      "pageStart": 9,
+      "pageEnd": 9,
+      "chunkingVersion": "v1",
+      "tokenCount": 592
+    },
+    {
+      "index": 14,
+      "sha256": "0ca9b0e91021d21bf478e2a8169a38f03d2e9fa244f549d395cb26f1278e3247",
+      "text": "(This is the only case where Serializable transactions block but Repeatable Read transactions don't.) On the other hand, SIRead locks often need to be kept past transaction commit, until overlapping read write transactions complete.\n\nConsistent use of Serializable transactions can simplify development. The guarantee that any set of successfully committed concurrent Serializable transactions will have the same effect as if they were run one at a time means that if you can demonstrate that a single transaction, as written, will do the right thing when run by itself, you can have confidence that it will do the right thing in any mix of Serializable transactions, even without any information about what those other transactions might do, or it will not successfully commit. It is important that an environment which uses this technique have a generalized way of handling serialization failures (which always return with an SQLSTATE value of '40001'), because it will be very hard to predict exactly which transactions might contribute to the read/write dependencies and need to be rolled back to prevent serialization anomalies. The monitoring of read/write dependencies has a cost, as does the restart of transactions which are terminated with a serialization failure, but balanced against the cost and blocking involved in use of explicit locks and SELECT FOR UPDATE or SELECT FOR SHARE, Serializable transactions are the best performance choice for some environments.\n\nWhile PostgreSQL's Serializable transaction isolation level only allows concurrent transactions to commit if it can prove there is a serial order of execution that would produce the same effect, it doesn't always prevent errors from being raised that would not occur in true serial execution. In particular, it is possible to see unique constraint violations caused by conflicts with overlapping Serializable transactions even after explicitly checking that the key isn't present before attempting to insert it. This can be avoided by making sure that all Serializable transactions that insert potentially conflicting keys explicitly check if they can do so first. For example, imagine an application that asks the user for a new key and then checks that it doesn't exist already by trying to select it first, or generates a new key by selecting the maximum existing key and adding one. If some Serializable transactions insert new keys directly without following this protocol, unique constraints violations might be reported even in cases where they could not occur in a serial execution of the concurrent\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 9,
+      "pageEnd": 9,
+      "chunkingVersion": "v1",
+      "tokenCount": 663
+    },
+    {
+      "index": 15,
+      "sha256": "8e545805a6cdd996ce6a79154884e533d795f94c697671fb56e08044ca1791aa",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\ntransactions.\n\nFor optimal performance when relying on Serializable transactions for concurrency control, these issues should be considered:\n\nDeclare transactions as READ ONLY when possible.\n\nControl the number of active connections, using a connection pool if needed. This is always an important performance consideration, but it can be particularly important in a busy system using Serializable transactions.\n\nDon't put more into a single transaction than needed for integrity purposes.\n\nDon't leave connections dangling \"idle in transaction\" longer than necessary. The configuration parameter idle_in_transaction_session_timeout may be used to automatically disconnect lingering sessions.\n\nEliminate explicit locks, SELECT FOR UPDATE, and SELECT FOR SHARE where no longer needed due to the protections automatically provided by Serializable transactions.\n\nWhen the system is forced to combine multiple page-level predicate locks into a single relation-level predicate lock because the predicate lock table is short of memory, an increase in the rate of serialization failures may occur. You can avoid this by increasing max_pred_locks_per_transaction, max_pred_locks_per_relation, and/or max_pred_locks_per_page.\n\nA sequential scan will always necessitate a relation-level predicate lock. This can result in an increased rate of serialization failures. It may be helpful to encourage the use of index scans by reducing random_page_cost and/or increasing cpu_tuple_cost. Be sure to weigh any decrease in transaction rollbacks and restarts against any overall change in query execution time.\n\nThe Serializable isolation level is implemented using a technique known in academic database literature as Serializable Snapshot Isolation, which builds on Snapshot Isolation by adding checks for serialization anomalies. Some differences in behavior and performance may be observed when compared with other systems that use a traditional locking technique. Please see [ports12] for detailed information.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 10,
+      "pageEnd": 10,
+      "chunkingVersion": "v1",
+      "tokenCount": 525
+    },
+    {
+      "index": 16,
+      "sha256": "f5886b68b7dcf16569cf69ec5a66202fe3d249ada35e392e6351aab4540f2d3c",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/explicit-locking.html\n\n## **13.3. Explicit Locking**\n\nPostgreSQL provides various lock modes to control concurrent access to data in tables. These modes can be used for application-controlled locking in situations where MVCC does not give the desired behavior. Also, most PostgreSQL commands automatically acquire locks of appropriate modes to ensure that referenced tables are not dropped or modified in incompatible ways while the command executes. (For example, TRUNCATE cannot safely be executed concurrently with other operations on the same table, so it obtains an ACCESS EXCLUSIVE lock on the table to enforce that.)\n\nTo examine a list of the currently outstanding locks in a database server, use the pg_locks system view. For more information on monitoring the status of the lock manager subsystem, refer to Chapter 28.\n\n### **13.3.1. Table-Level Locks**\n\nThe list below shows the available lock modes and the contexts in which they are used automatically by PostgreSQL. You can also acquire any of these locks explicitly with the command LOCK. Remember that all of these lock modes are table-level locks, even if the name contains the word \"row\"; the names of the lock modes are historical. To some extent the names reflect the typical usage of each lock mode - but the semantics are all the same. The only real difference between one lock mode and another is the set of lock modes with which each conflicts (see Table 13.2). Two transactions cannot hold locks of conflicting modes on the same table at the same time. (However, a transaction never conflicts with itself. For example, it might acquire ACCESS EXCLUSIVE lock and later acquire ACCESS SHARE lock on the same table.) Non-conflicting lock modes can be held concurrently by many transactions. Notice in particular that some lock modes are self-conflicting (for example, an ACCESS EXCLUSIVE lock cannot be held by more than one transaction at a time) while others are not self-conflicting (for example, an ACCESS SHARE lock can be held by multiple transactions).\n\nTable-Level Lock Modes\n\n#### **ACCESS SHARE (AccessShareLock)**\n\nConflicts with the ACCESS EXCLUSIVE lock mode only.\n\nThe SELECT command acquires a lock of this mode on referenced tables. In general, any query that only reads a table and does not modify it will acquire this lock mode.",
+      "pageStart": 11,
+      "pageEnd": 11,
+      "chunkingVersion": "v1",
+      "tokenCount": 598
+    },
+    {
+      "index": 17,
+      "sha256": "77aa83c90fddda69e22d8d6dde71e69c4427632ccd10a08fe68588862ad55a27",
+      "text": "Table-Level Lock Modes\n\n#### **ACCESS SHARE (AccessShareLock)**\n\nConflicts with the ACCESS EXCLUSIVE lock mode only.\n\nThe SELECT command acquires a lock of this mode on referenced tables. In general, any query that only reads a table and does not modify it will acquire this lock mode.\n\n#### **ROW SHARE (RowShareLock)**\n\nConflicts with the EXCLUSIVE and ACCESS EXCLUSIVE lock modes.\n\nThe SELECT command acquires a lock of this mode on all tables on which one of the FOR UPDATE, FOR NO KEY UPDATE, FOR SHARE, or FOR KEY SHARE options is specified (in addition to ACCESS SHARE locks on any other tables that are referenced without any explicit FOR ... locking option).\n\n#### **ROW EXCLUSIVE (RowExclusiveLock)**\n\nConflicts with the SHARE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE lock modes.\n\nThe commands UPDATE, DELETE, INSERT, and MERGE acquire this lock mode on the target table (in addition to ACCESS SHARE locks on any other referenced tables). In general, this lock mode will be acquired by any command that modifies data in a table.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 11,
+      "pageEnd": 11,
+      "chunkingVersion": "v1",
+      "tokenCount": 280
+    },
+    {
+      "index": 18,
+      "sha256": "d24ce8e4844afb652bf286dbb9423443f41c997ba02690c9fbd4043adacba79c",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\n#### **SHARE UPDATE EXCLUSIVE (ShareUpdateExclusiveLock)**\n\nConflicts with the SHARE UPDATE EXCLUSIVE, SHARE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE lock modes. This mode protects a table against concurrent schema changes and VACUUM runs.\n\nAcquired by VACUUM (without FULL), ANALYZE, CREATE INDEX CONCURRENTLY, CREATE STATISTICS, COMMENT ON, REINDEX CONCURRENTLY, and certain ALTER INDEX and ALTER TABLE variants (for full details see the documentation of these commands).\n\n#### **SHARE (ShareLock)**\n\nConflicts with the ROW EXCLUSIVE, SHARE UPDATE EXCLUSIVE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE lock modes. This mode protects a table against concurrent data changes.\n\nAcquired by CREATE INDEX (without CONCURRENTLY).\n\n#### **SHARE ROW EXCLUSIVE (ShareRowExclusiveLock)**\n\nConflicts with the ROW EXCLUSIVE, SHARE UPDATE EXCLUSIVE, SHARE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE lock modes. This mode protects a table against concurrent data changes, and is self-exclusive so that only one session can hold it at a time.\n\nAcquired by CREATE TRIGGER and some forms of ALTER TABLE.\n\n#### **EXCLUSIVE (ExclusiveLock)**\n\nConflicts with the ROW SHARE, ROW EXCLUSIVE, SHARE UPDATE EXCLUSIVE, SHARE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE lock modes. This mode allows only concurrent ACCESS SHARE locks, i.e., only reads from the table can proceed in parallel with a transaction holding this lock mode.\n\nAcquired by REFRESH MATERIALIZED VIEW CONCURRENTLY.\n\n#### **ACCESS EXCLUSIVE (AccessExclusiveLock)**\n\nConflicts with locks of all modes (ACCESS SHARE, ROW SHARE, ROW EXCLUSIVE, SHARE UPDATE EXCLUSIVE, SHARE, SHARE ROW EXCLUSIVE, EXCLUSIVE, and ACCESS EXCLUSIVE). This mode guarantees that the holder is the only transaction accessing the table in any way.\n\nAcquired by the DROP TABLE, TRUNCATE, REINDEX, CLUSTER, VACUUM FULL, and REFRESH MATERIALIZED VIEW (without CONCURRENTLY) commands. Many forms of ALTER INDEX and ALTER TABLE also acquire a lock at this level. This is also the default lock mode for LOCK TABLE statements that do not specify a mode explicitly.\n\n### **Tip**\n\nOnly an ACCESS EXCLUSIVE lock blocks a SELECT (without FOR UPDATE/SHARE) statement.",
+      "pageStart": 12,
+      "pageEnd": 12,
+      "chunkingVersion": "v1",
+      "tokenCount": 564
+    },
+    {
+      "index": 19,
+      "sha256": "5573bd1b70e8014810aa1c96bb1e2b9b7d8b11fa330b300df0372737933af6ce",
+      "text": "Many forms of ALTER INDEX and ALTER TABLE also acquire a lock at this level. This is also the default lock mode for LOCK TABLE statements that do not specify a mode explicitly.\n\n### **Tip**\n\nOnly an ACCESS EXCLUSIVE lock blocks a SELECT (without FOR UPDATE/SHARE) statement.\n\nOnce acquired, a lock is normally held until the end of the transaction. But if a lock is acquired after establishing a savepoint, the lock is released immediately if the savepoint is rolled back to. This is consistent with the principle that ROLLBACK cancels all effects of the commands since the savepoint. The same holds for locks acquired within a PL/pgSQL exception block: an error escape from the block releases locks acquired within it.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 12,
+      "pageEnd": 12,
+      "chunkingVersion": "v1",
+      "tokenCount": 197
+    },
+    {
+      "index": 20,
+      "sha256": "ea71cbe27e06c7bfe93d4e5a9715c70db9589c4bf67725a1867eac9d0b689373",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nTable 13.2. Conflicting Lock Modes\n\n|Requested Lock Mode|ACCESS<br>SHARE|ROW<br>SHARE|ROW<br>EXCL.|SHARE<br>UPDATE<br>EXCL.|SHARE|SHARE<br>ROW<br>EXCL.|EXCL.|ACCESS<br>EXCL.|\n|---|---|---|---|---|---|---|---|---|\n|ACCESS SHARE||||||||X|\n|ROW SHARE|||||||X|X|\n|ROW EXCL.|||||X|X|X|X|\n|SHARE UPDATE EXCL.||||X|X|X|X|X|\n|SHARE|||X|X||X|X|X|\n|SHARE ROW EXCL.|||X|X|X|X|X|X|\n|EXCL.||X|X|X|X|X|X|X|\n|ACCESS EXCL.|X|X|X|X|X|X|X|X|",
+      "pageStart": 13,
+      "pageEnd": 13,
+      "chunkingVersion": "v1",
+      "tokenCount": 247
+    },
+    {
+      "index": 21,
+      "sha256": "7c98f5af1d48271b2cc2a9cb28e75d4383b1b510db37e4ac4961822908c27a98",
+      "text": "### **13.3.2. Row-Level Locks**\n\nIn addition to table-level locks, there are row-level locks, which are listed as below with the contexts in which they are used automatically by PostgreSQL. See Table 13.3 for a complete table of row-level lock conflicts. Note that a transaction can hold conflicting locks on the same row, even in different subtransactions; but other than that, two transactions can never hold conflicting locks on the same row. Row-level locks do not affect data querying; they block only writers and lockers to the same row. Row-level locks are released at transaction end or during savepoint rollback, just like table-level locks.\n\nRow-Level Lock Modes\n\n#### **FOR UPDATE**\n\nFOR UPDATE causes the rows retrieved by the SELECT statement to be locked as though for update. This prevents them from being locked, modified or deleted by other transactions until the current transaction ends. That is, other transactions that attempt UPDATE, DELETE, SELECT FOR UPDATE, SELECT FOR NO KEY UPDATE, SELECT FOR SHARE or SELECT FOR KEY SHARE of these rows will be blocked until the current transaction ends; conversely, SELECT FOR UPDATE will wait for a concurrent transaction that has run any of those commands on the same row, and will then lock and return the updated row (or no row, if the row was deleted). Within a REPEATABLE READ or SERIALIZABLE transaction, however, an error will be thrown if a row to be locked has changed since the transaction started. For further discussion see Section 13.4.\n\nThe FOR UPDATE lock mode is also acquired by any DELETE on a row, and also by an UPDATE that modifies the values of certain columns. Currently, the set of columns considered for the UPDATE case are those that have a unique index on them that can be used in a foreign key (so partial indexes and expressional indexes are not considered), but this may change in the future.\n\n#### **FOR NO KEY UPDATE**\n\nBehaves similarly to FOR UPDATE, except that the lock acquired is weaker: this lock will not block SELECT FOR KEY SHARE commands that attempt to acquire a lock on the same rows. This lock mode is also acquired by any UPDATE that does not acquire a FOR UPDATE lock.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 13,
+      "pageEnd": 13,
+      "chunkingVersion": "v1",
+      "tokenCount": 562
+    },
+    {
+      "index": 22,
+      "sha256": "ebe9d4524365480b000faa3e99ca56ccc5ae11400ad9d7ef2955cfa43fc5d0a8",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\n#### **FOR SHARE**\n\nBehaves similarly to FOR NO KEY UPDATE, except that it acquires a shared lock rather than exclusive lock on each retrieved row. A shared lock blocks other transactions from performing UPDATE, DELETE, SELECT FOR UPDATE or SELECT FOR NO KEY UPDATE on these rows, but it does not prevent them from performing SELECT FOR SHARE or SELECT FOR KEY SHARE.\n\n#### **FOR KEY SHARE**\n\nBehaves similarly to FOR SHARE, except that the lock is weaker: SELECT FOR UPDATE is blocked, but not SELECT FOR NO KEY UPDATE. A key-shared lock blocks other transactions from performing DELETE or any UPDATE that changes the key values, but not other UPDATE, and neither does it prevent SELECT FOR NO KEY UPDATE, SELECT FOR SHARE, or SELECT FOR KEY SHARE.\n\nPostgreSQL doesn't remember any information about modified rows in memory, so there is no limit on the number of rows locked at one time. However, locking a row might cause a disk write, e.g., SELECT FOR UPDATE modifies selected rows to mark them locked, and so will result in disk writes.\n\nTable 13.3. Conflicting Row-Level Locks\n\n|Requested Lock Mode|FOR KEY SHARE|FOR SHARE|FOR NO KEY UPDATE|FOR UPDATE|\n|---|---|---|---|---|\n|FOR KEY SHARE||||X|\n|FOR SHARE|||X|X|\n|FOR NO KEY UPDATE||X|X|X|\n|FOR UPDATE|X|X|X|X|",
+      "pageStart": 14,
+      "pageEnd": 14,
+      "chunkingVersion": "v1",
+      "tokenCount": 326
+    },
+    {
+      "index": 23,
+      "sha256": "046ea5a82b84b7dac899a7958a91ddca575ed954830994beea4e8cbc6378b524",
+      "text": "### **13.3.3. Page-Level Locks**\n\nIn addition to table and row locks, page-level share/exclusive locks are used to control read/write access to table pages in the shared buffer pool. These locks are released immediately after a row is fetched or updated. Application developers normally need not be concerned with page-level locks, but they are mentioned here for completeness.\n\n### **13.3.4. Deadlocks**\n\nThe use of explicit locking can increase the likelihood of deadlocks, wherein two (or more) transactions each hold locks that the other wants. For example, if transaction 1 acquires an exclusive lock on table A and then tries to acquire an exclusive lock on table B, while transaction 2 has already exclusive-locked table B and now wants an exclusive lock on table A, then neither one can proceed. PostgreSQL automatically detects deadlock situations and resolves them by aborting one of the transactions involved, allowing the other(s) to complete. (Exactly which transaction will be aborted is difficult to predict and should not be relied upon.)\n\nNote that deadlocks can also occur as the result of row-level locks (and thus, they can occur even if explicit locking is not used). Consider the case in which two concurrent transactions modify a table. The first transaction executes:\n\n```\nUPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 11111;\n```\n\nThis acquires a row-level lock on the row with the specified account number. Then, the second transaction executes:\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 14,
+      "pageEnd": 14,
+      "chunkingVersion": "v1",
+      "tokenCount": 389
+    },
+    {
+      "index": 24,
+      "sha256": "781f63f13b25fe17f1bc0b704ffd84988e152eaf2419e0c558c3756e8e1f0617",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\n```\nUPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 22222;\nUPDATE accounts SET balance = balance - 100.00 WHERE acctnum = 11111;\n```\n\nThe first UPDATE statement successfully acquires a row-level lock on the specified row, so it succeeds in updating that row. However, the second UPDATE statement finds that the row it is attempting to update has already been locked, so it waits for the transaction that acquired the lock to complete. Transaction two is now waiting on transaction one to complete before it continues execution. Now, transaction one executes:\n\n```\nUPDATE accounts SET balance = balance - 100.00 WHERE acctnum = 22222;\n```\n\nTransaction one attempts to acquire a row-level lock on the specified row, but it cannot: transaction two already holds such a lock. So it waits for transaction two to complete. Thus, transaction one is blocked on transaction two, and transaction two is blocked on transaction one: a deadlock condition. PostgreSQL will detect this situation and abort one of the transactions.\n\nThe best defense against deadlocks is generally to avoid them by being certain that all applications using a database acquire locks on multiple objects in a consistent order. In the example above, if both transactions had updated the rows in the same order, no deadlock would have occurred. One should also ensure that the first lock acquired on an object in a transaction is the most restrictive mode that will be needed for that object. If it is not feasible to verify this in advance, then deadlocks can be handled on-the-fly by retrying transactions that abort due to deadlocks.\n\nSo long as no deadlock situation is detected, a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released. This means it is a bad idea for applications to hold transactions open for long periods of time (e.g., while waiting for user input).\n\n### **13.3.5. Advisory Locks**\n\nPostgreSQL provides a means for creating locks that have application-defined meanings. These are called advisory locks, because the system does not enforce their use - it is up to the application to use them correctly. Advisory locks can be useful for locking strategies that are an awkward fit for the MVCC model.",
+      "pageStart": 15,
+      "pageEnd": 15,
+      "chunkingVersion": "v1",
+      "tokenCount": 576
+    },
+    {
+      "index": 25,
+      "sha256": "f125cbc8971d9e5c7e4cac9aaa7b7b1d74cd0646ac6444665262cd338c407ea9",
+      "text": "These are called advisory locks, because the system does not enforce their use - it is up to the application to use them correctly. Advisory locks can be useful for locking strategies that are an awkward fit for the MVCC model. For example, a common use of advisory locks is to emulate pessimistic locking strategies typical of so-called \"flat file\" data management systems. While a flag stored in a table could be used for the same purpose, advisory locks are faster, avoid table bloat, and are automatically cleaned up by the server at the end of the session.\n\nThere are two ways to acquire an advisory lock in PostgreSQL: at session level or at transaction level. Once acquired at session level, an advisory lock is held until explicitly released or the session ends. Unlike standard lock requests, session-level advisory lock requests do not honor transaction semantics: a lock acquired during a transaction that is later rolled back will still be held following the rollback, and likewise an unlock is effective even if the calling transaction fails later. A lock can be acquired multiple times by its owning process; for each completed lock request there must be a corresponding unlock request before the lock is actually released. Transaction-level lock requests, on the other hand, behave more like regular lock requests: they are automatically released at the end of the transaction, and there is no explicit unlock operation. This behavior is often more convenient than the session-level behavior for short-term usage of an advisory lock. Session-level and transaction-level lock requests for the same advisory lock identifier will block each other in the expected way. If a session already holds a given advisory lock, additional requests by it will always succeed, even if other sessions are awaiting the lock; this statement is true regardless of whether the existing lock hold and new request are at session level or transaction level.\n\nLike all locks in PostgreSQL, a complete list of advisory locks currently held by any session can be found in the pg_locks system view.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 15,
+      "pageEnd": 15,
+      "chunkingVersion": "v1",
+      "tokenCount": 538
+    },
+    {
+      "index": 26,
+      "sha256": "48d0b9cac5a1a08ee496832e786d6f8f949221a9914c2c6ff0136518a7a4e94a",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nBoth advisory locks and regular locks are stored in a shared memory pool whose size is defined by the configuration variables max_locks_per_transaction and max_connections. Care must be taken not to exhaust this memory or the server will be unable to grant any locks at all. This imposes an upper limit on the number of advisory locks grantable by the server, typically in the tens to hundreds of thousands depending on how the server is configured.\n\nIn certain cases using advisory locking methods, especially in queries involving explicit ordering and LIMIT clauses, care must be taken to control the locks acquired because of the order in which SQL expressions are evaluated. For example:\n\n```\nSELECT pg_advisory_lock(id) FROM foo WHERE id = 12345; -- ok\nSELECT pg_advisory_lock(id) FROM foo WHERE id > 12345 LIMIT 100; -- danger!\nSELECT pg_advisory_lock(q.id) FROM\n(\n  SELECT id FROM foo WHERE id > 12345 LIMIT 100\n) q; -- ok\n```\n\nIn the above queries, the second form is dangerous because the LIMIT is not guaranteed to be applied before the locking function is executed. This might cause some locks to be acquired that the application was not expecting, and hence would fail to release (until it ends the session). From the point of view of the application, such locks would be dangling, although still viewable in pg_locks.\n\nThe functions provided to manipulate advisory locks are described in Section 9.27.10.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 16,
+      "pageEnd": 16,
+      "chunkingVersion": "v1",
+      "tokenCount": 380
+    },
+    {
+      "index": 27,
+      "sha256": "f40a2c845b672d3734a4d65df0a0488e4af8d5006e710a094a563c33816d17e4",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/applevel-consistency.html\n\n## **13.4. Data Consistency Checks at the Application Level**\n\nIt is very difficult to enforce business rules regarding data integrity using Read Committed transactions because the view of the data is shifting with each statement, and even a single statement may not restrict itself to the statement's snapshot if a write conflict occurs.\n\nWhile a Repeatable Read transaction has a stable view of the data throughout its execution, there is a subtle issue with using MVCC snapshots for data consistency checks, involving something known as read/write conflicts. If one transaction writes data and a concurrent transaction attempts to read the same data (whether before or after the write), it cannot see the work of the other transaction. The reader then appears to have executed first regardless of which started first or which committed first. If that is as far as it goes, there is no problem, but if the reader also writes data which is read by a concurrent transaction there is now a transaction which appears to have run before either of the previously mentioned transactions. If the transaction which appears to have executed last actually commits first, it is very easy for a cycle to appear in a graph of the order of execution of the transactions. When such a cycle appears, integrity checks will not work correctly without some help.\n\nAs mentioned in Section 13.2.3, Serializable transactions are just Repeatable Read transactions which add nonblocking monitoring for dangerous patterns of read/write conflicts. When a pattern is detected which could cause a cycle in the apparent order of execution, one of the transactions involved is rolled back to break the cycle.\n\n### **13.4.1. Enforcing Consistency with Serializable Transactions**\n\nIf the Serializable transaction isolation level is used for all writes and for all reads which need a consistent view of the data, no other effort is required to ensure consistency. Software from other environments which is written to use serializable transactions to ensure consistency should \"just work\" in this regard in PostgreSQL.\n\nWhen using this technique, it will avoid creating an unnecessary burden for application programmers if the application software goes through a framework which automatically retries transactions which are rolled back with a serialization failure. It may be a good idea to set default_transaction_isolation to serializable.",
+      "pageStart": 17,
+      "pageEnd": 17,
+      "chunkingVersion": "v1",
+      "tokenCount": 627
+    },
+    {
+      "index": 28,
+      "sha256": "06564962efaa2457e08fe084adb7649c7b052fc98195d4d201b15660b2f3ed69",
+      "text": "When using this technique, it will avoid creating an unnecessary burden for application programmers if the application software goes through a framework which automatically retries transactions which are rolled back with a serialization failure. It may be a good idea to set default_transaction_isolation to serializable. It would also be wise to take some action to ensure that no other transaction isolation level is used, either inadvertently or to subvert integrity checks, through checks of the transaction isolation level in triggers.\n\nSee Section 13.2.3 for performance suggestions.\n\n### **Warning: Serializable Transactions and Data Replication**\n\nThis level of integrity protection using Serializable transactions does not yet extend to hot standby mode (Section 27.4) or logical replicas. Because of that, those using hot standby or logical replication may want to use Repeatable Read and explicit locking on the primary.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 17,
+      "pageEnd": 17,
+      "chunkingVersion": "v1",
+      "tokenCount": 250
+    },
+    {
+      "index": 29,
+      "sha256": "68ce0a87179a41c8120d7761c83f02e2b03c659cdeff400529c4e1bd77f48d06",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\n### **13.4.2. Enforcing Consistency with Explicit Blocking Locks**\n\nWhen non-serializable writes are possible, to ensure the current validity of a row and protect it against concurrent updates one must use SELECT FOR UPDATE, SELECT FOR SHARE, or an appropriate LOCK TABLE statement. (SELECT FOR UPDATE and SELECT FOR SHARE lock just the returned rows against concurrent updates, while LOCK TABLE locks the whole table.) This should be taken into account when porting applications to PostgreSQL from other environments.\n\nAlso of note to those converting from other environments is the fact that SELECT FOR UPDATE does not ensure that a concurrent transaction will not update or delete a selected row. To do that in PostgreSQL you must actually update the row, even if no values need to be changed. SELECT FOR UPDATE temporarily blocks other transactions from acquiring the same lock or executing an UPDATE or DELETE which would affect the locked row, but once the transaction holding this lock commits or rolls back, a blocked transaction will proceed with the conflicting operation unless an actual UPDATE of the row was performed while the lock was held.\n\nGlobal validity checks require extra thought under non-serializable MVCC. For example, a banking application might wish to check that the sum of all credits in one table equals the sum of debits in another table, when both tables are being actively updated. Comparing the results of two successive SELECT sum(...) commands will not work reliably in Read Committed mode, since the second query will likely include the results of transactions not counted by the first. Doing the two sums in a single repeatable read transaction will give an accurate picture of only the effects of transactions that committed before the repeatable read transaction started - but one might legitimately wonder whether the answer is still relevant by the time it is delivered. If the repeatable read transaction itself applied some changes before trying to make the consistency check, the usefulness of the check becomes even more debatable, since now it includes some but not all post-transaction-start changes. In such cases a careful person might wish to lock all tables needed for the check, in order to get an indisputable picture of current reality. A SHARE mode (or higher) lock guarantees that there are no uncommitted changes in the locked table, other than those of the current transaction.",
+      "pageStart": 18,
+      "pageEnd": 18,
+      "chunkingVersion": "v1",
+      "tokenCount": 619
+    },
+    {
+      "index": 30,
+      "sha256": "92d325d63c4f1b40e193c31f5e6ac873e8398bb0285d3630bf3ca12f3ddddef0",
+      "text": "In such cases a careful person might wish to lock all tables needed for the check, in order to get an indisputable picture of current reality. A SHARE mode (or higher) lock guarantees that there are no uncommitted changes in the locked table, other than those of the current transaction.\n\nNote also that if one is relying on explicit locking to prevent concurrent changes, one should either use Read Committed mode, or in Repeatable Read mode be careful to obtain locks before performing queries. A lock obtained by a repeatable read transaction guarantees that no other transactions modifying the table are still running, but if the snapshot seen by the transaction predates obtaining the lock, it might predate some now-committed changes in the table. A repeatable read transaction's snapshot is actually frozen at the start of its first query or data-modification command (SELECT, INSERT, UPDATE, DELETE, or MERGE), so it is possible to obtain locks explicitly before the snapshot is frozen.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 18,
+      "pageEnd": 18,
+      "chunkingVersion": "v1",
+      "tokenCount": 265
+    },
+    {
+      "index": 31,
+      "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/mvcc-serialization-failure-handling.html\n\n## **13.5. Serialization Failure Handling**\n\nBoth Repeatable Read and Serializable isolation levels can produce errors that are designed to prevent serialization anomalies. As previously stated, applications using these levels must be prepared to retry transactions that fail due to serialization errors. Such an error's message text will vary according to the precise circumstances, but it will always have the SQLSTATE code 40001 (serialization_failure).\n\nIt may also be advisable to retry deadlock failures. These have the SQLSTATE code 40P01 (deadlock_detected).\n\nIn some cases it is also appropriate to retry unique-key failures, which have SQLSTATE code 23505 (unique_violation), and exclusion constraint failures, which have SQLSTATE code 23P01 (exclusion_violation). For example, if the application selects a new value for a primary key column after inspecting the currently stored keys, it could get a unique-key failure because another application instance selected the same new key concurrently. This is effectively a serialization failure, but the server will not detect it as such because it cannot \"see\" the connection between the inserted value and the previous reads. There are also some corner cases in which the server will issue a unique-key or exclusion constraint error even though in principle it has enough information to determine that a serialization problem is the underlying cause. While it's recommendable to just retry serialization_failure errors unconditionally, more care is needed when retrying these other error codes, since they might represent persistent error conditions rather than transient failures.\n\nIt is important to retry the complete transaction, including all logic that decides which SQL to issue and/or which values to use. Therefore, PostgreSQL does not offer an automatic retry facility, since it cannot do so with any guarantee of correctness.\n\nTransaction retry does not guarantee that the retried transaction will complete; multiple retries may be needed. In cases with very high contention, it is possible that completion of a transaction may take many attempts. In cases involving a conflicting prepared transaction, it may not be possible to make progress until the prepared transaction commits or rolls back.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 19,
+      "pageEnd": 19,
+      "chunkingVersion": "v1",
+      "tokenCount": 612
+    },
+    {
+      "index": 32,
+      "sha256": "ca00e4223d65898dca7a09252af2640b1e639cd7a42aad0dcf956ee44196380d",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/mvcc-caveats.html\n\n## **13.6. Caveats**\n\nSome DDL commands, currently only TRUNCATE and the table-rewriting forms of ALTER TABLE, are not MVCC-safe. This means that after the truncation or rewrite commits, the table will appear empty to concurrent transactions, if they are using a snapshot taken before the DDL command committed. This will only be an issue for a transaction that did not access the table in question before the DDL command started - any transaction that has done so would hold at least an ACCESS SHARE table lock, which would block the DDL command until that transaction completes. So these commands will not cause any apparent inconsistency in the table contents for successive queries on the target table, but they could cause visible inconsistency between the contents of the target table and other tables in the database.\n\nSupport for the Serializable transaction isolation level has not yet been added to hot standby replication targets (described in Section 27.4). The strictest isolation level currently supported in hot standby mode is Repeatable Read. While performing all permanent database writes within Serializable transactions on the primary will ensure that all standbys will eventually reach a consistent state, a Repeatable Read transaction run on the standby can sometimes see a transient state that is inconsistent with any serial execution of the transactions on the primary.\n\nInternal access to the system catalogs is not done using the isolation level of the current transaction. This means that newly created database objects such as tables are visible to concurrent Repeatable Read and Serializable transactions, even though the rows they contain are not. In contrast, queries that explicitly examine the system catalogs don't see rows representing concurrently created database objects, in the higher isolation levels.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 20,
+      "pageEnd": 20,
+      "chunkingVersion": "v1",
+      "tokenCount": 500
+    },
+    {
+      "index": 33,
+      "sha256": "e2c81e0cec3f0fbe2fdd54e6330fdb90c4999172b8350df8cd39ff15eb0f0d23",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/locking-indexes.html\n\n## **13.7. Locking and Indexes**\n\nThough PostgreSQL provides nonblocking read/write access to table data, nonblocking read/write access is not currently offered for every index access method implemented in PostgreSQL. The various index types are handled as follows:\n\n#### **B-tree, GiST and SP-GiST indexes**\n\nShort-term share/exclusive page-level locks are used for read/write access. Locks are released immediately after each index row is fetched or inserted. These index types provide the highest concurrency without deadlock conditions.\n\n#### **Hash indexes**\n\nShare/exclusive hash-bucket-level locks are used for read/write access. Locks are released after the whole bucket is processed. Bucket-level locks provide better concurrency than index-level ones, but deadlock is possible since the locks are held longer than one index operation.\n\n#### **GIN indexes**\n\nShort-term share/exclusive page-level locks are used for read/write access. Locks are released immediately after each index row is fetched or inserted. But note that insertion of a GIN-indexed value usually produces several index key insertions per row, so GIN might do substantial work for a single value's insertion.\n\nCurrently, B-tree indexes offer the best performance for concurrent applications; since they also have more features than hash indexes, they are the recommended index type for concurrent applications that need to index scalar data. When dealing with non-scalar data, B-trees are not useful, and GiST, SP-GiST or GIN indexes should be used instead.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 21,
+      "pageEnd": 21,
+      "chunkingVersion": "v1",
+      "tokenCount": 424
+    },
+    {
+      "index": 34,
+      "sha256": "901a0d1071aa8b121ab65bb61097404e64c1bd16e6ee4392a79583def1908316",
+      "text": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/legalnotice.html\n\nLegal Notice\n\nPostgreSQL Database Management System (also known as Postgres, formerly known as Postgres95)\n\nPortions Copyright © 1996-2026, PostgreSQL Global Development Group\n\nPortions Copyright © 1994, The Regents of the University of California\n\nPermission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.\n\nIN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\nTHE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN \"AS-IS\" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.\n\nOfficial documentation excerpt - re-typeset snapshot, 2026-10-25",
+      "pageStart": 22,
+      "pageEnd": 22,
+      "chunkingVersion": "v1",
+      "tokenCount": 341
+    }
+  ],
+  "labels": [
+    {
+      "id": "pg-f01",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What does MVCC let each SQL statement see, and why is this useful?",
+      "answer": "Each statement sees a snapshot of a database version, protecting it from inconsistent data produced by concurrent updates.",
+      "points": [
+        "snapshot",
+        "inconsistent"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-intro-002",
+          "quote": "each SQL statement sees a snapshot of data",
+          "blockPages": [
+            3
+          ],
+          "pages": [
+            3
+          ],
+          "chunks": [
+            {
+              "index": 2,
+              "sha256": "83c85663026a67d62d1b345a870bbe2e60461cf49ef695d6b6e485ce65d21e46"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        3
+      ],
+      "expectedChunkIndices": [
+        2
+      ]
+    },
+    {
+      "id": "pg-f02",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What is PostgreSQL's default transaction isolation level?",
+      "answer": "Read Committed is the default isolation level.",
+      "points": [
+        "Read Committed"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-021",
+          "quote": "Read Committed is the default isolation level in PostgreSQL",
+          "blockPages": [
+            5
+          ],
+          "pages": [
+            5
+          ],
+          "chunks": [
+            {
+              "index": 5,
+              "sha256": "5b912264343591ffd1902f115d74dd4887806074b75d513cbd6c0163261d50f1"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        5
+      ],
+      "expectedChunkIndices": [
+        5
+      ]
+    },
+    {
+      "id": "pg-f03",
+      "kind": "factual",
+      "split": "dev",
+      "question": "Does PostgreSQL implement Read Uncommitted as a separate, weaker isolation mode?",
+      "answer": "No. PostgreSQL implements three distinct isolation levels internally; Read Uncommitted behaves like Read Committed.",
+      "points": [
+        "Read Committed",
+        "three"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-015",
+          "quote": "PostgreSQL's Read Uncommitted mode behaves like Read Committed",
+          "blockPages": [
+            4
+          ],
+          "pages": [
+            4
+          ],
+          "chunks": [
+            {
+              "index": 4,
+              "sha256": "57af9a69ef59f1143b50306932130f0cd2b192217dfb29caa99b3a3682d8b945"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        4
+      ],
+      "expectedChunkIndices": [
+        4
+      ]
+    },
+    {
+      "id": "pg-f04",
+      "kind": "factual",
+      "split": "heldout",
+      "question": "If a transaction aborts after advancing a sequence, is that sequence change rolled back?",
+      "answer": "No. Sequence changes are immediately visible to other transactions and are not rolled back when the transaction aborts.",
+      "points": [
+        "immediately visible",
+        "not rolled back"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-019",
+          "quote": "are immediately visible to all other transactions and are not rolled back",
+          "blockPages": [
+            5
+          ],
+          "pages": [
+            5
+          ],
+          "chunks": [
+            {
+              "index": 5,
+              "sha256": "5b912264343591ffd1902f115d74dd4887806074b75d513cbd6c0163261d50f1"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        5
+      ],
+      "expectedChunkIndices": [
+        5
+      ]
+    },
+    {
+      "id": "pg-f05",
+      "kind": "factual",
+      "split": "dev",
+      "question": "When does a Repeatable Read transaction fix its snapshot?",
+      "answer": "At the start of its first non-transaction-control statement, rather than at the start of each subsequent statement.",
+      "points": [
+        "first",
+        "non-transaction-control"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-036",
+          "quote": "start of the first non-transaction-control statement in the transaction",
+          "blockPages": [
+            7
+          ],
+          "pages": [
+            7
+          ],
+          "chunks": [
+            {
+              "index": 9,
+              "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        7
+      ],
+      "expectedChunkIndices": [
+        9
+      ]
+    },
+    {
+      "id": "pg-f06",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What kind of lock can block an ordinary SELECT without FOR UPDATE or FOR SHARE?",
+      "answer": "Only an ACCESS EXCLUSIVE table lock blocks an ordinary SELECT.",
+      "points": [
+        "ACCESS EXCLUSIVE"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-032",
+          "quote": "Only an ACCESS EXCLUSIVE lock blocks a SELECT",
+          "blockPages": [
+            12
+          ],
+          "pages": [
+            12
+          ],
+          "chunks": [
+            {
+              "index": 18,
+              "sha256": "d24ce8e4844afb652bf286dbb9423443f41c997ba02690c9fbd4043adacba79c"
+            },
+            {
+              "index": 19,
+              "sha256": "5573bd1b70e8014810aa1c96bb1e2b9b7d8b11fa330b300df0372737933af6ce"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        12
+      ],
+      "expectedChunkIndices": [
+        18,
+        19
+      ]
+    },
+    {
+      "id": "pg-f07",
+      "kind": "factual",
+      "split": "dev",
+      "question": "Do row-level locks block ordinary reads, and when are they released?",
+      "answer": "They block writers and lockers of the same row, not ordinary queries. They are released at transaction end or during savepoint rollback.",
+      "points": [
+        "writers",
+        "transaction end",
+        "savepoint"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-037",
+          "quote": "Row-level locks do not affect data querying; they block only writers and lockers to the same row",
+          "blockPages": [
+            13
+          ],
+          "pages": [
+            13
+          ],
+          "chunks": [
+            {
+              "index": 21,
+              "sha256": "7c98f5af1d48271b2cc2a9cb28e75d4383b1b510db37e4ac4961822908c27a98"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        13
+      ],
+      "expectedChunkIndices": [
+        21
+      ]
+    },
+    {
+      "id": "pg-f08",
+      "kind": "factual",
+      "split": "heldout",
+      "question": "Which system view shows outstanding database locks?",
+      "answer": "The pg_locks system view.",
+      "points": [
+        "pg_locks"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-003",
+          "quote": "use the pg_locks system view",
+          "blockPages": [
+            11
+          ],
+          "pages": [
+            11
+          ],
+          "chunks": [
+            {
+              "index": 16,
+              "sha256": "f5886b68b7dcf16569cf69ec5a66202fe3d249ada35e392e6351aab4540f2d3c"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        11
+      ],
+      "expectedChunkIndices": [
+        16
+      ]
+    },
+    {
+      "id": "pg-f09",
+      "kind": "factual",
+      "split": "dev",
+      "question": "How does PostgreSQL resolve a detected deadlock? Can an application rely on which transaction is aborted?",
+      "answer": "It aborts one of the involved transactions so the others can finish. Which transaction is aborted is not predictable and must not be relied upon.",
+      "points": [
+        "aborting",
+        "predict"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-054",
+          "quote": "resolves them by aborting one of the transactions involved",
+          "blockPages": [
+            14
+          ],
+          "pages": [
+            14
+          ],
+          "chunks": [
+            {
+              "index": 23,
+              "sha256": "046ea5a82b84b7dac899a7958a91ddca575ed954830994beea4e8cbc6378b524"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        14
+      ],
+      "expectedChunkIndices": [
+        23
+      ]
+    },
+    {
+      "id": "pg-f10",
+      "kind": "factual",
+      "split": "dev",
+      "question": "Does a session-level advisory lock disappear if the transaction that acquired it rolls back?",
+      "answer": "No. It remains held after rollback until explicitly released or the session ends.",
+      "points": [
+        "rollback",
+        "session"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-066",
+          "quote": "a lock acquired during a transaction that is later rolled back will still be held following the rollback",
+          "blockPages": [
+            15
+          ],
+          "pages": [
+            15
+          ],
+          "chunks": [
+            {
+              "index": 25,
+              "sha256": "f125cbc8971d9e5c7e4cac9aaa7b7b1d74cd0646ac6444665262cd338c407ea9"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        15
+      ],
+      "expectedChunkIndices": [
+        25
+      ]
+    },
+    {
+      "id": "pg-f11",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What SQLSTATE identifies a serialization failure?",
+      "answer": "40001, named serialization_failure.",
+      "points": [
+        "40001",
+        "serialization_failure"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-serialization-failure-handling-002",
+          "quote": "SQLSTATE code 40001 (serialization_failure)",
+          "blockPages": [
+            19
+          ],
+          "pages": [
+            19
+          ],
+          "chunks": [
+            {
+              "index": 31,
+              "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedChunkIndices": [
+        31
+      ]
+    },
+    {
+      "id": "pg-f12",
+      "kind": "factual",
+      "split": "heldout",
+      "question": "What SQLSTATE identifies a detected deadlock?",
+      "answer": "40P01, named deadlock_detected.",
+      "points": [
+        "40P01",
+        "deadlock_detected"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-serialization-failure-handling-003",
+          "quote": "SQLSTATE code 40P01 (deadlock_detected)",
+          "blockPages": [
+            19
+          ],
+          "pages": [
+            19
+          ],
+          "chunks": [
+            {
+              "index": 31,
+              "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedChunkIndices": [
+        31
+      ]
+    },
+    {
+      "id": "pg-f13",
+      "kind": "factual",
+      "split": "dev",
+      "question": "On serialization failure, is retrying just the last SQL statement enough?",
+      "answer": "No. Retry the complete transaction, including application logic deciding which SQL and values to use.",
+      "points": [
+        "complete transaction",
+        "logic"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-serialization-failure-handling-005",
+          "quote": "retry the complete transaction, including all logic that decides which SQL to issue",
+          "blockPages": [
+            19
+          ],
+          "pages": [
+            19
+          ],
+          "chunks": [
+            {
+              "index": 31,
+              "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedChunkIndices": [
+        31
+      ]
+    },
+    {
+      "id": "pg-f14",
+      "kind": "factual",
+      "split": "dev",
+      "question": "Which DDL operations does this chapter identify as not MVCC-safe?",
+      "answer": "TRUNCATE and table-rewriting forms of ALTER TABLE.",
+      "points": [
+        "TRUNCATE",
+        "ALTER TABLE"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-caveats-002",
+          "quote": "TRUNCATE and the table-rewriting forms of ALTER TABLE, are not MVCC-safe",
+          "blockPages": [
+            20
+          ],
+          "pages": [
+            20
+          ],
+          "chunks": [
+            {
+              "index": 32,
+              "sha256": "ca00e4223d65898dca7a09252af2640b1e639cd7a42aad0dcf956ee44196380d"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        20
+      ],
+      "expectedChunkIndices": [
+        32
+      ]
+    },
+    {
+      "id": "pg-f15",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What is the strictest isolation level supported on a hot standby in this PostgreSQL 16 chapter?",
+      "answer": "Repeatable Read; Serializable is not supported on hot standby replication targets.",
+      "points": [
+        "Repeatable Read",
+        "Serializable"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-caveats-003",
+          "quote": "The strictest isolation level currently supported in hot standby mode is Repeatable Read",
+          "blockPages": [
+            20
+          ],
+          "pages": [
+            20
+          ],
+          "chunks": [
+            {
+              "index": 32,
+              "sha256": "ca00e4223d65898dca7a09252af2640b1e639cd7a42aad0dcf956ee44196380d"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        20
+      ],
+      "expectedChunkIndices": [
+        32
+      ]
+    },
+    {
+      "id": "pg-f16",
+      "kind": "factual",
+      "split": "heldout",
+      "question": "Which index type does the chapter recommend for concurrent applications indexing scalar data?",
+      "answer": "B-tree indexes.",
+      "points": [
+        "B-tree"
+      ],
+      "evidence": [
+        {
+          "block": "locking-indexes-009",
+          "quote": "B-tree indexes offer the best performance for concurrent applications",
+          "blockPages": [
+            21
+          ],
+          "pages": [
+            21
+          ],
+          "chunks": [
+            {
+              "index": 33,
+              "sha256": "e2c81e0cec3f0fbe2fdd54e6330fdb90c4999172b8350df8cd39ff15eb0f0d23"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        21
+      ],
+      "expectedChunkIndices": [
+        33
+      ]
+    },
+    {
+      "id": "pg-f17",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What lock mode represents Serializable predicate locks in pg_locks?",
+      "answer": "SIReadLock.",
+      "points": [
+        "SIReadLock"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-060",
+          "quote": "pg_locks system view with a mode of SIReadLock",
+          "blockPages": [
+            9
+          ],
+          "pages": [
+            9
+          ],
+          "chunks": [
+            {
+              "index": 13,
+              "sha256": "d0ea38111149b57a6312ff07d314ef6bf92d0e24a808bbe0fbf2c911b7213958"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        9
+      ],
+      "expectedChunkIndices": [
+        13
+      ]
+    },
+    {
+      "id": "pg-f18",
+      "kind": "factual",
+      "split": "dev",
+      "question": "Do PostgreSQL Serializable predicate locks cause blocking or deadlocks?",
+      "answer": "The predicate locks themselves do not block and therefore cannot cause deadlocks; they track dependencies.",
+      "points": [
+        "blocking",
+        "deadlock"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-059",
+          "quote": "these locks do not cause any blocking and therefore can not play any part in causing a deadlock",
+          "blockPages": [
+            9
+          ],
+          "pages": [
+            9
+          ],
+          "chunks": [
+            {
+              "index": 13,
+              "sha256": "d0ea38111149b57a6312ff07d314ef6bf92d0e24a808bbe0fbf2c911b7213958"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        9
+      ],
+      "expectedChunkIndices": [
+        13
+      ]
+    },
+    {
+      "id": "pg-f19",
+      "kind": "factual",
+      "split": "dev",
+      "question": "What happens to locks acquired after a savepoint when the transaction rolls back to that savepoint?",
+      "answer": "They are released immediately.",
+      "points": [
+        "released",
+        "savepoint"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-033",
+          "quote": "the lock is released immediately if the savepoint is rolled back to",
+          "blockPages": [
+            12
+          ],
+          "pages": [
+            12
+          ],
+          "chunks": [
+            {
+              "index": 19,
+              "sha256": "5573bd1b70e8014810aa1c96bb1e2b9b7d8b11fa330b300df0372737933af6ce"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        12
+      ],
+      "expectedChunkIndices": [
+        19
+      ]
+    },
+    {
+      "id": "pg-f20",
+      "kind": "factual",
+      "split": "heldout",
+      "question": "How long are share/exclusive page-level locks on table pages normally held?",
+      "answer": "They are released immediately after a row is fetched or updated.",
+      "points": [
+        "immediately",
+        "fetched",
+        "updated"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-052",
+          "quote": "These locks are released immediately after a row is fetched or updated",
+          "blockPages": [
+            14
+          ],
+          "pages": [
+            14
+          ],
+          "chunks": [
+            {
+              "index": 23,
+              "sha256": "046ea5a82b84b7dac899a7958a91ddca575ed954830994beea4e8cbc6378b524"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        14
+      ],
+      "expectedChunkIndices": [
+        23
+      ]
+    },
+    {
+      "id": "pg-m01",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "Compare the snapshots used by Read Committed and Repeatable Read for two successive SELECT statements.",
+      "answer": "Read Committed takes a new snapshot for each command and may see another transaction's intervening commit. Repeatable Read fixes the snapshot at its first non-transaction-control statement, so later SELECTs keep the same view.",
+      "points": [
+        "Read Committed",
+        "Repeatable Read",
+        "snapshot"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-021",
+          "quote": "two successive SELECT commands can see different data",
+          "blockPages": [
+            5
+          ],
+          "pages": [
+            5
+          ],
+          "chunks": [
+            {
+              "index": 5,
+              "sha256": "5b912264343591ffd1902f115d74dd4887806074b75d513cbd6c0163261d50f1"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-036",
+          "quote": "start of the first non-transaction-control statement in the transaction",
+          "blockPages": [
+            7
+          ],
+          "pages": [
+            7
+          ],
+          "chunks": [
+            {
+              "index": 9,
+              "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        5,
+        7
+      ],
+      "expectedChunkIndices": [
+        5,
+        9
+      ]
+    },
+    {
+      "id": "pg-m02",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "Why can Repeatable Read still violate a business consistency rule, and what extra protection does Serializable add?",
+      "answer": "A stable snapshot does not exclude serialization anomalies or cycles of read/write conflicts. Serializable monitors dangerous dependency patterns without additional ordinary blocking and rolls back a transaction to break a possible cycle.",
+      "points": [
+        "serialization",
+        "read/write",
+        "rolled back"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-043",
+          "quote": "will not necessarily always be consistent with some serial",
+          "blockPages": [
+            7
+          ],
+          "pages": [
+            7
+          ],
+          "chunks": [
+            {
+              "index": 10,
+              "sha256": "0b09e1adc667ad21d8c3b6877976437b9ad10aef540ce0f99e2e80c1b772e294"
+            }
+          ]
+        },
+        {
+          "block": "applevel-consistency-004",
+          "quote": "nonblocking monitoring for dangerous patterns of read/write conflicts",
+          "blockPages": [
+            17
+          ],
+          "pages": [
+            17
+          ],
+          "chunks": [
+            {
+              "index": 27,
+              "sha256": "f40a2c845b672d3734a4d65df0a0488e4af8d5006e710a094a563c33816d17e4"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        7,
+        17
+      ],
+      "expectedChunkIndices": [
+        10,
+        27
+      ]
+    },
+    {
+      "id": "pg-m03",
+      "kind": "multi-section",
+      "split": "heldout",
+      "question": "How do Read Committed and Repeatable Read handle a target row changed by a concurrent updater that then commits?",
+      "answer": "Read Committed re-evaluates the WHERE condition on the updated row and may continue. Repeatable Read aborts with a serialization error if the row was actually changed after its snapshot; retry the whole transaction.",
+      "points": [
+        "WHERE",
+        "Repeatable Read",
+        "retry"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-022",
+          "quote": "The search condition of the command (the WHERE clause) is re-evaluated",
+          "blockPages": [
+            5
+          ],
+          "pages": [
+            5
+          ],
+          "chunks": [
+            {
+              "index": 5,
+              "sha256": "5b912264343591ffd1902f115d74dd4887806074b75d513cbd6c0163261d50f1"
+            },
+            {
+              "index": 6,
+              "sha256": "d3ce782d5c88d3472db664eeacda56bcdec479b7c71654304d9970f7100e6418"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-038",
+          "quote": "the repeatable read transaction will be rolled back",
+          "blockPages": [
+            7
+          ],
+          "pages": [
+            7
+          ],
+          "chunks": [
+            {
+              "index": 9,
+              "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-041",
+          "quote": "retry the whole transaction from the beginning",
+          "blockPages": [
+            7
+          ],
+          "pages": [
+            7
+          ],
+          "chunks": [
+            {
+              "index": 9,
+              "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde"
+            },
+            {
+              "index": 10,
+              "sha256": "0b09e1adc667ad21d8c3b6877976437b9ad10aef540ce0f99e2e80c1b772e294"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        5,
+        7
+      ],
+      "expectedChunkIndices": [
+        5,
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "pg-m04",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "Contrast the lifetime and rollback behavior of session-level and transaction-level advisory locks.",
+      "answer": "Session locks survive transaction rollback until unlocked or the session ends; repeated acquisitions need matching unlocks. Transaction-level locks release automatically at transaction end with no explicit unlock. Advisory use is application-enforced.",
+      "points": [
+        "session",
+        "rollback",
+        "automatically released"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-065",
+          "quote": "the system does not enforce their use",
+          "blockPages": [
+            15
+          ],
+          "pages": [
+            15
+          ],
+          "chunks": [
+            {
+              "index": 24,
+              "sha256": "781f63f13b25fe17f1bc0b704ffd84988e152eaf2419e0c558c3756e8e1f0617"
+            },
+            {
+              "index": 25,
+              "sha256": "f125cbc8971d9e5c7e4cac9aaa7b7b1d74cd0646ac6444665262cd338c407ea9"
+            }
+          ]
+        },
+        {
+          "block": "explicit-locking-066",
+          "quote": "Transaction-level lock requests, on the other hand, behave more like regular lock requests",
+          "blockPages": [
+            15
+          ],
+          "pages": [
+            15
+          ],
+          "chunks": [
+            {
+              "index": 25,
+              "sha256": "f125cbc8971d9e5c7e4cac9aaa7b7b1d74cd0646ac6444665262cd338c407ea9"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        15
+      ],
+      "expectedChunkIndices": [
+        24,
+        25
+      ]
+    },
+    {
+      "id": "pg-m05",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "How should an application both reduce deadlock risk and recover from a deadlock that still happens?",
+      "answer": "Acquire locks on objects in a consistent order, with the most restrictive needed mode first. If a transaction aborts due to a deadlock, it can be retried; deadlock_detected has SQLSTATE 40P01.",
+      "points": [
+        "consistent order",
+        "40P01",
+        "retry"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-062",
+          "quote": "acquire locks on multiple objects in a consistent order",
+          "blockPages": [
+            15
+          ],
+          "pages": [
+            15
+          ],
+          "chunks": [
+            {
+              "index": 24,
+              "sha256": "781f63f13b25fe17f1bc0b704ffd84988e152eaf2419e0c558c3756e8e1f0617"
+            }
+          ]
+        },
+        {
+          "block": "mvcc-serialization-failure-handling-003",
+          "quote": "SQLSTATE code 40P01 (deadlock_detected)",
+          "blockPages": [
+            19
+          ],
+          "pages": [
+            19
+          ],
+          "chunks": [
+            {
+              "index": 31,
+              "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        15,
+        19
+      ],
+      "expectedChunkIndices": [
+        24,
+        31
+      ]
+    },
+    {
+      "id": "pg-m06",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "Is every unique-key violation safe to retry like SQLSTATE 40001? Explain the difference.",
+      "answer": "Serialization failures 40001 should be retried. A 23505 unique violation or 23P01 exclusion violation can sometimes arise from concurrency, but can also be persistent; inspect the situation instead of blindly retrying all such failures.",
+      "points": [
+        "40001",
+        "23505",
+        "persistent"
+      ],
+      "evidence": [
+        {
+          "block": "mvcc-serialization-failure-handling-002",
+          "quote": "SQLSTATE code 40001 (serialization_failure)",
+          "blockPages": [
+            19
+          ],
+          "pages": [
+            19
+          ],
+          "chunks": [
+            {
+              "index": 31,
+              "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a"
+            }
+          ]
+        },
+        {
+          "block": "mvcc-serialization-failure-handling-004",
+          "quote": "they might represent persistent error conditions rather than transient failures",
+          "blockPages": [
+            19
+          ],
+          "pages": [
+            19
+          ],
+          "chunks": [
+            {
+              "index": 31,
+              "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedChunkIndices": [
+        31
+      ]
+    },
+    {
+      "id": "pg-m07",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "Why is an old Repeatable Read snapshot plus a newly acquired table lock insufficient for a current global consistency check?",
+      "answer": "The snapshot may predate now-committed changes despite the lock. Under explicit locking, use Read Committed or acquire the required locks before Repeatable Read's first query freezes the snapshot; SHARE or stronger prevents other uncommitted changes in the locked table.",
+      "points": [
+        "snapshot",
+        "before",
+        "SHARE"
+      ],
+      "evidence": [
+        {
+          "block": "applevel-consistency-014",
+          "quote": "A SHARE mode (or higher) lock guarantees that there are no uncommitted changes",
+          "blockPages": [
+            18
+          ],
+          "pages": [
+            18
+          ],
+          "chunks": [
+            {
+              "index": 29,
+              "sha256": "68ce0a87179a41c8120d7761c83f02e2b03c659cdeff400529c4e1bd77f48d06"
+            },
+            {
+              "index": 30,
+              "sha256": "92d325d63c4f1b40e193c31f5e6ac873e8398bb0285d3630bf3ca12f3ddddef0"
+            }
+          ]
+        },
+        {
+          "block": "applevel-consistency-015",
+          "quote": "be careful to obtain locks before performing queries",
+          "blockPages": [
+            18
+          ],
+          "pages": [
+            18
+          ],
+          "chunks": [
+            {
+              "index": 30,
+              "sha256": "92d325d63c4f1b40e193c31f5e6ac873e8398bb0285d3630bf3ca12f3ddddef0"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-036",
+          "quote": "start of the first non-transaction-control statement in the transaction",
+          "blockPages": [
+            7
+          ],
+          "pages": [
+            7
+          ],
+          "chunks": [
+            {
+              "index": 9,
+              "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        7,
+        18
+      ],
+      "expectedChunkIndices": [
+        9,
+        29,
+        30
+      ]
+    },
+    {
+      "id": "pg-m08",
+      "kind": "multi-section",
+      "split": "heldout",
+      "question": "Can an application assume that a Repeatable Read query on a hot standby has the same consistency guarantee as successful Serializable transactions on the primary?",
+      "answer": "No. Serializable integrity protection does not extend to hot standby or logical replicas. Hot standby supports at most Repeatable Read and can temporarily show a state inconsistent with any serial execution of the primary transactions.",
+      "points": [
+        "Repeatable Read",
+        "hot standby",
+        "inconsistent"
+      ],
+      "evidence": [
+        {
+          "block": "applevel-consistency-010",
+          "quote": "does not yet extend to hot standby mode",
+          "blockPages": [
+            17
+          ],
+          "pages": [
+            17
+          ],
+          "chunks": [
+            {
+              "index": 28,
+              "sha256": "06564962efaa2457e08fe084adb7649c7b052fc98195d4d201b15660b2f3ed69"
+            }
+          ]
+        },
+        {
+          "block": "mvcc-caveats-003",
+          "quote": "can sometimes see a transient state that is inconsistent with any serial execution",
+          "blockPages": [
+            20
+          ],
+          "pages": [
+            20
+          ],
+          "chunks": [
+            {
+              "index": 32,
+              "sha256": "ca00e4223d65898dca7a09252af2640b1e639cd7a42aad0dcf956ee44196380d"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        17,
+        20
+      ],
+      "expectedChunkIndices": [
+        28,
+        32
+      ]
+    },
+    {
+      "id": "pg-m09",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "Compare the lock granularity and release timing of B-tree and hash indexes, and explain the chapter's scalar-data recommendation.",
+      "answer": "B-tree uses short-term page-level locks released after each index row. Hash uses bucket-level locks held until the bucket is processed, so deadlock is possible. The chapter recommends B-tree for concurrent scalar indexing.",
+      "points": [
+        "page",
+        "bucket",
+        "B-tree"
+      ],
+      "evidence": [
+        {
+          "block": "locking-indexes-004",
+          "quote": "Locks are released immediately after each index row is fetched or inserted",
+          "blockPages": [
+            21
+          ],
+          "pages": [
+            21
+          ],
+          "chunks": [
+            {
+              "index": 33,
+              "sha256": "e2c81e0cec3f0fbe2fdd54e6330fdb90c4999172b8350df8cd39ff15eb0f0d23"
+            }
+          ]
+        },
+        {
+          "block": "locking-indexes-006",
+          "quote": "Locks are released after the whole bucket is processed",
+          "blockPages": [
+            21
+          ],
+          "pages": [
+            21
+          ],
+          "chunks": [
+            {
+              "index": 33,
+              "sha256": "e2c81e0cec3f0fbe2fdd54e6330fdb90c4999172b8350df8cd39ff15eb0f0d23"
+            }
+          ]
+        },
+        {
+          "block": "locking-indexes-009",
+          "quote": "recommended index type for concurrent applications that need to index scalar data",
+          "blockPages": [
+            21
+          ],
+          "pages": [
+            21
+          ],
+          "chunks": [
+            {
+              "index": 33,
+              "sha256": "e2c81e0cec3f0fbe2fdd54e6330fdb90c4999172b8350df8cd39ff15eb0f0d23"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        21
+      ],
+      "expectedChunkIndices": [
+        33
+      ]
+    },
+    {
+      "id": "pg-m10",
+      "kind": "multi-section",
+      "split": "dev",
+      "question": "How is SERIALIZABLE READ ONLY DEFERRABLE different from an ordinary Serializable read, and why must ordinary transaction results wait for commit?",
+      "answer": "A deferrable read-only transaction may wait for a safe snapshot, after which its reads are known valid. Other Serializable reads can belong to a transaction that later aborts, so their results must not be relied on before successful commit.",
+      "points": [
+        "DEFERRABLE",
+        "snapshot",
+        "commit"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-058",
+          "quote": "not be considered valid until the transaction which read it has successfully committed",
+          "blockPages": [
+            8,
+            9
+          ],
+          "pages": [
+            8
+          ],
+          "chunks": [
+            {
+              "index": 12,
+              "sha256": "f8bfe05c024176afddcb5f9141ebeddea8a2f39342c6932c4858cd1045991de4"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-060",
+          "quote": "SERIALIZABLE READ ONLY DEFERRABLE transaction, it will block",
+          "blockPages": [
+            9
+          ],
+          "pages": [
+            9
+          ],
+          "chunks": [
+            {
+              "index": 13,
+              "sha256": "d0ea38111149b57a6312ff07d314ef6bf92d0e24a808bbe0fbf2c911b7213958"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        8,
+        9
+      ],
+      "expectedChunkIndices": [
+        12,
+        13
+      ]
+    },
+    {
+      "id": "pg-s01",
+      "kind": "sql-table",
+      "split": "dev",
+      "question": "Using Table 13.1, which anomalies are still possible under PostgreSQL Repeatable Read, and does it allow phantom reads?",
+      "answer": "Serialization anomalies remain possible. Dirty, nonrepeatable and phantom reads are not possible in PostgreSQL Repeatable Read, which is stronger than the standard's minimum phantom-read guarantee.",
+      "points": [
+        "serialization",
+        "phantom"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-014",
+          "quote": "Repeatable read Not possible Not possible Allowed, but not in PG Possible",
+          "blockPages": [
+            4
+          ],
+          "pages": [
+            4
+          ],
+          "chunks": [
+            {
+              "index": 3,
+              "sha256": "7e8486701ab7d7b0a3661e46b0c188cc07533b14425f60e8ac0b4c22cb9941c4"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-016",
+          "quote": "PostgreSQL's Repeatable Read implementation does not allow phantom reads",
+          "blockPages": [
+            4
+          ],
+          "pages": [
+            4
+          ],
+          "chunks": [
+            {
+              "index": 4,
+              "sha256": "57af9a69ef59f1143b50306932130f0cd2b192217dfb29caa99b3a3682d8b945"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        4
+      ],
+      "expectedChunkIndices": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": "pg-s02",
+      "kind": "sql-table",
+      "split": "heldout",
+      "question": "In Table 13.2, does a requested ROW EXCLUSIVE table lock conflict with an existing SHARE lock? What about an existing ACCESS SHARE lock?",
+      "answer": "It conflicts with SHARE, but not ACCESS SHARE.",
+      "points": [
+        "SHARE",
+        "ACCESS SHARE"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-035",
+          "quote": "Requested Lock Mode",
+          "blockPages": [
+            13
+          ],
+          "pages": [
+            13
+          ],
+          "chunks": [
+            {
+              "index": 20,
+              "sha256": "ea71cbe27e06c7bfe93d4e5a9715c70db9589c4bf67725a1867eac9d0b689373"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        13
+      ],
+      "expectedChunkIndices": [
+        20
+      ]
+    },
+    {
+      "id": "pg-s03",
+      "kind": "sql-table",
+      "split": "dev",
+      "question": "According to Table 13.3, can FOR KEY SHARE coexist with FOR NO KEY UPDATE on the same row? Can it coexist with FOR UPDATE?",
+      "answer": "It can coexist with FOR NO KEY UPDATE but conflicts with FOR UPDATE.",
+      "points": [
+        "FOR NO KEY UPDATE",
+        "FOR UPDATE"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-050",
+          "quote": "Requested Lock Mode",
+          "blockPages": [
+            14
+          ],
+          "pages": [
+            14
+          ],
+          "chunks": [
+            {
+              "index": 22,
+              "sha256": "ebe9d4524365480b000faa3e99ca56ccc5ae11400ad9d7ef2955cfa43fc5d0a8"
+            }
+          ]
+        },
+        {
+          "block": "explicit-locking-047",
+          "quote": "SELECT FOR UPDATE is blocked, but not SELECT FOR NO KEY UPDATE",
+          "blockPages": [
+            14
+          ],
+          "pages": [
+            14
+          ],
+          "chunks": [
+            {
+              "index": 22,
+              "sha256": "ebe9d4524365480b000faa3e99ca56ccc5ae11400ad9d7ef2955cfa43fc5d0a8"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        14
+      ],
+      "expectedChunkIndices": [
+        22
+      ]
+    },
+    {
+      "id": "pg-s04",
+      "kind": "sql-table",
+      "split": "dev",
+      "question": "In the website.hits example starting with rows 9 and 10, why can DELETE WHERE hits = 10 delete nothing while a concurrent UPDATE increments both rows?",
+      "answer": "The initial 9 row is not a target in the DELETE snapshot; the original 10 row is waited on and becomes 11 after UPDATE, so re-evaluating the condition fails. A row equal to 10 can exist before and after without being deleted.",
+      "points": [
+        "9",
+        "11",
+        "re-evaluat"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-030",
+          "quote": "DELETE FROM website WHERE hits = 10",
+          "blockPages": [
+            6
+          ],
+          "pages": [
+            6
+          ],
+          "chunks": [
+            {
+              "index": 7,
+              "sha256": "b28b144c9e8c444cd52e4e5f37bc02acc12d172878a0d8336f951a9e2211ef4f"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-031",
+          "quote": "the new row value is no longer 10 but 11",
+          "blockPages": [
+            6
+          ],
+          "pages": [
+            6
+          ],
+          "chunks": [
+            {
+              "index": 7,
+              "sha256": "b28b144c9e8c444cd52e4e5f37bc02acc12d172878a0d8336f951a9e2211ef4f"
+            },
+            {
+              "index": 8,
+              "sha256": "7fce15b5c6c6dc996134e6153dae0ab91038a684a9b1859a3c6a8fc056d1e2dc"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        6
+      ],
+      "expectedChunkIndices": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": "pg-s05",
+      "kind": "sql-table",
+      "split": "heldout",
+      "question": "In the mytab SUM example, can Serializable transactions A and B both commit after computing 30 and 300? Why would A-before-B require 330 instead?",
+      "answer": "They cannot both commit; PostgreSQL aborts one to prevent a dependency anomaly. If A ran first, its inserted class-2 value 30 would be included in B's sum, making 330 rather than 300.",
+      "points": [
+        "330",
+        "300",
+        "roll"
+      ],
+      "evidence": [
+        {
+          "block": "transaction-iso-055",
+          "quote": "will allow one transaction to commit and will roll the other back",
+          "blockPages": [
+            8
+          ],
+          "pages": [
+            8
+          ],
+          "chunks": [
+            {
+              "index": 12,
+              "sha256": "f8bfe05c024176afddcb5f9141ebeddea8a2f39342c6932c4858cd1045991de4"
+            }
+          ]
+        },
+        {
+          "block": "transaction-iso-057",
+          "quote": "if A had executed before B, B would have computed the sum 330, not 300",
+          "blockPages": [
+            8
+          ],
+          "pages": [
+            8
+          ],
+          "chunks": [
+            {
+              "index": 12,
+              "sha256": "f8bfe05c024176afddcb5f9141ebeddea8a2f39342c6932c4858cd1045991de4"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        8
+      ],
+      "expectedChunkIndices": [
+        12
+      ]
+    },
+    {
+      "id": "pg-s06",
+      "kind": "sql-table",
+      "split": "dev",
+      "question": "Why is SELECT pg_advisory_lock(id) FROM foo WHERE id > 12345 LIMIT 100 dangerous, and how does the chapter's subquery form avoid that hazard?",
+      "answer": "LIMIT is not guaranteed to be applied before the locking function, so unexpected session locks can be acquired. Select the limited IDs in a subquery and apply pg_advisory_lock to its output, as in the documented safe form.",
+      "points": [
+        "LIMIT",
+        "before",
+        "subquery"
+      ],
+      "evidence": [
+        {
+          "block": "explicit-locking-070",
+          "quote": "SELECT pg_advisory_lock(q.id) FROM",
+          "blockPages": [
+            16
+          ],
+          "pages": [
+            16
+          ],
+          "chunks": [
+            {
+              "index": 26,
+              "sha256": "48d0b9cac5a1a08ee496832e786d6f8f949221a9914c2c6ff0136518a7a4e94a"
+            }
+          ]
+        },
+        {
+          "block": "explicit-locking-071",
+          "quote": "the LIMIT is not guaranteed to be applied before the locking function is executed",
+          "blockPages": [
+            16
+          ],
+          "pages": [
+            16
+          ],
+          "chunks": [
+            {
+              "index": 26,
+              "sha256": "48d0b9cac5a1a08ee496832e786d6f8f949221a9914c2c6ff0136518a7a4e94a"
+            }
+          ]
+        }
+      ],
+      "expectedPages": [
+        16
+      ],
+      "expectedChunkIndices": [
+        26
+      ]
+    },
+    {
+      "id": "pg-u01",
+      "kind": "unanswerable",
+      "split": "dev",
+      "question": "What exact value of spring.datasource.hikari.maximum-pool-size does this chapter prescribe for my Library Spring Boot application?",
+      "answer": "Abstain: the chapter mentions connection pooling, but does not prescribe a Spring Boot Hikari pool size for this application.",
+      "points": [],
+      "evidence": [],
+      "expectedPages": [],
+      "expectedChunkIndices": []
+    },
+    {
+      "id": "pg-u02",
+      "kind": "unanswerable",
+      "split": "dev",
+      "question": "What Redis Lua script and reservation TTL does this chapter specify to prevent flash-sale overselling?",
+      "answer": "Abstain: this corpus does not specify a Redis Lua algorithm or a reservation TTL.",
+      "points": [],
+      "evidence": [],
+      "expectedPages": [],
+      "expectedChunkIndices": []
+    },
+    {
+      "id": "pg-u03",
+      "kind": "unanswerable",
+      "split": "dev",
+      "question": "What exact retry count and exponential-backoff delay in milliseconds does PostgreSQL require for every serialization failure?",
+      "answer": "Abstain: retries may be necessary and may fail again, but this chapter does not prescribe a universal retry count or backoff delay.",
+      "points": [],
+      "evidence": [],
+      "expectedPages": [],
+      "expectedChunkIndices": []
+    },
+    {
+      "id": "pg-u04",
+      "kind": "unanswerable",
+      "split": "heldout",
+      "question": "What monthly Azure VM bill and p95 latency will my Library RAG deployment have when using Serializable transactions?",
+      "answer": "Abstain: this chapter supplies no Azure pricing or measured latency for this deployment.",
+      "points": [],
+      "evidence": [],
+      "expectedPages": [],
+      "expectedChunkIndices": []
+    }
+  ]
+}

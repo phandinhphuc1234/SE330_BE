@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <title>PostgreSQL: Documentation: 16: 13.7. Locking and Indexes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="Content-Type" content="text/xhtml; charset=utf-8" />
+   
+  <meta name="theme-color" content="#336791"/>
+  <meta name="copyright" content="The PostgreSQL Global Development Group" />
+  <meta property="og:url" content="https://www.postgresql.org/docs/16/locking-indexes.html" />
+  <meta property="og:type" content="article" />
+
+  <meta property="article:published_time" content="2026-08-13T12:52:44.176831" />
+  <meta property="og:image" content="https://www.postgresql.org/media/img/about/press/elephant.png" />
+  <meta property="og:title" content="13.7. Locking and Indexes" />
+  <meta property="og:description" content="13.7.&amp;nbsp;Locking and Indexes # Though PostgreSQL provides nonblocking read/write access to table data, nonblocking read/write access is not currently offered …" />
+  <meta property="og:site_name" content="PostgreSQL Documentation" />
+  <link href="/media/css/fontawesome.css?629b876c" rel="stylesheet">
+  <link rel="stylesheet" href="/media/css/bootstrap-4.4.1.min.css">
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  <link rel="stylesheet" type="text/css" href="/dyncss/base.css?629b876c">
+
+  <script src="/media/js/theme.js?629b876c"></script>
+
+  
+
+
+  <link rel="canonical" href="https://www.postgresql.org/docs/current/locking-indexes.html" />
+
+
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row justify-content-md-center">
+        <div class="col">
+          <!-- Header -->
+          <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand p-0" href="/">
+              <img class="logo" src="/media/img/about/press/elephant.png" alt="PostgreSQL Elephant Logo">
+            </a>
+            <input type="checkbox" id="navbar-toggler" aria-controls="pgNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <label for="navbar-toggler" id="navbar-toggler-label" class="navbar-toggler" tabindex="0"><span class="navbar-toggler-icon"></span></label>
+            <div class="navbar-collapse" id="pgNavbar">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item p-2"><a href="/" title="Home">Home</a></li>
+                <li class="nav-item p-2"><a href="/about/" title="About">About</a></li>
+                <li class="nav-item p-2"><a href="/download/" title="Download">Download</a></li>
+                <li class="nav-item p-2"><a href="/docs/" title="Documentation">Documentation</a></li>
+                <li class="nav-item p-2"><a href="/community/" title="Community">Community</a></li>
+                <li class="nav-item p-2"><a href="/developer/" title="Developers">Developers</a></li>
+                <li class="nav-item p-2"><a href="/support/" title="Support">Support</a></li>
+                <li class="nav-item p-2"><a href="/about/donate/" title="Donate">Donate</a></li>
+                <li class="nav-item p-2"><a href="/account/" title="Your account">Your account</a></li>
+              </ul>
+              <form role="search" method="get" action="/search/">
+                <div class="input-group">
+                  <input id="q" name="q" type="text" size="20" maxlength="255" accesskey="s"  class="form-control" placeholder="Search for...">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><i class="fas fa-search"></i></button>
+                  </span>
+                </div><!-- /input-group -->
+              </form>
+              <form id="form-theme" class="form-inline d-none">
+                <button id="btn-theme" class="btn btn-default ml-1" type="button"></button>
+              </form>
+            </div>
+          </nav>
+        </div>
+      </div>
+      <div class="row justify-content-center pg-shout-box">
+        <div class="col text-white text-center">October 15, 2026: <a href="/about/news/postgresql-19-rc-1-released-3409/">PostgreSQL 19 RC 1 Released!</a>
+
+</div>
+      </div>
+    </div>
+    
+    <div class="container-fluid margin">
+      <div class="row">
+        <div id="pgContentWrap" class="col-11">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <div class="row">
+                <div class="col">
+                  <div>
+                    <a href="/docs/" title="Documentation">Documentation</a> &rarr; <a href="/docs/16/index.html">PostgreSQL 16</a>
+                  </div>
+                </div>
+              </div>
+              
+                <div class="row">
+                  <div class="col">
+                    Supported Versions:
+                      
+                        
+                        
+                          <a href="/docs/current/locking-indexes.html" title="PostgreSQL 18 - 13.7. Locking and Indexes" >Current</a>
+                          (<a href="/docs/18/locking-indexes.html" title="PostgreSQL 18 - 13.7. Locking and Indexes" >18</a>)
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/17/locking-indexes.html" title="PostgreSQL 17 - 13.7. Locking and Indexes" >17</a>
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/16/locking-indexes.html" title="PostgreSQL 16 - 13.7. Locking and Indexes" class="docs-version-selected">16</a>
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/15/locking-indexes.html" title="PostgreSQL 15 - 13.7. Locking and Indexes" >15</a>
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/14/locking-indexes.html" title="PostgreSQL 14 - 13.7. Locking and Indexes" >14</a>
+                        
+                      
+                  </div>
+                </div>
+              
+              
+                <div class="row">
+                  <div class="col">
+                    Development Versions:
+                    
+                      
+                      <a href="/docs/19/locking-indexes.html" title="PostgreSQL 19 - 13.7. Locking and Indexes"  rel="nofollow">19</a>
+                    
+                       / 
+                      <a href="/docs/devel/locking-indexes.html" title="PostgreSQL devel - 13.7. Locking and Indexes"  rel="nofollow">devel</a>
+                    
+                  </div>
+                </div>
+              
+              
+                <div class="row">
+                  <div class="col-12">
+                    Unsupported versions:
+                    
+                      
+                      <a href="/docs/13/locking-indexes.html" title="PostgreSQL 13 - 13.7. Locking and Indexes"  rel="nofollow">13</a>
+                    
+                       / 
+                      <a href="/docs/12/locking-indexes.html" title="PostgreSQL 12 - 13.7. Locking and Indexes"  rel="nofollow">12</a>
+                    
+                       / 
+                      <a href="/docs/11/locking-indexes.html" title="PostgreSQL 11 - 13.7. Locking and Indexes"  rel="nofollow">11</a>
+                    
+                       / 
+                      <a href="/docs/10/locking-indexes.html" title="PostgreSQL 10 - 13.7. Locking and Indexes"  rel="nofollow">10</a>
+                    
+                       / 
+                      <a href="/docs/9.6/locking-indexes.html" title="PostgreSQL 9.6 - 13.7. Locking and Indexes"  rel="nofollow">9.6</a>
+                    
+                       / 
+                      <a href="/docs/9.5/locking-indexes.html" title="PostgreSQL 9.5 - 13.7. Locking and Indexes"  rel="nofollow">9.5</a>
+                    
+                       / 
+                      <a href="/docs/9.4/locking-indexes.html" title="PostgreSQL 9.4 - 13.7. Locking and Indexes"  rel="nofollow">9.4</a>
+                    
+                       / 
+                      <a href="/docs/9.3/locking-indexes.html" title="PostgreSQL 9.3 - 13.7. Locking and Indexes"  rel="nofollow">9.3</a>
+                    
+                       / 
+                      <a href="/docs/9.2/locking-indexes.html" title="PostgreSQL 9.2 - 13.7. Locking and Indexes"  rel="nofollow">9.2</a>
+                    
+                       / 
+                      <a href="/docs/9.1/locking-indexes.html" title="PostgreSQL 9.1 - 13.7. Locking and Indexes"  rel="nofollow">9.1</a>
+                    
+                       / 
+                      <a href="/docs/9.0/locking-indexes.html" title="PostgreSQL 9.0 - 13.7. Locking and Indexes"  rel="nofollow">9.0</a>
+                    
+                       / 
+                      <a href="/docs/8.4/locking-indexes.html" title="PostgreSQL 8.4 - 13.7. Locking and Indexes"  rel="nofollow">8.4</a>
+                    
+                       / 
+                      <a href="/docs/8.3/locking-indexes.html" title="PostgreSQL 8.3 - 13.7. Locking and Indexes"  rel="nofollow">8.3</a>
+                    
+                       / 
+                      <a href="/docs/8.2/locking-indexes.html" title="PostgreSQL 8.2 - 13.7. Locking and Indexes"  rel="nofollow">8.2</a>
+                    
+                       / 
+                      <a href="/docs/8.1/locking-indexes.html" title="PostgreSQL 8.1 - 13.7. Locking and Indexes"  rel="nofollow">8.1</a>
+                    
+                       / 
+                      <a href="/docs/8.0/locking-indexes.html" title="PostgreSQL 8.0 - 13.7. Locking and Indexes"  rel="nofollow">8.0</a>
+                    
+                       / 
+                      <a href="/docs/7.4/locking-indexes.html" title="PostgreSQL 7.4 - 13.7. Locking and Indexes"  rel="nofollow">7.4</a>
+                    
+                       / 
+                      <a href="/docs/7.3/locking-indexes.html" title="PostgreSQL 7.3 - 13.7. Locking and Indexes"  rel="nofollow">7.3</a>
+                    
+                       / 
+                      <a href="/docs/7.2/locking-indexes.html" title="PostgreSQL 7.2 - 13.7. Locking and Indexes"  rel="nofollow">7.2</a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+            <div class="col-md-6 col-lg-5 offset-lg-1">
+              <form id="docSearchForm" role="search" method="get" action="/search/">
+                <input type="hidden" name="u" value="/docs/16/" />
+                <div class="input-group">
+                  <input type="text" id="q" name="q" class="form-control" placeholder="Search the documentation for..."/>
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><i class="fas fa-search"></i></button>
+                  </span>
+                </div><!-- /input-group -->
+              </form>
+            </div>
+          </div>
+
+          <div id="docContent">
+            <div class="navheader">
+  <table width="100%" summary="Navigation header">
+    <tr>
+      <th colspan="5" align="center">13.7.&nbsp;Locking and Indexes</th>
+    </tr>
+    <tr>
+      <td width="10%" align="left"><a accesskey="p" href="mvcc-caveats.html" title="13.6.&nbsp;Caveats">Prev</a>&nbsp;</td>
+      <td width="10%" align="left"><a accesskey="u" href="mvcc.html" title="Chapter&nbsp;13.&nbsp;Concurrency Control">Up</a></td>
+      <th width="60%" align="center">Chapter&nbsp;13.&nbsp;Concurrency Control</th>
+      <td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.15 Documentation">Home</a></td>
+      <td width="10%" align="right">&nbsp;<a accesskey="n" href="performance-tips.html" title="Chapter&nbsp;14.&nbsp;Performance Tips">Next</a></td>
+    </tr>
+  </table>
+  <hr />
+</div>
+<div class="sect1" id="LOCKING-INDEXES">
+  <div class="titlepage">
+    <div>
+      <div>
+        <h2 class="title" style="clear: both">13.7.&nbsp;Locking and Indexes <a href="#LOCKING-INDEXES" class="id_link">#</a></h2>
+      </div>
+    </div>
+  </div><a id="id-1.5.12.10.2" class="indexterm" name="id-1.5.12.10.2"></a>
+  <p>Though <span class="productname">PostgreSQL</span> provides nonblocking read/write access to table data, nonblocking read/write access is not currently offered for every index access method implemented in <span class="productname">PostgreSQL</span>. The various index types are handled as follows:</p>
+  <div class="variablelist">
+    <dl class="variablelist">
+      <dt><span class="term">B-tree, <acronym class="acronym">GiST</acronym> and <acronym class="acronym">SP-GiST</acronym> indexes</span></dt>
+      <dd>
+        <p>Short-term share/exclusive page-level locks are used for read/write access. Locks are released immediately after each index row is fetched or inserted. These index types provide the highest concurrency without deadlock conditions.</p>
+      </dd>
+      <dt><span class="term">Hash indexes</span></dt>
+      <dd>
+        <p>Share/exclusive hash-bucket-level locks are used for read/write access. Locks are released after the whole bucket is processed. Bucket-level locks provide better concurrency than index-level ones, but deadlock is possible since the locks are held longer than one index operation.</p>
+      </dd>
+      <dt><span class="term"><acronym class="acronym">GIN</acronym> indexes</span></dt>
+      <dd>
+        <p>Short-term share/exclusive page-level locks are used for read/write access. Locks are released immediately after each index row is fetched or inserted. But note that insertion of a GIN-indexed value usually produces several index key insertions per row, so GIN might do substantial work for a single value's insertion.</p>
+      </dd>
+    </dl>
+  </div>
+  <p>Currently, B-tree indexes offer the best performance for concurrent applications; since they also have more features than hash indexes, they are the recommended index type for concurrent applications that need to index scalar data. When dealing with non-scalar data, B-trees are not useful, and GiST, SP-GiST or GIN indexes should be used instead.</p>
+</div>
+<div class="navfooter">
+  <hr />
+  <table width="100%" summary="Navigation footer">
+    <tr>
+      <td width="40%" align="left"><a accesskey="p" href="mvcc-caveats.html" title="13.6.&nbsp;Caveats">Prev</a>&nbsp;</td>
+      <td width="20%" align="center"><a accesskey="u" href="mvcc.html" title="Chapter&nbsp;13.&nbsp;Concurrency Control">Up</a></td>
+      <td width="40%" align="right">&nbsp;<a accesskey="n" href="performance-tips.html" title="Chapter&nbsp;14.&nbsp;Performance Tips">Next</a></td>
+    </tr>
+    <tr>
+      <td width="40%" align="left" valign="top">13.6.&nbsp;Caveats&nbsp;</td>
+      <td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.15 Documentation">Home</a></td>
+      <td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;14.&nbsp;Performance Tips</td>
+    </tr>
+  </table>
+</div>
+
+          </div>
+          
+            <div id="docComments">
+              <h2>Submit correction</h2>
+              <p>
+              If you see anything in the documentation that is not correct, does not match
+              your experience with the particular feature or requires further clarification,
+              please use
+              <a href="/account/comments/new/16/locking-indexes.html/" rel="nofollow">this form</a>
+              to report a documentation issue.
+              </p>
+            </div>
+          
+        </div> <!-- pgContentWrap -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+      <!-- Copyright -->
+      <div class="container">
+        <a href="/about/policies/">Policies</a> |
+        <a href="/about/policies/coc/">Code of Conduct</a> |
+        <a href="/about/">About PostgreSQL</a> |
+        <a href="/about/contact/">Contact</a><br/>
+        <p>Copyright &copy; 1996-2026 The PostgreSQL Global Development Group</p>
+      </div>
+    </footer>
+    <script src="/media/js/main.js?629b876c"></script>
+
+  </body>
+</html>

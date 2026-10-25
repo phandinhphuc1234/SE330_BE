@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <title>PostgreSQL: Documentation: 16: 13.4. Data Consistency Checks at the Application Level</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="Content-Type" content="text/xhtml; charset=utf-8" />
+   
+  <meta name="theme-color" content="#336791"/>
+  <meta name="copyright" content="The PostgreSQL Global Development Group" />
+  <meta property="og:url" content="https://www.postgresql.org/docs/16/applevel-consistency.html" />
+  <meta property="og:type" content="article" />
+
+  <meta property="article:published_time" content="2026-08-13T12:52:44.176831" />
+  <meta property="og:image" content="https://www.postgresql.org/media/img/about/press/elephant.png" />
+  <meta property="og:title" content="13.4. Data Consistency Checks at the Application Level" />
+  <meta property="og:description" content="13.4.&amp;nbsp;Data Consistency Checks at the Application Level # 13.4.1. Enforcing Consistency with Serializable Transactions 13.4.2. Enforcing Consistency with Explicit Blocking …" />
+  <meta property="og:site_name" content="PostgreSQL Documentation" />
+  <link href="/media/css/fontawesome.css?629b876c" rel="stylesheet">
+  <link rel="stylesheet" href="/media/css/bootstrap-4.4.1.min.css">
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  <link rel="stylesheet" type="text/css" href="/dyncss/base.css?629b876c">
+
+  <script src="/media/js/theme.js?629b876c"></script>
+
+  
+
+
+  <link rel="canonical" href="https://www.postgresql.org/docs/current/applevel-consistency.html" />
+
+
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row justify-content-md-center">
+        <div class="col">
+          <!-- Header -->
+          <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand p-0" href="/">
+              <img class="logo" src="/media/img/about/press/elephant.png" alt="PostgreSQL Elephant Logo">
+            </a>
+            <input type="checkbox" id="navbar-toggler" aria-controls="pgNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <label for="navbar-toggler" id="navbar-toggler-label" class="navbar-toggler" tabindex="0"><span class="navbar-toggler-icon"></span></label>
+            <div class="navbar-collapse" id="pgNavbar">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item p-2"><a href="/" title="Home">Home</a></li>
+                <li class="nav-item p-2"><a href="/about/" title="About">About</a></li>
+                <li class="nav-item p-2"><a href="/download/" title="Download">Download</a></li>
+                <li class="nav-item p-2"><a href="/docs/" title="Documentation">Documentation</a></li>
+                <li class="nav-item p-2"><a href="/community/" title="Community">Community</a></li>
+                <li class="nav-item p-2"><a href="/developer/" title="Developers">Developers</a></li>
+                <li class="nav-item p-2"><a href="/support/" title="Support">Support</a></li>
+                <li class="nav-item p-2"><a href="/about/donate/" title="Donate">Donate</a></li>
+                <li class="nav-item p-2"><a href="/account/" title="Your account">Your account</a></li>
+              </ul>
+              <form role="search" method="get" action="/search/">
+                <div class="input-group">
+                  <input id="q" name="q" type="text" size="20" maxlength="255" accesskey="s"  class="form-control" placeholder="Search for...">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><i class="fas fa-search"></i></button>
+                  </span>
+                </div><!-- /input-group -->
+              </form>
+              <form id="form-theme" class="form-inline d-none">
+                <button id="btn-theme" class="btn btn-default ml-1" type="button"></button>
+              </form>
+            </div>
+          </nav>
+        </div>
+      </div>
+      <div class="row justify-content-center pg-shout-box">
+        <div class="col text-white text-center">October 15, 2026: <a href="/about/news/postgresql-19-rc-1-released-3409/">PostgreSQL 19 RC 1 Released!</a>
+
+</div>
+      </div>
+    </div>
+    
+    <div class="container-fluid margin">
+      <div class="row">
+        <div id="pgContentWrap" class="col-11">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <div class="row">
+                <div class="col">
+                  <div>
+                    <a href="/docs/" title="Documentation">Documentation</a> &rarr; <a href="/docs/16/index.html">PostgreSQL 16</a>
+                  </div>
+                </div>
+              </div>
+              
+                <div class="row">
+                  <div class="col">
+                    Supported Versions:
+                      
+                        
+                        
+                          <a href="/docs/current/applevel-consistency.html" title="PostgreSQL 18 - 13.4. Data Consistency Checks at the Application Level" >Current</a>
+                          (<a href="/docs/18/applevel-consistency.html" title="PostgreSQL 18 - 13.4. Data Consistency Checks at the Application Level" >18</a>)
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/17/applevel-consistency.html" title="PostgreSQL 17 - 13.4. Data Consistency Checks at the Application Level" >17</a>
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/16/applevel-consistency.html" title="PostgreSQL 16 - 13.4. Data Consistency Checks at the Application Level" class="docs-version-selected">16</a>
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/15/applevel-consistency.html" title="PostgreSQL 15 - 13.4. Data Consistency Checks at the Application Level" >15</a>
+                        
+                      
+                         / 
+                        
+                          <a href="/docs/14/applevel-consistency.html" title="PostgreSQL 14 - 13.4. Data Consistency Checks at the Application Level" >14</a>
+                        
+                      
+                  </div>
+                </div>
+              
+              
+                <div class="row">
+                  <div class="col">
+                    Development Versions:
+                    
+                      
+                      <a href="/docs/19/applevel-consistency.html" title="PostgreSQL 19 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">19</a>
+                    
+                       / 
+                      <a href="/docs/devel/applevel-consistency.html" title="PostgreSQL devel - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">devel</a>
+                    
+                  </div>
+                </div>
+              
+              
+                <div class="row">
+                  <div class="col-12">
+                    Unsupported versions:
+                    
+                      
+                      <a href="/docs/13/applevel-consistency.html" title="PostgreSQL 13 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">13</a>
+                    
+                       / 
+                      <a href="/docs/12/applevel-consistency.html" title="PostgreSQL 12 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">12</a>
+                    
+                       / 
+                      <a href="/docs/11/applevel-consistency.html" title="PostgreSQL 11 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">11</a>
+                    
+                       / 
+                      <a href="/docs/10/applevel-consistency.html" title="PostgreSQL 10 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">10</a>
+                    
+                       / 
+                      <a href="/docs/9.6/applevel-consistency.html" title="PostgreSQL 9.6 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.6</a>
+                    
+                       / 
+                      <a href="/docs/9.5/applevel-consistency.html" title="PostgreSQL 9.5 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.5</a>
+                    
+                       / 
+                      <a href="/docs/9.4/applevel-consistency.html" title="PostgreSQL 9.4 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.4</a>
+                    
+                       / 
+                      <a href="/docs/9.3/applevel-consistency.html" title="PostgreSQL 9.3 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.3</a>
+                    
+                       / 
+                      <a href="/docs/9.2/applevel-consistency.html" title="PostgreSQL 9.2 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.2</a>
+                    
+                       / 
+                      <a href="/docs/9.1/applevel-consistency.html" title="PostgreSQL 9.1 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.1</a>
+                    
+                       / 
+                      <a href="/docs/9.0/applevel-consistency.html" title="PostgreSQL 9.0 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">9.0</a>
+                    
+                       / 
+                      <a href="/docs/8.4/applevel-consistency.html" title="PostgreSQL 8.4 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">8.4</a>
+                    
+                       / 
+                      <a href="/docs/8.3/applevel-consistency.html" title="PostgreSQL 8.3 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">8.3</a>
+                    
+                       / 
+                      <a href="/docs/8.2/applevel-consistency.html" title="PostgreSQL 8.2 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">8.2</a>
+                    
+                       / 
+                      <a href="/docs/8.1/applevel-consistency.html" title="PostgreSQL 8.1 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">8.1</a>
+                    
+                       / 
+                      <a href="/docs/8.0/applevel-consistency.html" title="PostgreSQL 8.0 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">8.0</a>
+                    
+                       / 
+                      <a href="/docs/7.4/applevel-consistency.html" title="PostgreSQL 7.4 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">7.4</a>
+                    
+                       / 
+                      <a href="/docs/7.3/applevel-consistency.html" title="PostgreSQL 7.3 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">7.3</a>
+                    
+                       / 
+                      <a href="/docs/7.2/applevel-consistency.html" title="PostgreSQL 7.2 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">7.2</a>
+                    
+                       / 
+                      <a href="/docs/7.1/applevel-consistency.html" title="PostgreSQL 7.1 - 13.4. Data Consistency Checks at the Application Level"  rel="nofollow">7.1</a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+            <div class="col-md-6 col-lg-5 offset-lg-1">
+              <form id="docSearchForm" role="search" method="get" action="/search/">
+                <input type="hidden" name="u" value="/docs/16/" />
+                <div class="input-group">
+                  <input type="text" id="q" name="q" class="form-control" placeholder="Search the documentation for..."/>
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><i class="fas fa-search"></i></button>
+                  </span>
+                </div><!-- /input-group -->
+              </form>
+            </div>
+          </div>
+
+          <div id="docContent">
+            <div class="navheader">
+  <table width="100%" summary="Navigation header">
+    <tr>
+      <th colspan="5" align="center">13.4.&nbsp;Data Consistency Checks at the Application Level</th>
+    </tr>
+    <tr>
+      <td width="10%" align="left"><a accesskey="p" href="explicit-locking.html" title="13.3.&nbsp;Explicit Locking">Prev</a>&nbsp;</td>
+      <td width="10%" align="left"><a accesskey="u" href="mvcc.html" title="Chapter&nbsp;13.&nbsp;Concurrency Control">Up</a></td>
+      <th width="60%" align="center">Chapter&nbsp;13.&nbsp;Concurrency Control</th>
+      <td width="10%" align="right"><a accesskey="h" href="index.html" title="PostgreSQL 16.15 Documentation">Home</a></td>
+      <td width="10%" align="right">&nbsp;<a accesskey="n" href="mvcc-serialization-failure-handling.html" title="13.5.&nbsp;Serialization Failure Handling">Next</a></td>
+    </tr>
+  </table>
+  <hr />
+</div>
+<div class="sect1" id="APPLEVEL-CONSISTENCY">
+  <div class="titlepage">
+    <div>
+      <div>
+        <h2 class="title" style="clear: both">13.4.&nbsp;Data Consistency Checks at the Application Level <a href="#APPLEVEL-CONSISTENCY" class="id_link">#</a></h2>
+      </div>
+    </div>
+  </div>
+  <div class="toc">
+    <dl class="toc">
+      <dt><span class="sect2"><a href="applevel-consistency.html#SERIALIZABLE-CONSISTENCY">13.4.1. Enforcing Consistency with Serializable Transactions</a></span></dt>
+      <dt><span class="sect2"><a href="applevel-consistency.html#NON-SERIALIZABLE-CONSISTENCY">13.4.2. Enforcing Consistency with Explicit Blocking Locks</a></span></dt>
+    </dl>
+  </div>
+  <p>It is very difficult to enforce business rules regarding data integrity using Read Committed transactions because the view of the data is shifting with each statement, and even a single statement may not restrict itself to the statement's snapshot if a write conflict occurs.</p>
+  <p>While a Repeatable Read transaction has a stable view of the data throughout its execution, there is a subtle issue with using <acronym class="acronym">MVCC</acronym> snapshots for data consistency checks, involving something known as <em class="firstterm">read/write conflicts</em>. If one transaction writes data and a concurrent transaction attempts to read the same data (whether before or after the write), it cannot see the work of the other transaction. The reader then appears to have executed first regardless of which started first or which committed first. If that is as far as it goes, there is no problem, but if the reader also writes data which is read by a concurrent transaction there is now a transaction which appears to have run before either of the previously mentioned transactions. If the transaction which appears to have executed last actually commits first, it is very easy for a cycle to appear in a graph of the order of execution of the transactions. When such a cycle appears, integrity checks will not work correctly without some help.</p>
+  <p>As mentioned in <a class="xref" href="transaction-iso.html#XACT-SERIALIZABLE" title="13.2.3.&nbsp;Serializable Isolation Level">Section&nbsp;13.2.3</a>, Serializable transactions are just Repeatable Read transactions which add nonblocking monitoring for dangerous patterns of read/write conflicts. When a pattern is detected which could cause a cycle in the apparent order of execution, one of the transactions involved is rolled back to break the cycle.</p>
+  <div class="sect2" id="SERIALIZABLE-CONSISTENCY">
+    <div class="titlepage">
+      <div>
+        <div>
+          <h3 class="title">13.4.1.&nbsp;Enforcing Consistency with Serializable Transactions <a href="#SERIALIZABLE-CONSISTENCY" class="id_link">#</a></h3>
+        </div>
+      </div>
+    </div>
+    <p>If the Serializable transaction isolation level is used for all writes and for all reads which need a consistent view of the data, no other effort is required to ensure consistency. Software from other environments which is written to use serializable transactions to ensure consistency should <span class="quote">“<span class="quote">just work</span>”</span> in this regard in <span class="productname">PostgreSQL</span>.</p>
+    <p>When using this technique, it will avoid creating an unnecessary burden for application programmers if the application software goes through a framework which automatically retries transactions which are rolled back with a serialization failure. It may be a good idea to set <code class="literal">default_transaction_isolation</code> to <code class="literal">serializable</code>. It would also be wise to take some action to ensure that no other transaction isolation level is used, either inadvertently or to subvert integrity checks, through checks of the transaction isolation level in triggers.</p>
+    <p>See <a class="xref" href="transaction-iso.html#XACT-SERIALIZABLE" title="13.2.3.&nbsp;Serializable Isolation Level">Section&nbsp;13.2.3</a> for performance suggestions.</p>
+    <div class="warning">
+      <h3 class="title">Warning: Serializable Transactions and Data Replication</h3>
+      <p>This level of integrity protection using Serializable transactions does not yet extend to hot standby mode (<a class="xref" href="hot-standby.html" title="27.4.&nbsp;Hot Standby">Section&nbsp;27.4</a>) or logical replicas. Because of that, those using hot standby or logical replication may want to use Repeatable Read and explicit locking on the primary.</p>
+    </div>
+  </div>
+  <div class="sect2" id="NON-SERIALIZABLE-CONSISTENCY">
+    <div class="titlepage">
+      <div>
+        <div>
+          <h3 class="title">13.4.2.&nbsp;Enforcing Consistency with Explicit Blocking Locks <a href="#NON-SERIALIZABLE-CONSISTENCY" class="id_link">#</a></h3>
+        </div>
+      </div>
+    </div>
+    <p>When non-serializable writes are possible, to ensure the current validity of a row and protect it against concurrent updates one must use <code class="command">SELECT FOR UPDATE</code>, <code class="command">SELECT FOR SHARE</code>, or an appropriate <code class="command">LOCK TABLE</code> statement. (<code class="command">SELECT FOR UPDATE</code> and <code class="command">SELECT FOR SHARE</code> lock just the returned rows against concurrent updates, while <code class="command">LOCK TABLE</code> locks the whole table.) This should be taken into account when porting applications to <span class="productname">PostgreSQL</span> from other environments.</p>
+    <p>Also of note to those converting from other environments is the fact that <code class="command">SELECT FOR UPDATE</code> does not ensure that a concurrent transaction will not update or delete a selected row. To do that in <span class="productname">PostgreSQL</span> you must actually update the row, even if no values need to be changed. <code class="command">SELECT FOR UPDATE</code> <span class="emphasis"><em>temporarily blocks</em></span> other transactions from acquiring the same lock or executing an <code class="command">UPDATE</code> or <code class="command">DELETE</code> which would affect the locked row, but once the transaction holding this lock commits or rolls back, a blocked transaction will proceed with the conflicting operation unless an actual <code class="command">UPDATE</code> of the row was performed while the lock was held.</p>
+    <p>Global validity checks require extra thought under non-serializable <acronym class="acronym">MVCC</acronym>. For example, a banking application might wish to check that the sum of all credits in one table equals the sum of debits in another table, when both tables are being actively updated. Comparing the results of two successive <code class="literal">SELECT sum(...)</code> commands will not work reliably in Read Committed mode, since the second query will likely include the results of transactions not counted by the first. Doing the two sums in a single repeatable read transaction will give an accurate picture of only the effects of transactions that committed before the repeatable read transaction started — but one might legitimately wonder whether the answer is still relevant by the time it is delivered. If the repeatable read transaction itself applied some changes before trying to make the consistency check, the usefulness of the check becomes even more debatable, since now it includes some but not all post-transaction-start changes. In such cases a careful person might wish to lock all tables needed for the check, in order to get an indisputable picture of current reality. A <code class="literal">SHARE</code> mode (or higher) lock guarantees that there are no uncommitted changes in the locked table, other than those of the current transaction.</p>
+    <p>Note also that if one is relying on explicit locking to prevent concurrent changes, one should either use Read Committed mode, or in Repeatable Read mode be careful to obtain locks before performing queries. A lock obtained by a repeatable read transaction guarantees that no other transactions modifying the table are still running, but if the snapshot seen by the transaction predates obtaining the lock, it might predate some now-committed changes in the table. A repeatable read transaction's snapshot is actually frozen at the start of its first query or data-modification command (<code class="literal">SELECT</code>, <code class="literal">INSERT</code>, <code class="literal">UPDATE</code>, <code class="literal">DELETE</code>, or <code class="literal">MERGE</code>), so it is possible to obtain locks explicitly before the snapshot is frozen.</p>
+  </div>
+</div>
+<div class="navfooter">
+  <hr />
+  <table width="100%" summary="Navigation footer">
+    <tr>
+      <td width="40%" align="left"><a accesskey="p" href="explicit-locking.html" title="13.3.&nbsp;Explicit Locking">Prev</a>&nbsp;</td>
+      <td width="20%" align="center"><a accesskey="u" href="mvcc.html" title="Chapter&nbsp;13.&nbsp;Concurrency Control">Up</a></td>
+      <td width="40%" align="right">&nbsp;<a accesskey="n" href="mvcc-serialization-failure-handling.html" title="13.5.&nbsp;Serialization Failure Handling">Next</a></td>
+    </tr>
+    <tr>
+      <td width="40%" align="left" valign="top">13.3.&nbsp;Explicit Locking&nbsp;</td>
+      <td width="20%" align="center"><a accesskey="h" href="index.html" title="PostgreSQL 16.15 Documentation">Home</a></td>
+      <td width="40%" align="right" valign="top">&nbsp;13.5.&nbsp;Serialization Failure Handling</td>
+    </tr>
+  </table>
+</div>
+
+          </div>
+          
+            <div id="docComments">
+              <h2>Submit correction</h2>
+              <p>
+              If you see anything in the documentation that is not correct, does not match
+              your experience with the particular feature or requires further clarification,
+              please use
+              <a href="/account/comments/new/16/applevel-consistency.html/" rel="nofollow">this form</a>
+              to report a documentation issue.
+              </p>
+            </div>
+          
+        </div> <!-- pgContentWrap -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+      <!-- Copyright -->
+      <div class="container">
+        <a href="/about/policies/">Policies</a> |
+        <a href="/about/policies/coc/">Code of Conduct</a> |
+        <a href="/about/">About PostgreSQL</a> |
+        <a href="/about/contact/">Contact</a><br/>
+        <p>Copyright &copy; 1996-2026 The PostgreSQL Global Development Group</p>
+      </div>
+    </footer>
+    <script src="/media/js/main.js?629b876c"></script>
+
+  </body>
+</html>
