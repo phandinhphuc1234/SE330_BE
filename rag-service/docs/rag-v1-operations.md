@@ -205,3 +205,26 @@ Bản sửa đã chạy qua worker thật:
 Các RAG-only readiness fixtures dùng ebook IDs 1576208978, 1026229968 và
 1836146605; không phải sách mới tạo trong public Library catalog. Source files
 và job history được giữ lại, không xóa/ghi đè ebook golden hiện có.
+
+## 9. Đo RAG trên VPS mà không mở cổng nội bộ
+
+Workflow **Verify production RAG** chạy qua SSH đã pin host key, không đọc key
+ra local, không sửa data hay quyền đọc. Chạy `mode=inventory` trước: artifact chỉ
+gồm IDs, trạng thái job, source/chunk checksums và vector IDs, không có raw text.
+Giới hạn 50 documents / 1000 chunks mỗi document, không gọi provider ở mode này.
+
+Chỉ dùng `mode=evaluate`, `document_id=<ID đã kiểm tra>` khi production chứa đúng
+PDF reference. Tool yêu cầu SHA-256 PDF và cả sáu chunk text khớp baseline v1 mới
+remap IDs giữa hai database; không đổi câu hỏi, expected pages, answer points
+hoặc nhãn answerable. Nếu checksum khác, dừng trước provider calls và cần label
+corpus riêng, không sửa nhãn chỉ để có số đẹp.
+
+Evaluation chạy retrieval dense/hybrid toàn bộ 20 câu, gate hybrid không đổi;
+sau đó full 20-case answer bằng hybrid, pacing 30 giây, không judge và không
+unbounded retry. Artifact chứa report pass/fail, scoped dataset binding, snapshot
+và p50/p95 nearest-rank quan sát. Thời gian Ask bao gồm retrieval + generation,
+không phải model-only latency, concurrent-load benchmark hoặc SLA. Quota lỗi vẫn
+là operational error và gate fail, không được ghép subset thành 20/20 PASS.
+
+Workflow không thay thế upload/ingestion/public JWT-loan-session/browser citation
+checks; các bước đó phải ghi riêng trong production acceptance report.
