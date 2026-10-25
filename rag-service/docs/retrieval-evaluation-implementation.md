@@ -215,3 +215,33 @@ metadata được deepcopy tại create/update để ingestion mới persist đ�
 Tham khảo: [PostgreSQL GIN](https://www.postgresql.org/docs/16/textsearch-indexes.html),
 [Qdrant hybrid/RRF](https://qdrant.tech/documentation/search/hybrid-queries/),
 [Gemini thinking budget](https://ai.google.dev/gemini-api/docs/generate-content/thinking).
+
+## Bổ sung ngày 2026-10-18
+
+Completion plan và evidence mới ở
+[`rag-v1-production-completion-plan-2026-10-18.md`](rag-v1-production-completion-plan-2026-10-18.md).
+Retrieval 20 cases tái lập hybrid HitRate@3 0.941, Recall@3 0.912; scope và
+operational errors đều 0. CLI có `--gate-modes hybrid`, `--min-recall` và
+`--require-correct-abstention`, provenance/observed versions trong report mới.
+
+Public Spring upload/reader API đã được kiểm chứng local. Answer full v1 đạt
+18/20 rồi vướng quota; diagnostic sau đó tìm thấy case thành phố trả “không
+nêu” nhưng đặt sai cờ abstain. Prompt v2 bổ sung quy tắc chung cho thiếu dữ kiện;
+full v2 run vẫn pending. Không đổi nhãn/ngưỡng để bỏ qua lỗi này.
+
+Metrics, trace correlation, cách chạy lại public smoke và demo có trong
+[`rag-v1-operations.md`](rag-v1-operations.md). Production deployment đang được
+giữ chờ quota theo yêu cầu người dùng.
+
+## Bổ sung ngày 2026-10-24
+
+Checkpoint 18/10 ở trên được giữ như lịch sử. Full run prompt v2 ngày 19/10
+`rag-eval-20261019T072231556760Z` đã lưu **20/20 PASS**, xác nhận ngày 24/10:
+17/17 answerable, 3/3 unanswerable; errors/scope/citation metadata violations 0;
+HitRate@3 0.941, Recall@3 0.912, không đổi nhãn/ngưỡng hoặc ghép subsets.
+PDF adversarial thật và browser public Ask/citation/abstention được kiểm chứng
+local ngày 24/10. Một lỗi provider tạm thời và lỗi ebook reborrow riêng cũng được
+ghi nhận; bản sửa reborrow đã qua backend 325 tests và runtime browser/API sau build.
+
+Xem [latest local gates](evidence/2026-10-24-rag-local-release-gates.md).
+CI/production chưa chạy và vẫn giữ mọi thay đổi local theo yêu cầu người dùng.

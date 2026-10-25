@@ -10,6 +10,7 @@ import math
 import os
 from pathlib import Path
 from statistics import fmean
+import subprocess
 from time import perf_counter
 
 import httpx
@@ -109,6 +110,12 @@ async def evaluate_dataset(
                 ))
                 expected = set(item.expected_chunk_ids)
                 row["retrievedChunkIds"] = retrieved_ids
+                row["embeddingVersion"] = retrieval.get("embeddingVersion")
+                row["chunkingVersions"] = sorted({
+                    str(hit["metadata"]["chunking_strategy_version"])
+                    for hit in retrieval.get("results", [])
+                    if hit.get("metadata", {}).get("chunking_strategy_version") is not None
+                })
                 row["retrievalSources"] = sorted({
                     source for hit in retrieval.get("results", [])
                     for source in hit.get("metadata", {}).get("retrieval_sources", ["vector"])
@@ -133,8 +140,15 @@ async def evaluate_dataset(
                     citations = answer.get("citations") or []
                     cited_ids = [citation.get("chunkId") for citation in citations if citation.get("chunkId")]
                     row["scopeViolations"] += sum(not _hit_in_scope(citation, item) for citation in citations)
+                    row["citationMetadataViolations"] = sum(
+                        not isinstance(citation.get("pageStart"), int)
+                        or isinstance(citation.get("pageStart"), bool)
+                        or citation["pageStart"] <= 0
+                        for citation in citations
+                    )
                     row["answer"] = {
                         "text": answer.get("answer", ""), "abstained": bool(answer.get("abstained")),
+                        "model": answer.get("model"), "promptVersion": answer.get("promptVersion"),
                         "reason": answer.get("reason"), "citedChunkIds": cited_ids,
                         "metrics": {
                             "answerPointCoverage": answer_point_coverage(item.expected_answer_points, answer.get("answer", "")),
@@ -179,6 +193,7 @@ async def evaluate_dataset(
         "dataset": {"name": dataset.name, "version": dataset.version, "itemCount": len(dataset.items),
                     "selectedItemIds": [item.id for item in dataset.items]},
         "generatedAt": datetime.now(timezone.utc).isoformat(), "topK": top_k,
+        "code": _code_provenance(),
         "llmRequestIntervalSeconds": llm_interval_seconds,
         "modes": mode_reports,
         "limitations": [
@@ -187,6 +202,51 @@ async def evaluate_dataset(
             "Citation relevance does not prove every claim is entailed by the source.",
         ],
     }
+
+
+def _code_provenance() -> dict:
+    repository = Path(__file__).resolve().parents[3]
+    try:
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=repository, check=True,
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain"], cwd=repository, check=True,
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+        return {"commit": revision, "workingTreeDirty": bool(status)}
+    except (OSError, subprocess.SubprocessError):
+        return {"commit": None, "workingTreeDirty": None}
+
+
+def quality_gate_failures(
+    report: dict, *, min_hit_rate: float = 0.0, min_recall: float = 0.0,
+    gate_modes: list[str] | None = None, require_correct_abstention: bool = False,
+) -> list[str]:
+    """Operational/scope failures always fail; quality thresholds select a mode."""
+
+    failures = []
+    selected_modes = gate_modes or list(report["modes"])
+    if any(mode not in report["modes"] for mode in selected_modes):
+        raise ValueError("Quality gate modes must be included in the evaluated modes.")
+    k = report["topK"]
+    for mode, data in report["modes"].items():
+        summary = data["summary"]
+        for name in ("errorCount", "scopeViolations", "citationMetadataViolations"):
+            if summary.get(name, 0):
+                failures.append(f"{mode}:{name}")
+        if mode in selected_modes:
+            if summary[f"hitRate@{k}"] < min_hit_rate:
+                failures.append(f"{mode}:hitRate@{k}")
+            if summary[f"recall@{k}"] < min_recall:
+                failures.append(f"{mode}:recall@{k}")
+            if require_correct_abstention:
+                if summary.get("answer.evaluatedCount", 0) != report["dataset"]["itemCount"]:
+                    failures.append(f"{mode}:incompleteAnswers")
+                elif any(row["answer"]["abstained"] != (not row["answerable"]) for row in data["items"]):
+                    failures.append(f"{mode}:abstentionMismatch")
+    return failures
 
 
 def _hit_in_scope(citation: dict, item: EvaluationItem) -> bool:
@@ -199,7 +259,8 @@ def _hit_in_scope(citation: dict, item: EvaluationItem) -> bool:
 def summarize(items: list[dict], *, top_k: int) -> dict:
     answerable = [item for item in items if item["answerable"]]
     summary = {"errorCount": sum("errorType" in item for item in items),
-               "scopeViolations": sum(item.get("scopeViolations", 0) for item in items)}
+               "scopeViolations": sum(item.get("scopeViolations", 0) for item in items),
+               "citationMetadataViolations": sum(item.get("citationMetadataViolations", 0) for item in items)}
     for name in (f"precision@{top_k}", f"recall@{top_k}", f"hitRate@{top_k}", "reciprocalRank", f"nDCG@{top_k}"):
         summary[name] = fmean(item.get("retrieval", {}).get(name, 0.0) for item in answerable) if answerable else 0.0
     latencies = [item["retrieval"]["latencyMs"] for item in items if "retrieval" in item]
@@ -220,7 +281,7 @@ def summarize(items: list[dict], *, top_k: int) -> dict:
 
 def write_reports(report: dict, output_dir: Path) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     json_path, md_path = output_dir / f"rag-eval-{stamp}.json", output_dir / f"rag-eval-{stamp}.md"
     json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     k = report["topK"]
@@ -241,6 +302,12 @@ def write_reports(report: dict, output_dir: Path) -> tuple[Path, Path]:
     if answer_lines:
         lines.extend(["", "## Answer metrics", ""] + answer_lines)
     lines.extend(["", "## Interpretation limits", ""] + [f"- {item}" for item in report["limitations"]])
+    provenance = report.get("code", {})
+    lines.extend(["", f"Code commit: `{provenance.get('commit')}`; working tree dirty: `{provenance.get('workingTreeDirty')}`."])
+    if "qualityGate" in report:
+        gate = report["qualityGate"]
+        lines.extend(["", f"Quality gate: **{'PASS' if gate['passed'] else 'FAIL'}**."])
+        lines.extend(f"- {failure}" for failure in gate["failures"])
     md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return json_path, md_path
 
@@ -252,6 +319,13 @@ async def _run(args) -> int:
         raise SystemExit("--top-k must be between 1 and 50.")
     if not math.isfinite(args.llm_interval_seconds) or not 0 <= args.llm_interval_seconds <= 60:
         raise SystemExit("--llm-interval-seconds must be between 0 and 60.")
+    for value in (args.min_hit_rate, args.min_recall):
+        if not math.isfinite(value) or not 0 <= value <= 1:
+            raise SystemExit("Quality thresholds must be between 0 and 1.")
+    if args.require_correct_abstention and args.skip_answers:
+        raise SystemExit("--require-correct-abstention requires answer evaluation.")
+    if args.gate_modes and any(mode not in args.modes for mode in args.gate_modes):
+        raise SystemExit("--gate-modes must be included in --modes.")
     judge = None
     if args.judge:
         from app.evaluation.faithfulness_judge import FaithfulnessJudge
@@ -261,16 +335,21 @@ async def _run(args) -> int:
         report = await evaluate_dataset(dataset, client=client,
                                         modes=args.modes, top_k=args.top_k, evaluate_answers=not args.skip_answers,
                                         judge=judge, llm_interval_seconds=args.llm_interval_seconds)
+    failures = quality_gate_failures(
+        report, min_hit_rate=args.min_hit_rate, min_recall=args.min_recall,
+        gate_modes=args.gate_modes, require_correct_abstention=args.require_correct_abstention,
+    )
+    report["qualityGate"] = {
+        "passed": not failures, "failures": failures,
+        "modes": args.gate_modes or args.modes, "minHitRate": args.min_hit_rate,
+        "minRecall": args.min_recall, "requireCorrectAbstention": args.require_correct_abstention,
+    }
     paths = write_reports(report, args.output_dir)
     for path in paths:
         print(f"Report: {path}")
-    # A broken provider/scope is always a failed run. Optional quality gates
-    # make this usable as a regression gate against a seeded CI fixture.
-    for data in report["modes"].values():
-        s = data["summary"]
-        if s["errorCount"] or s["scopeViolations"] or s[f"hitRate@{args.top_k}"] < args.min_hit_rate:
-            return 1
-    return 0
+    for failure in failures:
+        print(f"Gate failed: {failure}")
+    return int(bool(failures))
 
 
 def main() -> None:
@@ -286,6 +365,11 @@ def main() -> None:
     parser.add_argument("--llm-interval-seconds", type=float, default=0.0,
                         help="Minimum interval shared by answer and judge calls; e.g. 15 for a 5 RPM provider limit.")
     parser.add_argument("--min-hit-rate", type=float, default=0.0)
+    parser.add_argument("--min-recall", type=float, default=0.0)
+    parser.add_argument("--gate-modes", nargs="+", choices=["dense", "hybrid", "graph"],
+                        help="Apply quality thresholds to these modes; operational errors in any mode still fail.")
+    parser.add_argument("--require-correct-abstention", action="store_true",
+                        help="Require every case to finish and match its answerable/abstained label.")
     parser.add_argument("--output-dir", type=Path, default=Path("app/evaluation/reports"))
     raise SystemExit(asyncio.run(_run(parser.parse_args())))
 

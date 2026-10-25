@@ -217,3 +217,33 @@ hướng citation đến trang. Đối chiếu source không thay thế test bro
 Lượt vẽ flow này chỉ bổ sung tài liệu, không sửa business logic, không gọi
 provider, không chạy migration/deploy hay chạy lại benchmark. Public
 Spring JWT/session → UI E2E vẫn chưa được xác nhận bởi lượt này.
+
+## 8. Kiểm chứng và observability bổ sung ngày 2026-10-18
+
+Lượt hoàn thiện v1 đã kiểm tra local public upload, JWT/loan/reading session,
+semantic search, Ask, PDF signed URL, citation và abstention. Chi tiết/số liệu
+được lưu trong [completion plan](rag-v1-production-completion-plan-2026-10-18.md)
+và [operations runbook](rag-v1-operations.md). Browser production chưa được
+kiểm chứng bởi các API smoke này.
+
+Spring chuyển MDC `traceId` thành header `X-Request-ID` cho RAG. API RAG xuất
+private `/metrics` cho HTTP/stage latency, retrieval/answer/provider outcomes;
+ingestion count/duration đọc từ PostgreSQL để bao gồm Celery workers.
+Monitoring profile local đã scrape Spring, RAG và Qdrant thành công.
+
+Prompt hiện tại v2 yêu cầu abstain cả khi chỉ có thể trả lời “sách không nêu dữ
+kiện đó”. Full answer evaluation v2 và production release vẫn đang chờ quota;
+các report live v1 không được coi là bằng chứng v2 đã pass.
+
+## 9. Checkpoint ngày 2026-10-24
+
+Trạng thái trên là lịch sử 18/10. Full v2 report ngày 19/10 đã hoàn tất **20/20
+PASS** (17 answered, 3 abstained), được kiểm tra sau timeout ngày 24/10. Cùng
+ngày 24/10 đã chạy PDF adversarial qua worker/Gemini thật (2/2 checks) và browser
+Spring JWT/loan/session → Ask → citation chuyển trang 1 sang 3/6, PDF render đúng,
+câu thiếu dữ kiện abstain. Có một lỗi provider trước lần retry thành công, được
+ghi lại thay vì coi toàn bộ requests đều pass.
+
+Chi tiết và giới hạn: [latest local release gates](evidence/2026-10-24-rag-local-release-gates.md).
+Lỗi reborrow do loan ACTIVE quá hạn đã sửa, backend 325 tests và browser/API runtime pass;
+CI/production vẫn chưa chạy, không tự suy ra quyền commit/push/deploy.

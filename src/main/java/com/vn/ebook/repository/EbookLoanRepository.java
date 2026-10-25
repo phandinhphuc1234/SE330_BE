@@ -6,6 +6,7 @@ import com.vn.loan.repository.projection.StaffLoanRowProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -15,6 +16,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EbookLoanRepository extends JpaRepository<EbookLoan, Long> {
+
+    // Call while holding the member -> ebook locks in the loan-grant transaction.
+    // Execute before INSERT: the partial unique index counts status, not expiry time.
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+            update ebook_loans
+            set status = 'EXPIRED', updated_at = :now, version = version + 1
+            where member_id = :memberId and book_ebook_id = :ebookId
+              and status = 'ACTIVE' and expired_at <= :now
+            """, nativeQuery = true)
+    int expireElapsedActiveLoans(@Param("memberId") Long memberId,
+                                 @Param("ebookId") Long ebookId,
+                                 @Param("now") Instant now);
 
     // Idempotency cho IPN retry: một payment chỉ được cấp tối đa một ebook loan.
     boolean existsByPaymentId(Long paymentId);

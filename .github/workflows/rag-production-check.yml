@@ -1,0 +1,77 @@
+name: Verify production RAG
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Inventory is read-only; evaluate makes at most 20 paced answer requests
+        required: true
+        type: choice
+        default: inventory
+        options: [inventory, evaluate]
+      document_id:
+        description: Exact verified production document ID; required for evaluation
+        required: false
+        default: '0'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-rag-verification
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Verify through pinned SSH without exposing internal ports or secrets
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          CHECK_MODE: ${{ inputs.mode }}
+          DOCUMENT_ID: ${{ inputs.document_id }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$CHECK_MODE" == inventory || "$CHECK_MODE" == evaluate ]]
+          [[ "$DOCUMENT_ID" =~ ^[0-9]{1,12}$ ]]
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/rag_check"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/rag_check" "$HOME/.ssh/known_hosts"
+          ssh_args=(-i "$HOME/.ssh/rag_check" -p "$VPS_PORT" -o BatchMode=yes
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=15)
+          remote="${VPS_USER}@${VPS_HOST}"
+          remote_dir="/tmp/library-rag-check-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          result=0
+          ssh "${ssh_args[@]}" "$remote" bash -s -- "$CHECK_MODE" "$DOCUMENT_ID" "$remote_dir" <<'REMOTE' || result=$?
+          set -Eeuo pipefail
+          ids=( $(docker ps -q --filter label=com.docker.compose.project=quanlythuvien --filter label=com.docker.compose.service=rag-api) )
+          [[ ${#ids[@]} == 1 ]]
+          printf 'Runtime image: '
+          docker inspect --format '{{.Config.Image}}' "${ids[0]}"
+          docker exec "${ids[0]}" python -m app.evaluation.production_verification --mode "$1" --document-id "$2" --output-dir "$3"
+          REMOTE
+          mkdir -p artifacts
+          ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" > artifacts/production-rag-evidence.tar.gz <<'REMOTE' || result=1
+          set -Eeuo pipefail
+          ids=( $(docker ps -q --filter label=com.docker.compose.project=quanlythuvien --filter label=com.docker.compose.service=rag-api) )
+          [[ ${#ids[@]} == 1 ]]
+          docker exec "${ids[0]}" tar -C "$1" -czf - .
+          REMOTE
+          exit "$result"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: production-rag-evidence-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14

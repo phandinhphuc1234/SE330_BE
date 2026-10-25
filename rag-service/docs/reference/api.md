@@ -188,7 +188,7 @@ Grounded response:
     }
   ],
   "model": "gpt-4o-mini",
-  "promptVersion": "library-ebook-answer-v1"
+  "promptVersion": "library-ebook-answer-v2"
 }
 ```
 

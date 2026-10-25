@@ -1,0 +1,1295 @@
+{
+  "dataset": {
+    "name": "gift-of-the-magi-library-rag",
+    "version": "1.0.0",
+    "itemCount": 20,
+    "selectedItemIds": [
+      "rooms-rent",
+      "watch-inheritance",
+      "hair-length",
+      "money-left",
+      "dinner-time",
+      "two-sacrifices",
+      "unusable-gifts",
+      "money-before-christmas",
+      "jim-current-salary",
+      "two-prized-possessions",
+      "hair-buyer-and-price",
+      "della-gift",
+      "chain-price",
+      "jim-age",
+      "jim-gift",
+      "jim-sold-watch",
+      "why-called-magi",
+      "unknown-author-birthday",
+      "unknown-city",
+      "unknown-maiden-name"
+    ]
+  },
+  "generatedAt": "2026-10-18T07:09:21.062511+00:00",
+  "topK": 3,
+  "code": {
+    "commit": "0e974ae317c5383b1183de09025091feb291a3f2",
+    "workingTreeDirty": true
+  },
+  "llmRequestIntervalSeconds": 0.0,
+  "modes": {
+    "dense": {
+      "summary": {
+        "errorCount": 0,
+        "scopeViolations": 0,
+        "citationMetadataViolations": 0,
+        "precision@3": 0.3333333333333333,
+        "recall@3": 0.8529411764705882,
+        "hitRate@3": 0.8823529411764706,
+        "reciprocalRank": 0.8039215686274509,
+        "nDCG@3": 0.8121513880225135,
+        "retrievalLatencyMs": 1685.8138399984455
+      },
+      "items": [
+        {
+          "id": "rooms-rent",
+          "question": "How much did their furnished rooms cost each week?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-2-6a266139d37a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 12106.89419999835
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "watch-inheritance",
+          "question": "Who owned Jim's gold watch before him?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "relation"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 664.3035000015516
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "hair-length",
+          "question": "How far did Della's hair reach before she sold it?",
+          "answerable": true,
+          "tags": [
+            "fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 793.6953000025824
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "money-left",
+          "question": "How much money did Della have left after buying the chain?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-2-6a266139d37a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.3333333333333333,
+            "nDCG@3": 0.5,
+            "latencyMs": 975.3802999912295
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "dinner-time",
+          "question": "At what time was Jim's dinner ready?",
+          "answerable": true,
+          "tags": [
+            "fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-5-53eecbd6d3a5"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 927.5651999923866
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "two-sacrifices",
+          "question": "Compare what Della and Jim each sold to buy the other's gift.",
+          "answerable": true,
+          "tags": [
+            "multi-hop",
+            "comparison"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-2-6a266139d37a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 0.5,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.3333333333333333,
+            "nDCG@3": 0.3065735963827292,
+            "latencyMs": 1018.0932999937795
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unusable-gifts",
+          "question": "Why could neither Jim nor Della immediately use their Christmas gifts?",
+          "answerable": true,
+          "tags": [
+            "multi-hop",
+            "reasoning"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 979.752000013832
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "money-before-christmas",
+          "question": "How much money did Della have to buy Jim a Christmas gift?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 2280.6886000034865
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-current-salary",
+          "question": "How much was Jim being paid per week at the time of the story?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 760.0694000138901
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "two-prized-possessions",
+          "question": "What two possessions were the Youngs most proud of?",
+          "answerable": true,
+          "tags": [
+            "multi-fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-4-8b84a70fff8f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 682.9741999972612
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "hair-buyer-and-price",
+          "question": "Who bought Della's hair and how much did she pay for it?",
+          "answerable": true,
+          "tags": [
+            "multi-fact",
+            "named-entity"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 633.1496999773663
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "della-gift",
+          "question": "What gift did Della buy for Jim?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "gift"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 641.6095999884419
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "chain-price",
+          "question": "How much did the gold watch chain cost?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 1492.3964999907184
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-age",
+          "question": "How old was Jim?",
+          "answerable": true,
+          "tags": [
+            "fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 991.9037999934517
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-gift",
+          "question": "What Christmas gift did Jim buy for Della?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "gift"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 687.1860999963246
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-sold-watch",
+          "question": "What did Jim sell to get money for Della's combs?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "gift"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 1944.125600013649
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "why-called-magi",
+          "question": "Why does the narrator call Jim and Della the magi?",
+          "answerable": true,
+          "tags": [
+            "reasoning",
+            "theme"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 1782.7267000102438
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unknown-author-birthday",
+          "question": "On what exact date was O. Henry born?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-0-66a6bcec62ec"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 750.6914999976289
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unknown-city",
+          "question": "In which city does the story explicitly take place?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 1165.1982000039425
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unknown-maiden-name",
+          "question": "What was Della's surname before she married Jim?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-4-8b84a70fff8f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 2437.873099988792
+          },
+          "scopeViolations": 0
+        }
+      ]
+    },
+    "hybrid": {
+      "summary": {
+        "errorCount": 0,
+        "scopeViolations": 0,
+        "citationMetadataViolations": 0,
+        "precision@3": 0.35294117647058826,
+        "recall@3": 0.9117647058823529,
+        "hitRate@3": 0.9411764705882353,
+        "reciprocalRank": 0.7254901960784315,
+        "nDCG@3": 0.7624248449552952,
+        "retrievalLatencyMs": 2120.3391599992756
+      },
+      "items": [
+        {
+          "id": "rooms-rent",
+          "question": "How much did their furnished rooms cost each week?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 24225.34679999808
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "watch-inheritance",
+          "question": "Who owned Jim's gold watch before him?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "relation"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 1152.9038000153378
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "hair-length",
+          "question": "How far did Della's hair reach before she sold it?",
+          "answerable": true,
+          "tags": [
+            "fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6309297535714575,
+            "latencyMs": 978.6915000004228
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "money-left",
+          "question": "How much money did Della have left after buying the chain?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-2-6a266139d37a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.3333333333333333,
+            "nDCG@3": 0.5,
+            "latencyMs": 1065.1556999946479
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "dinner-time",
+          "question": "At what time was Jim's dinner ready?",
+          "answerable": true,
+          "tags": [
+            "fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 1083.808900002623
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "two-sacrifices",
+          "question": "Compare what Della and Jim each sold to buy the other's gift.",
+          "answerable": true,
+          "tags": [
+            "multi-hop",
+            "comparison"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 0.5,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.38685280723454163,
+            "latencyMs": 1066.3131000183057
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unusable-gifts",
+          "question": "Why could neither Jim nor Della immediately use their Christmas gifts?",
+          "answerable": true,
+          "tags": [
+            "multi-hop",
+            "reasoning"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 729.1404999850783
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "money-before-christmas",
+          "question": "How much money did Della have to buy Jim a Christmas gift?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-0-66a6bcec62ec"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 823.6217999947257
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-current-salary",
+          "question": "How much was Jim being paid per week at the time of the story?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 1192.3405999841634
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "two-prized-possessions",
+          "question": "What two possessions were the Youngs most proud of?",
+          "answerable": true,
+          "tags": [
+            "multi-fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-4-8b84a70fff8f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 1053.6603999789804
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "hair-buyer-and-price",
+          "question": "Who bought Della's hair and how much did she pay for it?",
+          "answerable": true,
+          "tags": [
+            "multi-fact",
+            "named-entity"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6309297535714575,
+            "latencyMs": 881.3964999862947
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "della-gift",
+          "question": "What gift did Della buy for Jim?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "gift"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 833.192100020824
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "chain-price",
+          "question": "How much did the gold watch chain cost?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "money"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6309297535714575,
+            "latencyMs": 1137.9117999749724
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-age",
+          "question": "How old was Jim?",
+          "answerable": true,
+          "tags": [
+            "fact"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6309297535714575,
+            "latencyMs": 813.3590000215918
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-gift",
+          "question": "What Christmas gift did Jim buy for Della?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "gift"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-5-53eecbd6d3a5"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 924.0897999843583
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "jim-sold-watch",
+          "question": "What did Jim sell to get money for Della's combs?",
+          "answerable": true,
+          "tags": [
+            "fact",
+            "gift"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6309297535714575,
+            "latencyMs": 867.6497999986168
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "why-called-magi",
+          "question": "Why does the narrator call Jim and Della the magi?",
+          "answerable": true,
+          "tags": [
+            "reasoning",
+            "theme"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-5-53eecbd6d3a5",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 716.3121000048704
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unknown-author-birthday",
+          "question": "On what exact date was O. Henry born?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-3-17c98c4ff9df",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 904.2065000103321
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unknown-city",
+          "question": "In which city does the story explicitly take place?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 1124.0293000009842
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "unknown-maiden-name",
+          "question": "What was Della's surname before she married Jim?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 833.6532000103034
+          },
+          "scopeViolations": 0
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Golden labels apply to the supplied PDF/chunk version; re-label after re-chunking.",
+    "Answer-point coverage is lexical and is not a semantic faithfulness score.",
+    "Citation relevance does not prove every claim is entailed by the source."
+  ],
+  "qualityGate": {
+    "passed": true,
+    "failures": [],
+    "modes": [
+      "hybrid"
+    ],
+    "minHitRate": 0.94,
+    "minRecall": 0.91,
+    "requireCorrectAbstention": false
+  }
+}

@@ -56,6 +56,9 @@ services:
       # Mail / Resend
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-onboarding@resend.dev}
+      # Match production's optional SMTP health policy; enable explicitly when
+      # checking mail. DB/Redis/other application health checks remain enabled.
+      MANAGEMENT_HEALTH_MAIL_ENABLED: ${MANAGEMENT_HEALTH_MAIL_ENABLED:-false}
 
       # Cloudinary - public images only
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}

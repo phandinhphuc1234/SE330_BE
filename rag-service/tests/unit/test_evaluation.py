@@ -6,7 +6,7 @@ from app.evaluation.answer_metrics import answer_point_coverage, token_f1
 from app.evaluation.dataset import EvaluationDataset, EvaluationItem, load_evaluation_dataset, select_evaluation_items
 from app.evaluation.hallucination_checker import abstention_accuracy, citation_precision
 from app.evaluation.retrieval_metrics import ndcg_at_k, recall_at_k, reciprocal_rank
-from app.evaluation.run_eval import DEFAULT_DATASET, LLMRequestPacer, evaluate_dataset, write_reports
+from app.evaluation.run_eval import DEFAULT_DATASET, LLMRequestPacer, evaluate_dataset, quality_gate_failures, write_reports
 from app.evaluation.faithfulness_judge import FaithfulnessJudge
 
 
@@ -48,11 +48,14 @@ def test_dataset_subset_preserves_original_and_rejects_unknown_or_duplicate_ids(
 
 class FakeClient:
     async def search(self, item, *, mode, top_k):
-        return {"results": [{"vectorId": "a", "citation": {"ebookId": item.ebook_id}}]}, 5.0
+        return {"embeddingVersion": "test-embedding-v1", "results": [{
+            "vectorId": "a", "citation": {"ebookId": item.ebook_id},
+            "metadata": {"chunking_strategy_version": "v1"},
+        }]}, 5.0
 
     async def answer(self, item, *, mode, top_k):
         return {"answer": "Hair", "abstained": False,
-                "citations": [{"chunkId": "a", "ebookId": item.ebook_id}]}, 10.0
+                "citations": [{"chunkId": "a", "ebookId": item.ebook_id, "pageStart": 1}]}, 10.0
 
 
 @pytest.mark.asyncio
@@ -63,6 +66,9 @@ async def test_runner_aggregates_metrics_and_reports_scope_violations(tmp_path: 
     report = await evaluate_dataset(dataset, client=FakeClient(), modes=["dense", "hybrid"], top_k=1)
     assert report["modes"]["hybrid"]["summary"]["hitRate@1"] == 1
     assert report["modes"]["hybrid"]["summary"]["scopeViolations"] == 0
+    assert report["modes"]["hybrid"]["items"][0]["embeddingVersion"] == "test-embedding-v1"
+    assert report["modes"]["hybrid"]["items"][0]["chunkingVersions"] == ["v1"]
+    assert "commit" in report["code"] and "workingTreeDirty" in report["code"]
     json_path, md_path = write_reports(report, tmp_path)
     assert json_path.is_file() and md_path.is_file()
     assert "hybrid" in md_path.read_text(encoding="utf-8")
@@ -132,3 +138,33 @@ async def test_evaluation_pacer_shares_budget_without_real_sleep():
 def test_evaluation_pacer_rejects_invalid_interval(interval):
     with pytest.raises(ValueError):
         LLMRequestPacer(interval)
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_applies_threshold_to_hybrid_and_keeps_dense_comparison():
+    dataset = EvaluationDataset(name="test", version="1", items=[EvaluationItem(
+        id="one", question="What?", ebookId=10, expectedChunkIds=["a"],
+    )])
+    report = await evaluate_dataset(dataset, client=FakeClient(), modes=["dense", "hybrid"], top_k=1)
+    report["modes"]["dense"]["summary"]["hitRate@1"] = 0.88
+    report["modes"]["dense"]["summary"]["recall@1"] = 0.85
+    assert quality_gate_failures(
+        report, min_hit_rate=0.94, min_recall=0.91, gate_modes=["hybrid"],
+        require_correct_abstention=True,
+    ) == []
+
+    report["modes"]["dense"]["summary"]["errorCount"] = 1
+    assert "dense:errorCount" in quality_gate_failures(report, gate_modes=["hybrid"])
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_fails_on_wrong_abstention_and_missing_page_metadata():
+    dataset = EvaluationDataset(name="test", version="1", items=[EvaluationItem(
+        id="unknown", question="Unknown?", ebookId=10, answerable=False,
+    )])
+    report = await evaluate_dataset(dataset, client=FakeClient(), modes=["hybrid"], top_k=1)
+    assert "hybrid:abstentionMismatch" in quality_gate_failures(report, require_correct_abstention=True)
+    report["modes"]["hybrid"]["summary"]["answer.evaluatedCount"] = 0
+    assert "hybrid:incompleteAnswers" in quality_gate_failures(report, require_correct_abstention=True)
+    report["modes"]["hybrid"]["summary"]["citationMetadataViolations"] = 1
+    assert "hybrid:citationMetadataViolations" in quality_gate_failures(report)

@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Response
 
 from app.api.internal import internal_router
 from app.api.v1 import api_router
 from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logger import configure_logging
+from app.core.ingestion_metrics import get_ingestion_metrics
+from app.core.metrics import render_metrics
 from app.core.middlewares.request_id import RequestIdMiddleware
 from app.core.middlewares.timing import TimingMiddleware
 
@@ -33,6 +35,13 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
     app.include_router(api_router, prefix="/api/v1")
     app.include_router(internal_router, prefix="/internal")
+
+    # The RAG container is private/internal-only. The reverse proxy must not
+    # publish this endpoint; Prometheus scrapes it on the service network.
+    @app.get("/metrics", include_in_schema=False)
+    async def metrics(ingestion_rows: list[dict] | None = Depends(get_ingestion_metrics)) -> Response:
+        payload, content_type = render_metrics(ingestion_rows=ingestion_rows)
+        return Response(content=payload, media_type=content_type)
 
     return app
 

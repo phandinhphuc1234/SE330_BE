@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -88,6 +89,11 @@ class EbookPaymentApplierTest {
         assertThat(loan.getStatus()).isEqualTo(EbookLoanStatus.ACTIVE);
         assertThat(loan.getExpiredAt()).isAfter(loan.getBorrowedAt());
         assertThat(payment.getProviderMetadata()).containsEntry("ebookFulfillmentStatus", "FULFILLED");
+        var order = inOrder(mediaBorrowLimitService, bookEbookRepository, ebookLoanRepository);
+        order.verify(mediaBorrowLimitService).lockMember(10L);
+        order.verify(bookEbookRepository).findLockedById(1001L);
+        order.verify(ebookLoanRepository).expireElapsedActiveLoans(10L, 1001L, com.vn.shared.testsupport.TestTime.NOW);
+        order.verify(ebookLoanRepository).save(loan);
     }
 
     @Test
@@ -99,6 +105,7 @@ class EbookPaymentApplierTest {
 
         verify(bookEbookRepository, never()).findLockedById(any());
         verify(ebookLoanRepository, never()).save(any());
+        verify(ebookLoanRepository, never()).expireElapsedActiveLoans(any(), any(), any());
     }
 
     @Test

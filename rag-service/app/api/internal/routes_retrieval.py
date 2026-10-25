@@ -12,6 +12,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.core.exceptions import ServiceUnavailableError, ValidationError
+from app.core.config import get_settings
+from app.core.metrics import record_retrieval
 from app.retrieval.library_vector_retrieval import (
     LibraryVectorRetrievalRequest,
     LibraryVectorRetrievalResponse as ServiceRetrievalResponse,
@@ -112,6 +114,10 @@ async def search_library_vectors(
             error_code="VECTOR_RETRIEVAL_FAILED",
         ) from error
 
+    record_retrieval(
+        mode=payload.retrieval_mode or get_settings().retrieval_mode,
+        result_count=response.result_count,
+    )
     return _to_api_response(response)
 
 

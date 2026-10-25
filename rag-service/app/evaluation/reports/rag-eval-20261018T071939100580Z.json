@@ -1,0 +1,153 @@
+{
+  "dataset": {
+    "name": "gift-of-the-magi-library-rag",
+    "version": "1.0.0",
+    "itemCount": 2,
+    "selectedItemIds": [
+      "unknown-city",
+      "unknown-maiden-name"
+    ]
+  },
+  "generatedAt": "2026-10-18T07:19:38.655327+00:00",
+  "topK": 3,
+  "code": {
+    "commit": "0e974ae317c5383b1183de09025091feb291a3f2",
+    "workingTreeDirty": true
+  },
+  "llmRequestIntervalSeconds": 30.0,
+  "modes": {
+    "hybrid": {
+      "summary": {
+        "errorCount": 0,
+        "scopeViolations": 0,
+        "citationMetadataViolations": 0,
+        "precision@3": 0.0,
+        "recall@3": 0.0,
+        "hitRate@3": 0.0,
+        "reciprocalRank": 0.0,
+        "nDCG@3": 0.0,
+        "retrievalLatencyMs": 1405.6685999967158,
+        "answer.evaluatedCount": 2,
+        "answer.answerPointCoverage": 0.0,
+        "answer.citationPrecision": 0.0,
+        "answer.citationRecall": 0.0,
+        "answer.abstentionAccuracy": 0.5
+      },
+      "items": [
+        {
+          "id": "unknown-city",
+          "question": "In which city does the story explicitly take place?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-2-6a266139d37a",
+            "doc-1-chunk-0-66a6bcec62ec",
+            "doc-1-chunk-1-a151810c5f32"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 1484.4807999907061
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "The story does not explicitly state the name of the city where it takes place, though it mentions Della looking in \"every shop in the city\" to find a gift for Jim.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v1",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-1-chunk-2-6a266139d37a"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 0.0,
+              "citationRecall": 0.0,
+              "abstentionAccuracy": 0.0,
+              "latencyMs": 7139.581900002668
+            }
+          }
+        },
+        {
+          "id": "unknown-maiden-name",
+          "question": "What was Della's surname before she married Jim?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "abstention"
+          ],
+          "retrievedChunkIds": [
+            "doc-1-chunk-1-a151810c5f32",
+            "doc-1-chunk-4-8b84a70fff8f",
+            "doc-1-chunk-3-17c98c4ff9df"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 1326.8564000027254
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "Không đủ bằng chứng trong ebook để trả lời câu hỏi này.",
+            "abstained": true,
+            "model": null,
+            "promptVersion": "library-ebook-answer-v1",
+            "reason": "MODEL_ABSTAINED",
+            "citedChunkIds": [],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 0.0,
+              "citationRecall": 0.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 2740.8663000096567
+            }
+          }
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Golden labels apply to the supplied PDF/chunk version; re-label after re-chunking.",
+    "Answer-point coverage is lexical and is not a semantic faithfulness score.",
+    "Citation relevance does not prove every claim is entailed by the source."
+  ],
+  "qualityGate": {
+    "passed": false,
+    "failures": [
+      "hybrid:abstentionMismatch"
+    ],
+    "modes": [
+      "hybrid"
+    ],
+    "minHitRate": 0.0,
+    "minRecall": 0.0,
+    "requireCorrectAbstention": true
+  }
+}

@@ -1,0 +1,24 @@
+# Optional monorepo profile: Spring and RAG share the private Compose network.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: library-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["library-service:8080"]
+
+  - job_name: rag-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["rag-api:8000"]
+
+  - job_name: rag-qdrant
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["rag-qdrant:6333"]

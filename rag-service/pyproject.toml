@@ -27,6 +27,7 @@ lxml = ">=6.1.0,<7.0"
 langchain-text-splitters = "^0.3"
 celery = { extras = ["redis"], version = "^5.4" }
 structlog = "^24.4"
+prometheus-client = ">=0.22.1,<1.0"
 slowapi = "^0.1"
 httpx = ">=0.28.1,<1.0.0"
 boto3 = "^1.35"
