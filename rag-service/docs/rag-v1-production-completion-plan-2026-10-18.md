@@ -1,6 +1,6 @@
 # RAG v1 Production Completion Plan — 2026-10-18
 
-Status: **PARTIAL — LOCAL GATES PASS; PUBLISH/DEPLOY APPROVED CONDITIONAL ON CI; PRODUCTION TESTS PENDING**
+Status: **PARTIAL — DEPLOYED; PRODUCTION RETRIEVAL PASS; ANSWER QUOTA/FALSE-ABSTENTION AND PDF ORIGIN BLOCKERS**
 Target: hoàn thành một bản **RAG v1 demo-ready và production-verifiable trong hôm nay**.
 Baseline được giữ nguyên: `chunking=v1`, `CHUNK_SIZE=512`, `CHUNK_OVERLAP=64`,
 `retrieval=hybrid`, Gemini Embedding, Qdrant, PostgreSQL BM25 và heuristic reranker.
@@ -11,7 +11,7 @@ Baseline được giữ nguyên: `chunking=v1`, `CHUNK_SIZE=512`, `CHUNK_OVERLAP
 
 ## Tóm tắt tiến độ đã đối chiếu
 
-Cập nhật ngày **2026-10-24**, đối chiếu evidence lịch sử và checkpoint mới bên dưới.
+Cập nhật ngày **2026-10-25**, đối chiếu evidence lịch sử và checkpoint mới bên dưới.
 `[x]` chỉ xác nhận đúng mức kiểm chứng ghi kèm; **local/test tự động không có
 nghĩa là đã deploy hoặc đã kiểm chứng production**.
 
@@ -29,18 +29,26 @@ nghĩa là đã deploy hoặc đã kiểm chứng production**.
 - [x] Adversarial PDF qua worker thật: job 9 INDEXED, 2/2 answer/abstention checks pass với Gemini.
 - [x] Public/browser v2: loan hợp lệ → Ask factual → citation trang 3 → PDF trang 3/6; câu thiếu dữ kiện abstain. Có 1 lỗi provider ban đầu, retry thủ công một lần thành công; không che lỗi đó.
 - [x] Lỗi mượn lại ebook hết hạn được user duyệt sửa ngày 24/10: free/paid cùng expire loan cũ trước INSERT; full backend 325 tests pass; browser mượn lại golden thành công, loan 6 EXPIRED và loan 9 ACTIVE.
-- [ ] Commit/push, PR review và CI cho chính các working changes này; user đã duyệt push/PR/merge/deploy khi CI đạt ngày 24/10.
-- [ ] Ghi rollback digest, deploy bằng image đã qua CI và chạy smoke/browser checks trên production.
+- [x] Commit/push, merge PR #37 và #38 sau CI; release cuối 325 Java tests / 813 RAG tests, CodeQL/Sonar và hai image scans pass.
+- [x] Ghi rollback digest và deploy release `7ce3bc4` qua CI; public health UP.
+- [x] Production upload/index PDF reference: ebook 10 / document 1 / job 1, sáu chunk khớp checksum.
+- [x] Production dense/hybrid retrieval 20 câu mỗi mode: HitRate@3 1.000, Recall@3 0.970588; gate hybrid PASS.
+- [x] Chạy full answer baseline production, lưu nguyên report FAIL: 17/20 responses, ba LLM_RATE_LIMITED, một false abstention.
+- [x] Production MEMBER loan/session và public semantic search có scoped citation; anonymous API 401 ở bốn route.
+- [ ] Answer gate production 20/20 PASS; cần quota sẵn sàng và xử lý thiếu evidence ở câu multi-hop trước khi full rerun.
+- [ ] PDF/citation render production: public storage origin đang là loopback `http://127.0.0.1:8333`; chưa mở cổng hay public bucket để né lỗi.
+- [ ] Authenticated missing-session/cross-book production checks, không suy từ test local.
 
 Gate chất lượng RAG local đã đạt trên dataset 20 câu hiện tại; không phải đánh giá
 toàn bộ câu trả lời đều đúng ngữ nghĩa hoặc bảo đảm quota production. Lỗi loan cũ
 ACTIVE quá hạn đã sửa và kiểm chứng local. User đã gỡ yêu cầu giữ local, duyệt
 publishing/deploy khi CI đạt để test RAG lấy số liệu CV. CI, rollback digest và
-production smoke vẫn phải xác nhận riêng; preflight chỉ đọc đã đạt trên VPS.
+production smoke được ghi riêng, không lấy local PASS thay cho các gate production còn fail.
 
 Tài liệu vận hành: [RAG v1 operations](rag-v1-operations.md).
 Bằng chứng tổng hợp: [local quality gates](evidence/2026-10-18-rag-p0-09-quality-gates.md).
 Follow-up mới nhất: [20/20 evaluation, adversarial PDF, browser và reborrow](evidence/2026-10-24-rag-local-release-gates.md).
+Release/metrics production mới nhất: [25/10 production validation](evidence/2026-10-25-production-rag-validation.md), kèm raw reports và CV wording có giới hạn corpus.
 
 ## 1. Definition of Done
 
@@ -61,11 +69,11 @@ Chỉ đánh dấu kế hoạch này `DONE` khi tất cả điều kiện P0 sau
 - [x] Answer evaluation hoàn tất đủ **20/20 không có lỗi provider**, gồm 3/3 unanswerable abstain đúng (full run ngày 19/10).
 - [x] RAG API có metric tối thiểu và request ID để truy vết lỗi/latency (local Prometheus scrape verified).
 - [x] Local unit/integration tests, backend tests và image security scan pass; CI release vẫn chờ.
-- [ ] Deploy production bằng image digest đã được CI kiểm thử.
+- [x] Deploy production bằng image digest đã được CI kiểm thử (release `7ce3bc4`, 25/10).
 - [ ] Post-deploy smoke test pass và có rollback target rõ ràng.
 - [x] Bằng chứng local đã chạy được ghi vào mục 10; giữ cả report fail/partial.
 - [x] Giữ report v2 partial 19/20 và bổ sung full 20/20 PASS; failure smokes và suite 803 tests lịch sử được giữ nguyên.
-- [ ] Bổ sung CI và production vào mục 10 trước khi chốt DONE.
+- [x] Bổ sung kết quả CI và production vào mục 10; còn FAIL/blocker nên chưa chốt DONE.
 
 ## 2. Phạm vi hôm nay
 
@@ -79,9 +87,10 @@ Chỉ đánh dấu kế hoạch này `DONE` khi tất cả điều kiện P0 sau
 - [x] Bổ sung regression/security tests cho citation, scope, prompt injection và model JSON lỗi.
 - [x] Bổ sung observability tối thiểu cho RAG API và kiểm chứng local.
 - [x] Chạy full test suites và image scan local.
-- [ ] Chạy CI/review, deploy và smoke test production sau khi các gate đủ điều kiện.
+- [x] Chạy CI/review và deploy bằng image đã qua scan.
+- [ ] Hoàn tất mọi production acceptance gate; giữ report fail/partial hiện tại.
 - [x] Cập nhật tài liệu/runbook bằng số liệu local thật.
-- [ ] Chốt tài liệu bằng kết quả release production thật.
+- [x] Ghi tài liệu bằng kết quả release production thật và nêu rõ phần chưa đạt.
 
 ### Không làm hôm nay
 
@@ -123,9 +132,9 @@ Các mục trên chỉ được mở lại sau khi v1 có held-out evaluation �
 | RAG-P0-06 | Prompt-injection và citation tests | 60 phút | DONE (bounded local scope) | deterministic regressions + real adversarial PDF job 9, 2/2 Gemini checks; không tuyên bố miễn nhiễm |
 | RAG-P0-07 | Retrieval + answer evaluation | 75 phút | DONE (local, full v2 20/20) | 17/17 answers, 3/3 abstentions, errors/scope/citation-metadata violations 0; unchanged thresholds |
 | RAG-P0-08 | Metrics và trace tối thiểu | 60 phút | DONE (local) | private metrics, persisted ingestion snapshot, trace, Prometheus targets up |
-| RAG-P0-09 | Full quality gate + review | 45 phút | LOCAL TEST/RUNTIME/SCAN PASS; CI PENDING | RAG checkpoint 803 / 88%; backend new 325; reborrow browser + auth smoke + backend Trivy pass; provenance in latest evidence |
-| RAG-P0-10 | Deploy và production smoke | 60 phút | APPROVED; CI/DEPLOY PENDING | read-only VPS preflight pass; new release CI and rollback still required |
-| RAG-P0-11 | Chốt tài liệu và demo script | 30 phút | PREPARED; production pending | operations runbook, repeatable public smoke, evidence ledger |
+| RAG-P0-09 | Full quality gate + review | 45 phút | CI/IMAGE SCANS PASS | 325 Java / 813 RAG tests; local and CI security patch gates pass |
+| RAG-P0-10 | Deploy và production smoke | 60 phút | DEPLOYED; ACCEPTANCE PARTIAL | retrieval PASS; answer 17/20 + false abstention; PDF public origin loopback |
+| RAG-P0-11 | Chốt tài liệu và demo script | 30 phút | EVIDENCE UPDATED; NOT DONE | raw production reports, metric limits and remaining blockers documented |
 
 Thứ tự bắt buộc: `01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 → 10 → 11`.
 Nếu một bước fail, ghi nguyên nhân và sửa ngay tại bước đó; không đẩy lỗi xuống
@@ -335,7 +344,7 @@ Local đã hoàn tất, không thay thế CI/release:
 
 - [x] Đã review phạm vi diff: RAG, Spring trace forwarding, monitoring/health config và docs; không đổi frontend/migration/golden labels.
 - [x] Chưa stage/commit các report lịch sử chưa review; chúng vẫn được giữ nguyên.
-- [x] Latest RAG suite: 803 passed, coverage 88%, không failure/skip.
+- [x] RAG checkpoint 18/10: 803 passed / 88%; release CI 25/10: 813 passed / 87%, một warning.
 - [x] Backend full suite mới ngày 24/10: 325 passed, failures/errors/skipped 0, gồm reborrow fix và PostgreSQL partial-index test.
 - [x] Local image candidate pass Trivy theo policy HIGH/CRITICAL, `--ignore-unfixed`; chưa phải image production.
 - [x] Runbook và repeatable public-reader smoke đã chuẩn bị; lần chạy script gần nhất dùng `--skip-answers`.
@@ -344,21 +353,22 @@ Trước merge/deploy vẫn cần:
 
 - [x] Full prompt-v2 answer gate ở mục 5.2 pass: report ngày 19/10, xác nhận ngày 24/10.
 - [x] Full backend tests và smoke bản build mới của reborrow fix ngày 24/10 pass.
-- [ ] Commit/push đúng phạm vi trên branch, chỉ đưa report đã review vào PR.
-- [ ] CI RAG tests và backend tests pass trên commit release.
-- [ ] CI build/image scan pass, ghi immutable digest của image được publish.
+- [x] Commit/push đúng phạm vi trên branch, chỉ đưa report đã review vào PR.
+- [x] CI RAG tests và backend tests pass trên commit release `7ce3bc4`.
+- [x] CI build/image scan pass, ghi immutable digest của runtime RAG được publish.
 - [ ] PR review không còn issue P0/P1 chưa giải quyết.
-- [ ] Ghi lại production image digest hiện tại để rollback.
-- [ ] Merge/deploy khi gate đạt và yêu cầu giữ deploy đã được gỡ.
+- [x] Ghi lại hai production image digest trước thay thế để rollback (evidence 25/10).
+- [x] Merge/deploy khi CI gate đạt và user đã duyệt lại; không bypass scanner.
 
 Sau deploy:
 
-- [ ] Backend public health pass.
-- [ ] RAG container, worker, Redis, PostgreSQL, Qdrant và SeaweedFS healthy.
-- [ ] Production internal retrieval trả ít nhất một hit đúng scope.
+- [x] Backend public health pass.
+- [x] RAG API và hạ tầng healthy; worker running (không có Docker healthcheck để tuyên bố healthy).
+- [x] Production internal retrieval trả hit đúng scope, gate full dataset pass.
 - [ ] Public Ask flow pass bằng member có quyền.
 - [ ] Citation mở đúng nguồn.
-- [ ] Unauthorized flow vẫn bị chặn.
+- [x] Anonymous requests bị chặn HTTP 401 ở bốn endpoint ebook.
+- [ ] Authenticated missing-session/cross-book checks trên production.
 - [ ] Metric/log nhận được request ID của smoke test.
 
 Rollback ngay khi:
@@ -397,6 +407,7 @@ Chỉ điền số liệu đã chạy thật. Không sao chép baseline cũ vào
 | 2026-10-24 | `0e974ae` + working changes | Reborrow regression / P0-09 | local | 325 TESTS + RUNTIME/SCAN PASS | `docs/evidence/2026-10-24-rag-local-release-gates.md` | Real PostgreSQL partial-index test; old loan 6 EXPIRED, new loan 9 ACTIVE; protected-reader negative checks and new backend Trivy gate pass. |
 | 2026-10-18 | | RAG-P0-10 | production | ON HOLD — USER REQUEST | | Full prompt-v2 evaluation and quota must be ready before release. |
 | 2026-10-18 | | RAG-P0-11 | local | PREPARED | `docs/rag-v1-operations.md`; `scripts/smoke_public_reader.py` | Public smoke script ran with generation disabled; production demo acceptance is still pending. |
+| 2026-10-25 | `7ce3bc4` | RAG-P0-09/10/11 | production | DEPLOY PASS; RETRIEVAL PASS; ANSWER/PDF PARTIAL | `docs/evidence/2026-10-25-production-rag-validation.md`; Actions runs 40153860722 / 40154999135 / 40156410846 | CI 325 Java / 813 RAG, scans and deploy pass; PDF indexed; Recall@3 0.970588; answer quota errors + false abstention retained; wrong public storage origin identified. |
 
 ## 11. Demo checklist cuối ngày
 

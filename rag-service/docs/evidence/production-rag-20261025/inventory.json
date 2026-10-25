@@ -1,0 +1,55 @@
+{
+  "environment": "production",
+  "generatedAt": "2026-10-25T02:35:14.300643+00:00",
+  "mode": "evaluate",
+  "promptVersion": "library-ebook-answer-v2",
+  "embeddingVersion": "gemini-embedding-2-3072-v1",
+  "documents": [
+    {
+      "documentId": 1,
+      "bookId": 3342,
+      "ebookId": 10,
+      "sourceSha256": "cd4206e9dfc52aabb655b27e3935da81b18f244209e30f8304b249f9156b96c9",
+      "status": "INDEXED",
+      "jobId": 1,
+      "chunks": [
+        {
+          "index": 0,
+          "vectorId": "doc-1-chunk-0-66a6bcec62ec",
+          "sha256": "66a6bcec62ecad6f038f41c599d53fe91e58cb61ae79c270cd58b5b379f1dc2d",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 1,
+          "vectorId": "doc-1-chunk-1-a151810c5f32",
+          "sha256": "a151810c5f32a72e996d6d4472421ebaac984ee3ea7ba13faef520bafd1000df",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 2,
+          "vectorId": "doc-1-chunk-2-6a266139d37a",
+          "sha256": "6a266139d37af54ed6e17d3a8c256c44c1c75cd6721bb1529d1716c0c71d7c95",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 3,
+          "vectorId": "doc-1-chunk-3-17c98c4ff9df",
+          "sha256": "17c98c4ff9dffeecc0e8749a6d2021f38dded45e3cd133985bc431f063c5d894",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 4,
+          "vectorId": "doc-1-chunk-4-8b84a70fff8f",
+          "sha256": "8b84a70fff8f8ca8bb72070a4aca67c5f42fb3b3d21489f5271106dccba3cdf1",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 5,
+          "vectorId": "doc-1-chunk-5-53eecbd6d3a5",
+          "sha256": "53eecbd6d3a50bbca5ac0bce4400329848418a15ed59c1b9ee74058b08103f07",
+          "chunkingVersion": "v1"
+        }
+      ]
+    }
+  ]
+}
