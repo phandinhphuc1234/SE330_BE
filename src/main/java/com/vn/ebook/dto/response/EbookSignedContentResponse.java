@@ -9,6 +9,11 @@ public record EbookSignedContentResponse(
         // Hạn dùng URL theo backend, lấy min(5 phút, session còn lại, loan còn lại).
         Instant expiresAt,
         // Giờ server để frontend tránh tự tính TTL bằng clock client bị lệch.
-        Instant serverNow
+        Instant serverNow,
+        // True: use the fixed authenticated API file route, never forward JWTs to storage URLs.
+        boolean requiresAuthorization
 ) {
+    public EbookSignedContentResponse(String signedUrl, Instant expiresAt, Instant serverNow) {
+        this(signedUrl, expiresAt, serverNow, false);
+    }
 }

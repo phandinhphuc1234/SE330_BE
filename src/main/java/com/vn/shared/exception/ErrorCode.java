@@ -52,6 +52,7 @@ public enum ErrorCode {
     MISSING_IDEMPOTENCY_KEY(HttpStatus.BAD_REQUEST, "MISSING_IDEMPOTENCY_KEY", "Thiếu Idempotency-Key cho thao tác này"),
     IDEMPOTENCY_REQUEST_PROCESSING(HttpStatus.CONFLICT, "IDEMPOTENCY_REQUEST_PROCESSING", "Request với Idempotency-Key này đang được xử lý"),
     EBOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "EBOOK_NOT_FOUND", "Không tìm thấy ebook"),
+    EBOOK_CONTENT_UNAVAILABLE(HttpStatus.BAD_GATEWAY, "EBOOK_CONTENT_UNAVAILABLE", "Không thể tải nội dung ebook, vui lòng thử lại sau"),
     EBOOK_NOT_AVAILABLE(HttpStatus.CONFLICT, "EBOOK_NOT_AVAILABLE", "Ebook hiện không khả dụng"),
     EBOOK_DOES_NOT_REQUIRE_PAYMENT(HttpStatus.CONFLICT, "EBOOK_DOES_NOT_REQUIRE_PAYMENT", "Ebook này không cần thanh toán"),
     EBOOK_REQUIRES_PAYMENT(HttpStatus.CONFLICT, "EBOOK_REQUIRES_PAYMENT", "Ebook này yêu cầu thanh toán để mượn"),

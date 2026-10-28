@@ -11,6 +11,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -59,6 +62,61 @@ class S3EbookObjectStorageServiceTest {
                 "library-temp"
         );
         service = new S3EbookObjectStorageService(ebookS3Client, ebookS3Presigner, properties);
+    }
+
+    @Test
+    void describeReadShouldReturnLengthAndEtagWithoutPublicUrl() {
+        when(ebookS3Client.headObject(any(HeadObjectRequest.class)))
+                .thenReturn(HeadObjectResponse.builder().contentLength(100L).eTag("etag").build());
+        var metadata = service.describeRead("library-private", "ebooks/10/200/original.pdf");
+        assertThat(metadata.contentLength()).isEqualTo(100);
+        assertThat(metadata.etag()).isEqualTo("etag");
+    }
+
+    @Test
+    void describeReadMustSanitizeUpstreamFailure() {
+        when(ebookS3Client.headObject(any(HeadObjectRequest.class)))
+                .thenThrow(new IllegalStateException("private endpoint and credentials must never escape"));
+        assertThatThrownBy(() -> service.describeRead("library-private", "ebooks/10/200/original.pdf"))
+                .isInstanceOf(AppException.class).hasMessageNotContaining("credentials");
+    }
+
+    @Test
+    void describeReadMustRejectMissingMetadata() {
+        when(ebookS3Client.headObject(any(HeadObjectRequest.class))).thenReturn(HeadObjectResponse.builder().build());
+        assertThatThrownBy(() -> service.describeRead("library-private", "ebooks/10/200/original.pdf"))
+                .isInstanceOf(AppException.class);
+    }
+
+    @Test
+    void openReadMustPassBoundedRangeAndEtagWithoutBuffering() throws Exception {
+        var stream = new ResponseInputStream<>(GetObjectResponse.builder().contentLength(5L).build(),
+                new ByteArrayInputStream("%PDF-".getBytes()));
+        when(ebookS3Client.getObject(any(GetObjectRequest.class))).thenReturn(stream);
+        try (var result = service.openRead("library-private", "ebooks/10/200/original.pdf", "bytes=0-4", "etag", 5)) {
+            assertThat(result).isSameAs(stream);
+        }
+        var request = ArgumentCaptor.forClass(GetObjectRequest.class);
+        verify(ebookS3Client).getObject(request.capture());
+        assertThat(request.getValue().range()).isEqualTo("bytes=0-4");
+        assertThat(request.getValue().ifMatch()).isEqualTo("etag");
+    }
+
+    @Test
+    void openReadMustRejectInconsistentLength() {
+        var stream = new ResponseInputStream<>(GetObjectResponse.builder().contentLength(100L).build(),
+                new ByteArrayInputStream("%PDF-".getBytes()));
+        when(ebookS3Client.getObject(any(GetObjectRequest.class))).thenReturn(stream);
+        assertThatThrownBy(() -> service.openRead("library-private", "ebooks/10/200/original.pdf", "bytes=0-4", "etag", 5))
+                .isInstanceOf(AppException.class);
+    }
+
+    @Test
+    void openReadMustSanitizeUpstreamFailure() {
+        when(ebookS3Client.getObject(any(GetObjectRequest.class)))
+                .thenThrow(new IllegalStateException("secret storage URL"));
+        assertThatThrownBy(() -> service.openRead("library-private", "ebooks/10/200/original.pdf", null, "etag", 5))
+                .isInstanceOf(AppException.class).hasMessageNotContaining("secret");
     }
 
     @Test

@@ -25,7 +25,6 @@ import com.vn.ebook.service.EbookReadingAccess;
 import com.vn.shared.storage.MediaSignedUrlCommand;
 import com.vn.shared.storage.MediaSignedUrlResult;
 import com.vn.shared.storage.MediaStorageService;
-import com.vn.ebook.storage.EbookObjectStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -58,7 +57,6 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
     private final EbookReadingSessionRepository readingSessionRepository;
     private final EbookReadingSessionTokenService tokenService;
     private final MediaStorageService mediaStorageService;
-    private final EbookObjectStorageService ebookObjectStorageService;
     private final StringRedisTemplate redisTemplate;
     private final Clock clock;
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -122,12 +120,11 @@ public class EbookReaderSessionServiceImpl implements EbookReaderSessionService 
             throw new AppException(ErrorCode.READING_SESSION_NOT_ACTIVE);
         }
 
-        Duration ttl = Duration.between(now, expiresAt);
         if (ebook.getProvider() == MediaProvider.SEAWEEDFS) {
-            String signedUrl = ebookObjectStorageService.createReadUrl(
-                    ebook.getBucketName(), ebook.getObjectKey(), ttl
-            );
-            return new EbookSignedContentResponse(signedUrl, expiresAt, now);
+            // Browsers must not receive the private storage origin. Every file/range
+            // request rechecks JWT + session owner/book + the current loan.
+            return new EbookSignedContentResponse(
+                    "/api/ebooks/" + bookId + "/reader/file", expiresAt, now, true);
         }
 
         // Legacy Cloudinary rows remain readable during migration to SeaweedFS.

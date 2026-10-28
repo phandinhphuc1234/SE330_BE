@@ -48,7 +48,6 @@ class EbookReaderSessionServiceImplTest {
     private EbookReadingSessionRepository readingSessionRepository;
     private EbookReadingSessionTokenService tokenService;
     private MediaStorageService mediaStorageService;
-    private EbookObjectStorageService ebookObjectStorageService;
     private StringRedisTemplate redisTemplate;
     private ValueOperations<String, String> valueOperations;
     private EbookReaderSessionServiceImpl service;
@@ -60,7 +59,6 @@ class EbookReaderSessionServiceImplTest {
         readingSessionRepository = mock(EbookReadingSessionRepository.class);
         tokenService = mock(EbookReadingSessionTokenService.class);
         mediaStorageService = mock(MediaStorageService.class);
-        ebookObjectStorageService = mock(EbookObjectStorageService.class);
         redisTemplate = mock(StringRedisTemplate.class);
         valueOperations = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -70,7 +68,6 @@ class EbookReaderSessionServiceImplTest {
                 readingSessionRepository,
                 tokenService,
                 mediaStorageService,
-                ebookObjectStorageService,
                 redisTemplate,
                 com.vn.shared.testsupport.TestTime.CLOCK
         );
@@ -144,7 +141,7 @@ class EbookReaderSessionServiceImplTest {
     }
 
     @Test
-    void getSignedContentShouldPresignSeaweedObject() {
+    void getSignedContentShouldReturnAuthenticatedRouteWithoutStorageOrigin() {
         Instant sessionExpiresAt = com.vn.shared.testsupport.TestTime.NOW.plusSeconds(900);
         Instant loanExpiresAt = com.vn.shared.testsupport.TestTime.NOW.plusSeconds(3600);
         BookEbook ebook = ebook();
@@ -161,13 +158,11 @@ class EbookReaderSessionServiceImplTest {
                         """.formatted(sessionExpiresAt, loanExpiresAt));
         when(ebookLoanRepository.findById(3001L)).thenReturn(Optional.of(loan(loanExpiresAt)));
         when(bookEbookRepository.findByIdAndBookId(1001L, 501L)).thenReturn(Optional.of(ebook));
-        when(ebookObjectStorageService.createReadUrl(eq("library-private"),
-                eq("ebooks/501/1001/original.pdf"), any()))
-                .thenReturn("http://localhost:8333/library-private/ebooks/501/1001/original.pdf?signed=true");
 
         EbookSignedContentResponse response = service.getSignedContent(10L, 501L, "raw-token");
 
-        assertThat(response.signedUrl()).contains("localhost:8333/library-private");
+        assertThat(response.signedUrl()).isEqualTo("/api/ebooks/501/reader/file");
+        assertThat(response.requiresAuthorization()).isTrue();
         verify(mediaStorageService, never()).generateSignedUrl(any());
     }
 
