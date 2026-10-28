@@ -48,3 +48,21 @@ printf '[host-disk] Large log/temp files: metadata only\n'
 "${reader[@]}" find /var/log /var/tmp /tmp -xdev -type f -size +200M -printf '%s %p\n' 2>/dev/null | sort -n || true
 printf '[host-disk] Open deleted files, when lsof is installed\n'
 if command -v lsof >/dev/null; then "${reader[@]}" lsof -nP +L1 2>/dev/null || true; fi
+printf '[docker-store] Active storage driver and status\n'
+docker info --format '{{.Driver}} {{json .DriverStatus}}'
+printf '[docker-store] Docker/containerd subdirectories in bytes\n'
+for dir in /var/lib/docker /var/lib/containerd; do
+  "${reader[@]}" du -x -B1 --max-depth=1 "$dir" 2>/dev/null | sort -n || true
+done
+printf '[docker-store] Container graph drivers (no config/environment)\n'
+for container in $(docker ps -aq); do
+  docker inspect --format '{{.Id}} {{.GraphDriver.Name}} {{json .GraphDriver.Data}}' "$container"
+done
+printf '[docker-store] Mounted overlay targets\n'
+findmnt -rn -t overlay -o TARGET || true
+printf '[docker-store] Legacy Docker image/overlay metadata sizes\n'
+for dir in /var/lib/docker/image /var/lib/docker/overlay2 /var/lib/docker/volumes /var/lib/docker/containers /var/lib/docker/buildkit; do
+  if "${reader[@]}" test -d "$dir"; then
+    "${reader[@]}" du -x -B1 --max-depth=1 "$dir" 2>/dev/null | sort -n | tail -n 12 || true
+  fi
+done
