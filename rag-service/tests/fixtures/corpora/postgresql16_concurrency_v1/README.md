@@ -250,3 +250,15 @@ The helper writes per-attempt JSONL plus raw full responses for source review;
 provider errors and incomplete runs remain failures. A completion/citation-page/
 abstention contract gate is **not semantic correctness**. Lexical point coverage
 is not an LLM judge. No implicit deploy, reindex, entitlement or network change.
+
+### 28/10 release checkpoint
+
+The private-reader backend and NLTK security patch are merged; 360 Java / 815 RAG
+CI tests and both runtime-image security gates passed. Production application
+replacement was blocked by disk preflight: the VPS has 770M available (98% used),
+below the required 8 GiB. The old backend remains healthy; MEMBER borrowing is
+active but PDF delivery is still blocked. No PostgreSQL answer/held-out result
+has been measured. The provider-free 35/35-point plan on the old image is only a
+helper check and must be regenerated for the new runtime before answer testing.
+See the [acceptance and rollback ledger](../../../../docs/evidence/2026-10-28-private-reader-acceptance.md)
+for exact image digests, workflow runs, pending checks and recovery boundaries.

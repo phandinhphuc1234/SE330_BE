@@ -1,6 +1,6 @@
 # Production private reader and PostgreSQL acceptance - 2026-10-28
 
-Status: IN PROGRESS. Do not infer production acceptance from CI or merge.
+Status: BLOCKED BY VPS DISK CAPACITY. Do not infer production acceptance from CI or merge.
 
 ## Approval and pre-deployment checkpoint
 
@@ -34,7 +34,9 @@ Live image-ID prefixes matched the successful deployment run 40153860722:
 
 ## Gates still pending
 
-- [ ] Backend merge, main CI, image scan and healthy deployment.
+- [x] Backend reader PR #41 and dependency follow-up PR #42 merged.
+- [x] Main Java/RAG tests and both immutable-image security gates passed.
+- [ ] Healthy backend/RAG deployment: blocked by insufficient VPS disk space.
 - [ ] Unchanged PostgreSQL PDF loads through private reader API.
 - [ ] File/range/HEAD and missing/foreign/closed-session checks in production.
 - [ ] Browser citation opens the expected PDF page and unsupported question abstains.
@@ -42,6 +44,47 @@ Live image-ID prefixes matched the successful deployment run 40153860722:
   preserve provider failures and report lexical metrics separately from semantic review.
 
 No new PostgreSQL answer or held-out result has been measured at this checkpoint.
+
+## Verified continuation: release candidate and capacity blocker
+
+- [PR #42](https://github.com/phandinhphuc1234/SE330_BE/pull/42), source
+  `9fa7d9ab0c2dbe1f0b3ea0f9c7a89667c9f71fa8`, passed PR CI
+  [40659333735](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40659333735)
+  and was merged as `d94f24e3fec8cb3d624663cd12b23a4ce9cf8f9a`.
+  NLTK is locked to 3.10.4; the earlier HIGH finding was not suppressed.
+- Main release [40698306283](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40698306283)
+  passed **360 Java tests** (zero failures/errors/skips), **815 RAG tests**
+  (one warning), and both HIGH/CRITICAL image gates. These are CI test counts,
+  not production RAG answer accuracy.
+- The scanned, published candidate images are:
+  - Backend: `ghcr.io/phandinhphuc1234/se330-be@sha256:53fdf974f8a2cfb750aeddd193e5eb349eaacb3ccacb7149c12ccca9a497b40a`.
+  - RAG: `ghcr.io/phandinhphuc1234/se330-rag@sha256:3f978ac7617e80895abb62635fe598af51ce24172560c33e6d3955bb37d62197`.
+- Deployment failed at the existing preflight requirement of **8 GiB free**,
+  before image pull/migration/application replacement. No gate was lowered.
+  The deployment job synchronized its normal deployment scripts before preflight;
+  application containers and database contents were not replaced by this release.
+- Read-only status [40700200118](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40700200118)
+  at 13:50 UTC / 20:50 GMT+7 reported `/dev/root` **29G total, 28G used,
+  770M available, 98% used**. The old deployed commit remains
+  `7ce3bc4df525669b9a49ba3edd3b425fd16b470c`; Spring/RAG and dependent health-checked
+  services were healthy and Spring returned `UP`.
+- Browser MEMBER check: the PostgreSQL title displayed an **active ebook loan**
+  and a Read ebook link. Opening it reached the secure reader, but it displayed
+  `Private PDF delivery is not available yet`, consistent with the old backend.
+  This is not a PDF-rendering, checksum, citation-navigation or answer PASS.
+- Provider-free helper validation [40659356110](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40659356110)
+  succeeded on the **old** runtime: all 35/35 Qdrant points matched. Its candidate
+  `b85f25f448db1cb448ad2fe42827a346d65e1e0b4189ddd0560cd83586d3287f`
+  is diagnostic only, **not** the candidate for the new image. No generation,
+  embedding or held-out request was made by this plan.
+
+Next: obtain owner direction for capacity recovery (inspect Docker disk usage
+and review exact unused-image/cache targets, or expand the Azure disk). Do not
+delete code, database/PDF/vector volumes, backups, running images or the recorded
+rollback images. Do not run a broad `docker system prune -a --volumes`.
+After sufficient capacity, rerun the failed deployment job for the same scanned
+candidate, verify health, then create/review a **new-image** provider-free plan
+before the full held-out pass. A complete dev answer batch remains separate.
 
 ## Preserved intermediate failures
 
