@@ -20,3 +20,31 @@ for name in current-image current-rag-image previous-image previous-rag-image; d
     head -n 1 "$path"
   fi
 done
+
+# Host capacity diagnostics: sizes/layout only, never file contents or secrets.
+# sudo is used only when already available non-interactively for read-only tools.
+reader=()
+if command -v sudo >/dev/null && sudo -n true 2>/dev/null; then reader=(sudo -n); fi
+printf '[host-disk] Block devices and filesystem types\n'
+lsblk -b -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
+df -hT
+printf '[host-disk] Top-level allocation in bytes (same filesystem only)\n'
+"${reader[@]}" du -x -B1 --max-depth=1 / 2>/dev/null | sort -n || true
+printf '[host-disk] Selected system/application directory allocation\n'
+for dir in /var/lib /var/log /var/cache /home /opt /tmp /var/tmp /usr /snap; do
+  if [[ -d "$dir" ]]; then
+    "${reader[@]}" du -x -B1 --max-depth=1 "$dir" 2>/dev/null | sort -n || true
+  fi
+done
+printf '[host-disk] Docker container log sizes only (no log contents)\n'
+for container in $(docker ps -aq); do
+  log_path=$(docker inspect --format '{{.LogPath}}' "$container")
+  [[ "$log_path" == /var/lib/docker/containers/*/*-json.log ]] || continue
+  "${reader[@]}" stat --format='%s %n' -- "$log_path" 2>/dev/null || true
+done
+printf '[host-disk] Journal allocation\n'
+"${reader[@]}" journalctl --disk-usage 2>/dev/null || true
+printf '[host-disk] Large log/temp files: metadata only\n'
+"${reader[@]}" find /var/log /var/tmp /tmp -xdev -type f -size +200M -printf '%s %p\n' 2>/dev/null | sort -n || true
+printf '[host-disk] Open deleted files, when lsof is installed\n'
+if command -v lsof >/dev/null; then "${reader[@]}" lsof -nP +L1 2>/dev/null || true; fi
