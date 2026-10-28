@@ -126,6 +126,7 @@ def test_workflow_keeps_explicit_plan_digest_ci_image_ssh_guards():
     assert '"$actual_image" == "$4"' in scripts
     assert '"$ci_sha" == "$GITHUB_SHA"' in scripts
     assert '"$CANDIDATE_SHA" =~ ^[a-f0-9]{64}$' in scripts
+    assert '--candidate-sha "${6:-}"' in scripts  # SSH does not preserve an empty trailing argument.
     assert "${{ inputs." not in scripts
     assert "StrictHostKeyChecking=no" not in scripts
     assert "--judge" not in scripts and "docker compose up" not in scripts

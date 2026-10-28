@@ -42,3 +42,14 @@ Live image-ID prefixes matched the successful deployment run 40153860722:
   preserve provider failures and report lexical metrics separately from semantic review.
 
 No new PostgreSQL answer or held-out result has been measured at this checkpoint.
+
+## Preserved intermediate failures
+
+- Main release run 40655814473 passed tests and backend image scan but was blocked
+  by the RAG image scan: NLTK 3.10.3, GHSA-j456-xh4h-cpf2 (HIGH; fixed 3.10.4).
+  Deployment was skipped; existing containers were not replaced. A minimal
+  dependency follow-up is required, not a scanner exception.
+- Provider-free plan run 40658080486 failed before Python started because SSH
+  omitted the empty final candidate argument (`$6` unset). The remote command now
+  uses an explicit safe default, with a regression assertion. No generation,
+  embedding or held-out query ran in this failed attempt.

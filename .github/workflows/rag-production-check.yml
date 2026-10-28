@@ -163,7 +163,7 @@ jobs:
             phase="${5#pg16-answer-}"
             [[ "$phase" == plan || "$phase" == dev || "$phase" == heldout ]]
             docker exec "${ids[0]}" python "$1/scripts/corpora/run_pg16_acceptance.py" \
-              --phase "$phase" --candidate-sha "$6" --document-id "$2" --helper-commit "$3" \
+              --phase "$phase" --candidate-sha "${6:-}" --document-id "$2" --helper-commit "$3" \
               --runtime-image "$actual_image" --output "$1/result"
           fi
           REMOTE
