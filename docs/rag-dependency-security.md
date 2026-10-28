@@ -65,6 +65,21 @@ Các phiên bản dưới đây là phiên bản được resolve trong `rag-ser
 Test offline không chứng minh production đã có tài liệu/vector. Khi RAG được
 khởi tạo trên VPS, vẫn phải upload/index PDF demo và kiểm tra câu trả lời có citation.
 
+## Follow-up 28/10: NLTK image gate
+
+Release run [40655814473](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40655814473)
+passed Java/RAG tests and the backend image scan, but its RAG image was blocked
+by one fixable HIGH advisory: `nltk 3.10.3`, GHSA-j456-xh4h-cpf2. The application
+deployment was skipped; existing containers remained in place.
+
+Raise only the NLTK floor to 3.10.4 and regenerate its locked package/checksums.
+Do not suppress Trivy, add an advisory exception or deploy the failed image.
+This advisory concerns WekaClassifier model-path handling; no exploitation in
+this Library app is claimed. Existing parser/chunk/retrieval/generation tests
+and the runtime image scan must pass before deploying the private-PDF fix.
+
+Upstream: [NLTK advisory and patched version](https://github.com/nltk/nltk/security/advisories/GHSA-j456-xh4h-cpf2).
+
 ## Nguồn
 
 - [Pipeline bị chặn](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/37474831282).
