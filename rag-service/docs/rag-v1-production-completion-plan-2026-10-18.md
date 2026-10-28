@@ -434,7 +434,7 @@ Khi kết thúc ngày, đổi `Status` thành `DONE` chỉ khi Definition of Don
 đánh dấu đầy đủ và Evidence ledger có bằng chứng. Nếu còn mục bị chặn, dùng
 `PARTIAL — BLOCKED BY <nguyên nhân>` thay vì tuyên bố hoàn thành.
 
-## 12. PostgreSQL technical corpus follow-up (25/10)
+## 13. PostgreSQL technical corpus follow-up (25/10; cập nhật 28/10)
 
 Đã chuẩn bị corpus mới riêng với Magi: PDF PostgreSQL 16 Chapter 13, 22 trang,
 35 chunk v1, 40 câu chốt trước retrieval (30 dev/10 held-out). Đã upload/index
@@ -444,5 +444,24 @@ khớp source và cả 35 chunk hashes. Magi vẫn giữ nguyên.
 User duyệt push/PR, CI và benchmark **retrieval-only trên 30 dev cases** bằng
 chế độ `pg16-retrieval-dev`; chưa duyệt merge/deploy hay generation trong bước
 này. Không đổi gate/constant của Magi, không mở cổng, không ghép subset cho PASS.
-Chưa có retrieval/answer metric PostgreSQL trước khi workflow chạy thật.
-Chi tiết: [corpus preparation](evidence/2026-10-25-postgresql16-corpus-preparation.md).
+PR #40 đã mở; CI trên helper commit `139d1b5` pass 325 Java / 860 RAG tests,
+CodeQL và SonarCloud. Build/deploy jobs được skip. Benchmark run 40188794204
+đã xác minh 35/35 Qdrant points và chạy 30 dev queries cho mỗi mode, topK=3.
+
+Trên 27 câu dev có đáp án, dense / hybrid Recall@3 là **93,21% / 98,77%**,
+HitRate@3 **26/27 / 27/27**, MRR **0,944444 / 1,0**. Hybrid p95 quan sát được
+**675,6 ms** trên 30 request tuần tự nội bộ VPS; không có request error hoặc
+cross-scope violation trong run này. Câu `pg-m07` vẫn thiếu 1/3 evidence, giữ
+nguyên label và kết quả. Đây không phải answer accuracy, held-out acceptance,
+load-test SLA hay xác nhận public reader đã hoạt động.
+
+- [x] PR riêng + CI đúng helper revision.
+- [x] Dev dense/hybrid retrieval baseline + lưu raw reports.
+- [x] Soạn câu mô tả CV chỉ dùng số liệu retrieval đã đo, chưa sửa file CV.
+- [ ] Independent human label review.
+- [ ] Frozen-candidate held-out evaluation và full answer/abstention run khi được duyệt.
+- [ ] Public reader/citation và authenticated negative checks; PDF-origin blocker còn tồn tại.
+- [ ] Merge/deploy khi được duyệt riêng; không suy ra từ benchmark operation PASS.
+
+Chi tiết: [corpus preparation](evidence/2026-10-25-postgresql16-corpus-preparation.md)
+và [retrieval baseline + raw evidence](evidence/2026-10-25-pg16-production-retrieval-baseline.md).

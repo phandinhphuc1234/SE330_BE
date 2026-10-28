@@ -154,17 +154,20 @@ python -m app.evaluation.run_eval --dataset path/to/fresh-dev.json --modes dense
 - [x] New production title/PDF upload and actual INDEXED/checksum/chunk-vector-ID verification:
   book 3343 / ebook 11 / document 2 / job 2; 35 ordered hashes matched local.
   This is not a separate Qdrant point-query test. See the production checkpoint below.
-- [ ] Dev dense/hybrid retrieval comparison on this corpus.
+- [x] Dev dense/hybrid retrieval comparison: run 40188794204, 30 cases/mode;
+  relevance metrics use 27 answerable dev cases. See results below.
 - [ ] Full dev and frozen held-out answer runs with real provider errors retained.
 - [ ] Production reader/citation positive and authenticated negative smoke.
-- [ ] Evidence-backed CV metric on this technical corpus; no invented gains.
+- [x] Evidence-backed retrieval-only CV wording with development/sample-size
+  caveats prepared in the baseline report; no CV file edited or answer accuracy claimed.
 
 ## Production checkpoint
 
 Read-only inventory run `40180403668` succeeded on 2026-10-25. The exact source
 and all ordered v1 chunk hashes matched. The dev-only binding is in
 `docs/evidence/pg16-production-20261025/bound-dev.json` with an alternative-group
-sidecar. Its status is **bound-not-evaluated**; no held-out binding/run was made.
+sidecar. That original binding artifact's status remains **bound-not-evaluated**;
+the later run has its own bound dataset and reports. No held-out binding/run was made.
 Magi remains unchanged. Full details:
 [production upload and binding](../../../../docs/evidence/2026-10-25-postgresql16-corpus-preparation.md).
 
@@ -199,3 +202,24 @@ source, database-content or vector-index mutation is requested.
 
 Artifacts contain only reference/provenance/results, never keys or signed URLs.
 Temporary evidence directories are retained for diagnosis, not recursively deleted.
+
+## Completed development retrieval baseline
+
+[PR #40](https://github.com/phandinhphuc1234/SE330_BE/pull/40) helper commit
+`139d1b50613e9857d3e2a898d46de0ac56387dca` passed
+[CI 40188491366](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40188491366)
+(325 Java / 860 RAG tests, CodeQL, SonarCloud). Build/deploy jobs were skipped.
+[Retrieval run 40188794204](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40188794204)
+then verified all 35 Qdrant points and completed 30 dense + 30 hybrid requests.
+
+Over **27 answerable dev questions**, dense / hybrid chunk Recall@3 was
+**93.21% / 98.77%**, HitRate@3 **26/27 / 27/27**, MRR **0.944444 / 1.0**.
+Hybrid's observed p95 was **675.6 ms** over 30 sequential internal-VPS requests.
+There were zero request errors or observed cross-scope violations. `pg-m07`
+remains a partial miss (2/3); no post-run labels were changed. The operation gate
+passed; the semantic release gate is intentionally unset for baseline collection.
+
+This is not answer accuracy, held-out acceptance, a load-test SLA or public-reader
+validation. The original binding stays intact; the later runtime binding and raw
+results are separate files. Full report, raw links, denominators and limitations:
+[production retrieval baseline](../../../../docs/evidence/2026-10-25-pg16-production-retrieval-baseline.md).

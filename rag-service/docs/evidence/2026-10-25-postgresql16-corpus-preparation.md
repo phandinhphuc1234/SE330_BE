@@ -1,6 +1,6 @@
 # Technical RAG corpus preparation - 2026-10-25
 
-Status: **PRODUCTION UPLOADED / INDEXED / CHECKSUM-BOUND; RETRIEVAL AND ANSWER BENCHMARKS PENDING**.
+Status: **PRODUCTION DEV RETRIEVAL BASELINE COMPLETE; ANSWER / HELD-OUT / READER GATES PENDING**.
 
 User approved replacing the short story as the main demo with the PostgreSQL 16
 Concurrency Control chapter, while retaining the story as regression data.
@@ -30,15 +30,37 @@ Concurrency Control chapter, while retaining the story as regression data.
 Raw inventory and binding: [production evidence folder](pg16-production-20261025/).
 Screenshot: [indexed status](2026-10-25-pg16-production-indexed.jpg).
 
-No PostgreSQL retrieval/answer metrics have been measured yet. The existing
-published evaluation workflow is intentionally specific to Magi, so it cannot
+At the upload checkpoint, no PostgreSQL retrieval/answer metrics had been
+measured. The existing published evaluation workflow is intentionally specific to Magi, so it cannot
 be pointed at document 2 to manufacture a result. A separate corpus benchmark
 workflow/PR was approved by the user for commit/push, CI and a dev-only retrieval
 run. A dedicated `pg16-retrieval-dev` job/mode extends the existing dispatchable
 workflow so no merge is needed just to register a new workflow file. The helper
 checks exact-revision CI, runtime digest, source/chunks and Qdrant payloads;
 it never calls answers/judge or runs held-out. This does not require deploying a
-different backend or exposing internal service ports. Results are still pending.
+different backend or exposing internal service ports. The completed retrieval
+result is recorded separately below; answer metrics remain pending.
+
+## Production dev retrieval result (25/10; documented 28/10)
+
+- Separate [PR #40](https://github.com/phandinhphuc1234/SE330_BE/pull/40), helper
+  commit `139d1b50613e9857d3e2a898d46de0ac56387dca`.
+- [Exact-commit CI 40188491366](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40188491366)
+  passed: 325 Java / 860 RAG tests, CodeQL and SonarCloud; app coverage 87%.
+  Image publication and deployment jobs were skipped.
+- [Benchmark 40188794204](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40188794204)
+  passed all operation checks. Qdrant preflight verified 35/35 points; 30 dev
+  queries ran once per mode, topK=3, without answer/judge or held-out calls.
+- Over 27 answerable dev questions, dense / hybrid chunk Recall@3 was
+  **93.21% / 98.77%**, HitRate@3 **26/27 / 27/27**, MRR **0.944444 / 1.0**.
+  Hybrid observed p95 was **675.6 ms**, N=30 sequential internal-VPS requests,
+  with zero request errors or cross-scope violations in either mode.
+- Hybrid retained a 2/3 evidence miss on `pg-m07`; labels were not changed.
+  These are development retrieval measurements, not answer accuracy, an SLA,
+  held-out acceptance or authorization to merge/deploy.
+
+Full denominators, limitations, CV wording and unchanged raw reports:
+[production retrieval baseline](2026-10-25-pg16-production-retrieval-baseline.md).
 
 ## Completed local preparation (earlier checkpoint)
 
@@ -68,7 +90,8 @@ different backend or exposing internal service ports. Results are still pending.
   point-preflight and no-generation protocol tests), no provider/service calls.
 - Full candidate RAG suite: **860 passed in 132.07s**, app coverage **87%**
   on Windows/Python 3.12.6. This supplements, not replaces, the earlier 838-test
-  preparation checkpoint. PR CI/Python 3.11 and the real benchmark are pending.
+  preparation checkpoint. PR CI/Python 3.11 and the real retrieval benchmark
+  subsequently passed as recorded above.
 - Workflow YAML parsed and every run block passed `bash -n`.
 - Byte-pinned HTML/JSON attributes prevent Windows/Linux checkout line-ending
   conversion from silently changing source/question checksum semantics.
@@ -95,8 +118,8 @@ PDF-proxy redesign were attempted.
 
 The pre-existing production PDF-origin blocker remains separate and unresolved;
 new corpus preparation does not fix reader rendering. Publication of a separate
-benchmark PR is now approved/in progress; merge/deploy and generation remain out
-of scope for that approval.
+benchmark PR is published and the dev retrieval run is complete; merge/deploy
+and generation remain out of scope for that approval.
 
 Reproducible details, limitations and next run commands:
 [corpus runbook](../../tests/fixtures/corpora/postgresql16_concurrency_v1/README.md).

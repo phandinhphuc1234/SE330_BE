@@ -1,0 +1,699 @@
+{
+  "name": "postgresql16_concurrency_v1-dev",
+  "version": "1.0.0",
+  "description": "Checksum-bound source-labelled technical corpus. Chunk recall counts the union of relevant chunks; see sidecar for alternative evidence groups.",
+  "items": [
+    {
+      "id": "pg-f01",
+      "question": "What does MVCC let each SQL statement see, and why is this useful?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-2-83c85663026a"
+      ],
+      "expectedPages": [
+        3
+      ],
+      "expectedAnswerPoints": [
+        "snapshot",
+        "inconsistent"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f02",
+      "question": "What is PostgreSQL's default transaction isolation level?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-5-5b9122643435"
+      ],
+      "expectedPages": [
+        5
+      ],
+      "expectedAnswerPoints": [
+        "Read Committed"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f03",
+      "question": "Does PostgreSQL implement Read Uncommitted as a separate, weaker isolation mode?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-4-57af9a69ef59"
+      ],
+      "expectedPages": [
+        4
+      ],
+      "expectedAnswerPoints": [
+        "Read Committed",
+        "three"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f05",
+      "question": "When does a Repeatable Read transaction fix its snapshot?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-9-c3c841c2dc74"
+      ],
+      "expectedPages": [
+        7
+      ],
+      "expectedAnswerPoints": [
+        "first",
+        "non-transaction-control"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f06",
+      "question": "What kind of lock can block an ordinary SELECT without FOR UPDATE or FOR SHARE?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-18-d24ce8e4844a",
+        "doc-2-chunk-19-5573bd1b70e8"
+      ],
+      "expectedPages": [
+        12
+      ],
+      "expectedAnswerPoints": [
+        "ACCESS EXCLUSIVE"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f07",
+      "question": "Do row-level locks block ordinary reads, and when are they released?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-21-7c98f5af1d48"
+      ],
+      "expectedPages": [
+        13
+      ],
+      "expectedAnswerPoints": [
+        "writers",
+        "transaction end",
+        "savepoint"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f09",
+      "question": "How does PostgreSQL resolve a detected deadlock? Can an application rely on which transaction is aborted?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-23-046ea5a82b84"
+      ],
+      "expectedPages": [
+        14
+      ],
+      "expectedAnswerPoints": [
+        "aborting",
+        "predict"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f10",
+      "question": "Does a session-level advisory lock disappear if the transaction that acquired it rolls back?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-25-f125cbc8971d"
+      ],
+      "expectedPages": [
+        15
+      ],
+      "expectedAnswerPoints": [
+        "rollback",
+        "session"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f11",
+      "question": "What SQLSTATE identifies a serialization failure?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-31-26240caf2f9b"
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedAnswerPoints": [
+        "40001",
+        "serialization_failure"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f13",
+      "question": "On serialization failure, is retrying just the last SQL statement enough?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-31-26240caf2f9b"
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedAnswerPoints": [
+        "complete transaction",
+        "logic"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f14",
+      "question": "Which DDL operations does this chapter identify as not MVCC-safe?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-32-ca00e4223d65"
+      ],
+      "expectedPages": [
+        20
+      ],
+      "expectedAnswerPoints": [
+        "TRUNCATE",
+        "ALTER TABLE"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f15",
+      "question": "What is the strictest isolation level supported on a hot standby in this PostgreSQL 16 chapter?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-32-ca00e4223d65"
+      ],
+      "expectedPages": [
+        20
+      ],
+      "expectedAnswerPoints": [
+        "Repeatable Read",
+        "Serializable"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f17",
+      "question": "What lock mode represents Serializable predicate locks in pg_locks?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-13-d0ea38111149"
+      ],
+      "expectedPages": [
+        9
+      ],
+      "expectedAnswerPoints": [
+        "SIReadLock"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f18",
+      "question": "Do PostgreSQL Serializable predicate locks cause blocking or deadlocks?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-13-d0ea38111149"
+      ],
+      "expectedPages": [
+        9
+      ],
+      "expectedAnswerPoints": [
+        "blocking",
+        "deadlock"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f19",
+      "question": "What happens to locks acquired after a savepoint when the transaction rolls back to that savepoint?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-19-5573bd1b70e8"
+      ],
+      "expectedPages": [
+        12
+      ],
+      "expectedAnswerPoints": [
+        "released",
+        "savepoint"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m01",
+      "question": "Compare the snapshots used by Read Committed and Repeatable Read for two successive SELECT statements.",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-5-5b9122643435",
+        "doc-2-chunk-9-c3c841c2dc74"
+      ],
+      "expectedPages": [
+        5,
+        7
+      ],
+      "expectedAnswerPoints": [
+        "Read Committed",
+        "Repeatable Read",
+        "snapshot"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m02",
+      "question": "Why can Repeatable Read still violate a business consistency rule, and what extra protection does Serializable add?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-10-0b09e1adc667",
+        "doc-2-chunk-27-f40a2c845b67"
+      ],
+      "expectedPages": [
+        7,
+        17
+      ],
+      "expectedAnswerPoints": [
+        "serialization",
+        "read/write",
+        "rolled back"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m04",
+      "question": "Contrast the lifetime and rollback behavior of session-level and transaction-level advisory locks.",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-24-781f63f13b25",
+        "doc-2-chunk-25-f125cbc8971d"
+      ],
+      "expectedPages": [
+        15
+      ],
+      "expectedAnswerPoints": [
+        "session",
+        "rollback",
+        "automatically released"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m05",
+      "question": "How should an application both reduce deadlock risk and recover from a deadlock that still happens?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-24-781f63f13b25",
+        "doc-2-chunk-31-26240caf2f9b"
+      ],
+      "expectedPages": [
+        15,
+        19
+      ],
+      "expectedAnswerPoints": [
+        "consistent order",
+        "40P01",
+        "retry"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m06",
+      "question": "Is every unique-key violation safe to retry like SQLSTATE 40001? Explain the difference.",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-31-26240caf2f9b"
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedAnswerPoints": [
+        "40001",
+        "23505",
+        "persistent"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m07",
+      "question": "Why is an old Repeatable Read snapshot plus a newly acquired table lock insufficient for a current global consistency check?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-9-c3c841c2dc74",
+        "doc-2-chunk-29-68ce0a87179a",
+        "doc-2-chunk-30-92d325d63c4f"
+      ],
+      "expectedPages": [
+        7,
+        18
+      ],
+      "expectedAnswerPoints": [
+        "snapshot",
+        "before",
+        "SHARE"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m09",
+      "question": "Compare the lock granularity and release timing of B-tree and hash indexes, and explain the chapter's scalar-data recommendation.",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-33-e2c81e0cec3f"
+      ],
+      "expectedPages": [
+        21
+      ],
+      "expectedAnswerPoints": [
+        "page",
+        "bucket",
+        "B-tree"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m10",
+      "question": "How is SERIALIZABLE READ ONLY DEFERRABLE different from an ordinary Serializable read, and why must ordinary transaction results wait for commit?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-12-f8bfe05c0241",
+        "doc-2-chunk-13-d0ea38111149"
+      ],
+      "expectedPages": [
+        8,
+        9
+      ],
+      "expectedAnswerPoints": [
+        "DEFERRABLE",
+        "snapshot",
+        "commit"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-s01",
+      "question": "Using Table 13.1, which anomalies are still possible under PostgreSQL Repeatable Read, and does it allow phantom reads?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-3-7e8486701ab7",
+        "doc-2-chunk-4-57af9a69ef59"
+      ],
+      "expectedPages": [
+        4
+      ],
+      "expectedAnswerPoints": [
+        "serialization",
+        "phantom"
+      ],
+      "answerable": true,
+      "tags": [
+        "sql-table",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-s03",
+      "question": "According to Table 13.3, can FOR KEY SHARE coexist with FOR NO KEY UPDATE on the same row? Can it coexist with FOR UPDATE?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-22-ebe9d4524365"
+      ],
+      "expectedPages": [
+        14
+      ],
+      "expectedAnswerPoints": [
+        "FOR NO KEY UPDATE",
+        "FOR UPDATE"
+      ],
+      "answerable": true,
+      "tags": [
+        "sql-table",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-s04",
+      "question": "In the website.hits example starting with rows 9 and 10, why can DELETE WHERE hits = 10 delete nothing while a concurrent UPDATE increments both rows?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-7-b28b144c9e8c",
+        "doc-2-chunk-8-7fce15b5c6c6"
+      ],
+      "expectedPages": [
+        6
+      ],
+      "expectedAnswerPoints": [
+        "9",
+        "11",
+        "re-evaluat"
+      ],
+      "answerable": true,
+      "tags": [
+        "sql-table",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-s06",
+      "question": "Why is SELECT pg_advisory_lock(id) FROM foo WHERE id > 12345 LIMIT 100 dangerous, and how does the chapter's subquery form avoid that hazard?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-26-48d0b9cac5a1"
+      ],
+      "expectedPages": [
+        16
+      ],
+      "expectedAnswerPoints": [
+        "LIMIT",
+        "before",
+        "subquery"
+      ],
+      "answerable": true,
+      "tags": [
+        "sql-table",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-u01",
+      "question": "What exact value of spring.datasource.hikari.maximum-pool-size does this chapter prescribe for my Library Spring Boot application?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": [
+        "unanswerable",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-u02",
+      "question": "What Redis Lua script and reservation TTL does this chapter specify to prevent flash-sale overselling?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": [
+        "unanswerable",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-u03",
+      "question": "What exact retry count and exponential-backoff delay in milliseconds does PostgreSQL require for every serialization failure?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": [
+        "unanswerable",
+        "dev",
+        "postgresql16_concurrency_v1"
+      ]
+    }
+  ]
+}
