@@ -54,10 +54,16 @@ printf '[docker-store] Docker/containerd subdirectories in bytes\n'
 for dir in /var/lib/docker /var/lib/containerd; do
   "${reader[@]}" du -x -B1 --max-depth=1 "$dir" 2>/dev/null | sort -n || true
 done
-printf '[docker-store] Container graph drivers (no config/environment)\n'
+printf '[docker-store] Container volume mounts (no config/environment)\n'
 for container in $(docker ps -aq); do
-  docker inspect --format '{{.Id}} {{.GraphDriver.Name}} {{json .GraphDriver.Data}}' "$container"
+  docker inspect --format '{{.Id}} {{json .Mounts}}' "$container"
 done
+printf '[docker-store] Known volume names and mountpoints (no driver options)\n'
+for volume in $(docker volume ls -q); do
+  docker volume inspect --format '{{.Name}} {{.Mountpoint}}' "$volume"
+done
+printf '[docker-store] Large volume files: size and path only, no contents\n'
+"${reader[@]}" find /var/lib/docker/volumes -xdev -type f -size +200M -printf '%s %p\n' 2>/dev/null | sort -n || true
 printf '[docker-store] Mounted overlay targets\n'
 findmnt -rn -t overlay -o TARGET || true
 printf '[docker-store] Legacy Docker image/overlay metadata sizes\n'
