@@ -37,9 +37,11 @@ public interface EbookReaderApiDocs {
 
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(
-            summary = "Get signed ebook content URL",
+            summary = "Get ebook content delivery metadata",
             description = """
-                    Return a short-lived Cloudinary signed URL after checking JWT, reader session and ebook loan.
+                    Return an authenticated API file path for private SeaweedFS PDFs (requiresAuthorization=true).
+                    Fetch that fixed path with Authorization and X-Reading-Session headers, never tokens in URLs.
+                    Legacy Cloudinary ebooks retain a short-lived signed URL (requiresAuthorization=false).
                     The session token must be sent in X-Reading-Session, not in query string.
                     """
     )

@@ -7,11 +7,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
@@ -97,6 +100,41 @@ public class S3EbookObjectStorageService implements EbookObjectStorageService {
                 .getObjectRequest(builder -> builder.bucket(bucket).key(objectKey))
                 .build();
         return ebookS3Presigner.presignGetObject(request).url().toString();
+    }
+
+    @Override
+    public EbookReadMetadata describeRead(String bucket, String objectKey) {
+        try {
+            HeadObjectResponse response = ebookS3Client.headObject(HeadObjectRequest.builder()
+                    .bucket(bucket).key(objectKey)
+                    .overrideConfiguration(config -> config.apiCallTimeout(Duration.ofSeconds(30)))
+                    .build());
+            if (response.contentLength() == null || response.eTag() == null || response.eTag().isBlank()) {
+                throw new AppException(ErrorCode.EBOOK_CONTENT_UNAVAILABLE);
+            }
+            return new EbookReadMetadata(response.contentLength(), response.eTag());
+        } catch (RuntimeException exception) {
+            throw new AppException(ErrorCode.EBOOK_CONTENT_UNAVAILABLE);
+        }
+    }
+
+    @Override
+    public InputStream openRead(String bucket, String objectKey, String range, String etag, long expectedLength) {
+        try {
+            ResponseInputStream<GetObjectResponse> stream = ebookS3Client.getObject(GetObjectRequest.builder()
+                    .bucket(bucket).key(objectKey).range(range).ifMatch(etag)
+                    .overrideConfiguration(config -> config.apiCallTimeout(Duration.ofSeconds(30)))
+                    .build());
+            if (stream.response().contentLength() == null || stream.response().contentLength() != expectedLength) {
+                stream.abort();
+                throw new AppException(ErrorCode.EBOOK_CONTENT_UNAVAILABLE);
+            }
+            // Spring's resource converter closes this stream after writing or disconnect.
+            return stream;
+        } catch (RuntimeException exception) {
+            // Never expose private bucket/key, endpoint or AWS error details to callers.
+            throw new AppException(ErrorCode.EBOOK_CONTENT_UNAVAILABLE);
+        }
     }
 
     @Override
