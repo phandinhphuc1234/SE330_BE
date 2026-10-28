@@ -4,16 +4,24 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Inventory; Magi evaluate (20 answers); PG16 dev (retrieval only, 30 cases per mode)
+        description: Inventory; Magi answers; PG16 retrieval; PG16 frozen plan or full dev/heldout answers
         required: true
         type: choice
         default: inventory
-        options: [inventory, evaluate, pg16-retrieval-dev]
+        options: [inventory, evaluate, pg16-retrieval-dev, pg16-answer-plan, pg16-answer-dev, pg16-answer-heldout]
       document_id:
         description: Exact verified production document ID; required for evaluation
         required: false
         default: '0'
         type: string
+      expected_rag_image:
+        description: Exact deployed RAG digest; required for PG16 answer plan/evaluation
+        type: string
+        default: ''
+      candidate_sha:
+        description: Reviewed provider-free plan SHA256; required for PG16 dev/heldout answers
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -24,7 +32,7 @@ concurrency:
 
 jobs:
   check:
-    if: inputs.mode != 'pg16-retrieval-dev'
+    if: inputs.mode == 'inventory' || inputs.mode == 'evaluate'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: production
@@ -78,10 +86,10 @@ jobs:
           retention-days: 14
 
   pg16-retrieval-dev:
-    name: PostgreSQL dev retrieval baseline (no generation or deploy)
-    if: inputs.mode == 'pg16-retrieval-dev'
+    name: PostgreSQL isolated evaluation (explicit retrieval or frozen answer mode)
+    if: inputs.mode == 'pg16-retrieval-dev' || startsWith(inputs.mode, 'pg16-answer-')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     environment: production
     permissions:
       contents: read
@@ -106,10 +114,19 @@ jobs:
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_USER: ${{ secrets.VPS_USER }}
           DOCUMENT_ID: ${{ inputs.document_id }}
-          EXPECTED_RAG_IMAGE: ghcr.io/phandinhphuc1234/se330-rag@sha256:4ea6573ac9cd624c4e472d2f7f0344ca02194a4dfae745bf7b6b3140b73a158e
+          EXPECTED_RAG_IMAGE: ${{ inputs.expected_rag_image || 'ghcr.io/phandinhphuc1234/se330-rag@sha256:4ea6573ac9cd624c4e472d2f7f0344ca02194a4dfae745bf7b6b3140b73a158e' }}
+          REQUESTED_RAG_IMAGE: ${{ inputs.expected_rag_image }}
+          PG16_CHECK_MODE: ${{ inputs.mode }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -Eeuo pipefail
           [[ "$DOCUMENT_ID" =~ ^[1-9][0-9]{0,11}$ ]]
+          [[ "$EXPECTED_RAG_IMAGE" =~ ^ghcr\.io/phandinhphuc1234/se330-rag@sha256:[a-f0-9]{64}$ ]]
+          if [[ "$PG16_CHECK_MODE" != pg16-retrieval-dev ]]; then
+            [[ -n "$REQUESTED_RAG_IMAGE" ]]
+            [[ "$PG16_CHECK_MODE" == pg16-answer-plan || "$PG16_CHECK_MODE" == pg16-answer-dev || "$PG16_CHECK_MODE" == pg16-answer-heldout ]]
+            [[ "$PG16_CHECK_MODE" == pg16-answer-plan || "$CANDIDATE_SHA" =~ ^[a-f0-9]{64}$ ]]
+          fi
           install -m 700 -d "$HOME/.ssh"
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/pg16_check"
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
@@ -121,7 +138,8 @@ jobs:
           remote="${VPS_USER}@${VPS_HOST}"
           remote_dir="/tmp/library-pg16-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           tar -C rag-service -czf pg16-benchmark.tar.gz app/evaluation/corpus_binding.py \
-            scripts/corpora/run_pg16_retrieval.py tests/fixtures/corpora/postgresql16_concurrency_v1/ingestion-v1.json
+            scripts/corpora/run_pg16_retrieval.py scripts/corpora/run_pg16_acceptance.py \
+            tests/fixtures/corpora/postgresql16_concurrency_v1/ingestion-v1.json
           ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" <<'REMOTE'
           set -Eeuo pipefail
           [[ "$1" =~ ^/tmp/library-pg16-[0-9]+-[0-9]+$ ]]
@@ -129,7 +147,7 @@ jobs:
           REMOTE
           scp "${scp_args[@]}" pg16-benchmark.tar.gz "$remote:$remote_dir/input.tar.gz"
           result=0
-          ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" "$DOCUMENT_ID" "$GITHUB_SHA" "$EXPECTED_RAG_IMAGE" <<'REMOTE' || result=$?
+          ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" "$DOCUMENT_ID" "$GITHUB_SHA" "$EXPECTED_RAG_IMAGE" "$PG16_CHECK_MODE" "$CANDIDATE_SHA" <<'REMOTE' || result=$?
           set -Eeuo pipefail
           ids=( $(docker ps -q --filter label=com.docker.compose.project=quanlythuvien --filter label=com.docker.compose.service=rag-api) )
           [[ ${#ids[@]} == 1 ]]
@@ -138,8 +156,16 @@ jobs:
           printf 'Runtime image: %s\n' "$actual_image"
           docker exec "${ids[0]}" mkdir -m 700 "$1"
           docker exec -i "${ids[0]}" tar -xzf - -C "$1" < "$1/input.tar.gz"
-          docker exec "${ids[0]}" python "$1/scripts/corpora/run_pg16_retrieval.py" \
-            --document-id "$2" --helper-commit "$3" --runtime-image "$actual_image" --output "$1/result"
+          if [[ "$5" == pg16-retrieval-dev ]]; then
+            docker exec "${ids[0]}" python "$1/scripts/corpora/run_pg16_retrieval.py" \
+              --document-id "$2" --helper-commit "$3" --runtime-image "$actual_image" --output "$1/result"
+          else
+            phase="${5#pg16-answer-}"
+            [[ "$phase" == plan || "$phase" == dev || "$phase" == heldout ]]
+            docker exec "${ids[0]}" python "$1/scripts/corpora/run_pg16_acceptance.py" \
+              --phase "$phase" --candidate-sha "$6" --document-id "$2" --helper-commit "$3" \
+              --runtime-image "$actual_image" --output "$1/result"
+          fi
           REMOTE
           mkdir -p artifacts
           ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" > artifacts/pg16-retrieval-evidence.tar.gz <<'REMOTE' || result=1

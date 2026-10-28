@@ -223,3 +223,30 @@ This is not answer accuracy, held-out acceptance, a load-test SLA or public-read
 validation. The original binding stays intact; the later runtime binding and raw
 results are separate files. Full report, raw links, denominators and limitations:
 [production retrieval baseline](../../../../docs/evidence/2026-10-25-pg16-production-retrieval-baseline.md).
+
+## Answer/held-out extension approved on 28/10
+
+The owner subsequently approved fixing private PDF delivery and testing answers,
+citations, abstention and the held-out split. The old retrieval-only mode remains
+retrieval-only; explicit opt-in answer modes use a separate helper.
+
+1. After deployment, inspect the immutable runtime digest and dispatch
+   `mode=pg16-answer-plan`, `document_id=2`, `expected_rag_image=<reviewed digest>`.
+   This calls no embedding/LLM: it checks source/35 points and writes an allowlisted
+   candidate manifest (model/prompt/settings, runtime image, helper revision,
+   question/reference hashes). Review its SHA-256 before any held-out query.
+2. Use the same exact helper/image and `candidate_sha=<plan digest>` for
+   `mode=pg16-answer-heldout`. It runs all 10 unchanged held-out questions once,
+   hybrid/topK=3, at 30-second intervals, no judge or ranking/prompt tuning.
+   This is a frozen-candidate baseline, not a tune-and-retest loop. With limited
+   provider quota, prioritize this full 10-case batch after a small public dev
+   smoke rather than spending twice the budget on dense answer generation.
+3. `mode=pg16-answer-dev` separately supports the full 30 dev answers when quota
+   permits. Public smoke answers are not stitched into that full run. Do not
+   claim it passed when only the smoke or held-out batch ran.
+
+All modes require exact-revision PR CI and pinned SSH/image/corpus preflight.
+The helper writes per-attempt JSONL plus raw full responses for source review;
+provider errors and incomplete runs remain failures. A completion/citation-page/
+abstention contract gate is **not semantic correctness**. Lexical point coverage
+is not an LLM judge. No implicit deploy, reindex, entitlement or network change.
