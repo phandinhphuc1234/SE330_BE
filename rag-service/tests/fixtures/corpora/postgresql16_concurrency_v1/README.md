@@ -255,8 +255,9 @@ is not an LLM judge. No implicit deploy, reindex, entitlement or network change.
 
 The private-reader backend and NLTK security patch are merged; 360 Java / 815 RAG
 CI tests and both runtime-image security gates passed. Production application
-replacement was blocked by disk preflight: the VPS has 770M available (98% used),
-below the required 8 GiB. The old backend remains healthy; MEMBER borrowing is
+replacement was blocked by disk preflight. Approved cleanup subsequently removed
+17 unused Library images: free space increased from 769M to 4.0G (98% to 86% used),
+still below the required 8 GiB. The old backend remains healthy; MEMBER borrowing is
 active but PDF delivery is still blocked. No PostgreSQL answer/held-out result
 has been measured. The provider-free 35/35-point plan on the old image is only a
 helper check and must be regenerated for the new runtime before answer testing.

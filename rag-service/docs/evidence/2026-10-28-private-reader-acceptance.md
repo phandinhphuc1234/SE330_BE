@@ -86,6 +86,31 @@ After sufficient capacity, rerun the failed deployment job for the same scanned
 candidate, verify health, then create/review a **new-image** provider-free plan
 before the full held-out pass. A complete dev answer batch remains separate.
 
+## Capacity recovery approved and executed: 21:46 GMT+7
+
+The owner subsequently approved cleanup of unused Docker cache/images, preserving
+code, volumes/databases/PDFs/vectors, backups and current/rollback images.
+
+- Inventory [40707494373](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40707494373)
+  found 17 old unreferenced Library images; build cache was 0 B.
+- Maintenance [PR #43](https://github.com/phandinhphuc1234/SE330_BE/pull/43)
+  helper `954ed5abb80fcd36f27451bdfde3d5d299be8642` passed
+  [CI 40708466382](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40708466382):
+  360 Java / 822 RAG tests, including seven mocked-Docker Linux shell safety tests.
+- Cleanup [40709193750](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40709193750)
+  removed exactly those 17 local Library image references without force/broad
+  pruning. All container/rollback image IDs survived re-inspection; Spring was UP.
+  No code, volume, backup or data deletion, container restart or image-registry
+  deletion occurred. Removed images can be re-pulled from their GHCR references.
+- Available host space increased **769M -> 4.0G**, usage **98% -> 86%** (`df -h`);
+  approximately 3.2 GiB recovered. Docker now reports only 589 MB reclaimable
+  images and zero build cache. Further Docker cleanup cannot reach 8 GiB.
+
+This supersedes the earlier 770M free-space checkpoint, but the release remains
+blocked below the 8 GiB safety requirement. No deployment rerun, new candidate
+answer run or held-out query was made. Next requires owner direction for Azure
+disk expansion or separately reviewed non-Docker cleanup; do not lower the gate.
+
 ## Preserved intermediate failures
 
 - Main release run 40655814473 passed tests and backend image scan but was blocked
