@@ -111,6 +111,23 @@ blocked below the 8 GiB safety requirement. No deployment rerun, new candidate
 answer run or held-out query was made. Next requires owner direction for Azure
 disk expansion or separately reviewed non-Docker cleanup; do not lower the gate.
 
+## Full host check located SeaweedFS preallocation
+
+Following owner authorization to inspect the whole host, read-only runs
+40719995210, 40720718094 and 40721311754 found the capacity issue inside the
+**active SeaweedFS persistent volume**, not log/cache growth or orphaned images.
+The volume occupies 18,254,061,568 bytes. Seventeen `.dat` files each have about
+1 GiB physically allocated while their combined logical length is only 806,056
+bytes (some files are eight-byte empty volume headers). Version-pinned SeaweedFS
+3.85 source confirms KEEP_SIZE preallocation. No volume/data file was deleted,
+truncated, copied over or otherwise changed; no service was restarted.
+
+The next safe path is an explicitly approved, tested storage maintenance window:
+consistent backup/checksums, pause the storage writer, reclaim only allocation
+beyond logical EOF while preserving data, then verify object/PDF bytes and health.
+This may avoid growing the Azure disk, but is a proposal, **not an executed fix**.
+The 8 GiB deployment requirement and remaining PDF/citation/held-out gates remain.
+
 ## Preserved intermediate failures
 
 - Main release run 40655814473 passed tests and backend image scan but was blocked
