@@ -64,6 +64,15 @@ for volume in $(docker volume ls -q); do
 done
 printf '[docker-store] Large volume files: size and path only, no contents\n'
 "${reader[@]}" find /var/lib/docker/volumes -xdev -type f -size +200M -printf '%s %p\n' 2>/dev/null | sort -n || true
+printf '[seaweed-capacity] Largest allocated files: 512-byte blocks, logical bytes, path only\n'
+"${reader[@]}" find /var/lib/docker/volumes/quanlythuvien_rag_seaweedfs_data -xdev -type f \
+  -printf '%b %s %p\n' 2>/dev/null | sort -n | tail -n 20 || true
+printf '[seaweed-capacity] Live software defaults for allocation (help only)\n'
+seaweed_ids=$(docker ps -q --filter label=com.docker.compose.project=quanlythuvien --filter label=com.docker.compose.service=rag-seaweedfs)
+if [[ -n "$seaweed_ids" && "$seaweed_ids" != *$'\n'* ]]; then
+  docker exec "$seaweed_ids" weed version
+  docker exec "$seaweed_ids" weed server -h 2>&1 | grep -A 2 -E 'prealloc|volumeSizeLimit|volume.max' || true
+fi
 printf '[docker-store] Mounted overlay targets\n'
 findmnt -rn -t overlay -o TARGET || true
 printf '[docker-store] Legacy Docker image/overlay metadata sizes\n'
