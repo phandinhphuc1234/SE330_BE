@@ -25,7 +25,7 @@ volume_root=$(docker volume inspect --format '{{.Mountpoint}}' quanlythuvien_rag
 [[ "$volume_root" == /var/lib/docker/volumes/quanlythuvien_rag_seaweedfs_data/_data ]] || fail 'Unexpected volume root.'
 # Only the reviewed storage container may mount the data volume (even stopped containers).
 for container in $(docker ps -aq); do
-  names=$(docker inspect --format '{{range .Mounts}}{{println .Name}}{{end}}' "$container")
+  names=$(docker inspect --format '{{range .Mounts}}{{if eq .Type "volume"}}{{println .Name}}{{end}}{{end}}' "$container")
   if grep -Fxq quanlythuvien_rag_seaweedfs_data <<< "$names"; then
     full_id=$(docker inspect --format '{{.Id}}' "$container")
     [[ "$full_id" == "$seaweed"* ]] || fail 'Another container mounts storage.'
@@ -57,13 +57,13 @@ resume() {
 }
 trap resume EXIT
 printf '[seaweed-reclaim] Private backup directory: %s\n' "$backup"
-docker stop --time 90 "$worker"
 worker_stopped=true
+docker stop --time 90 "$worker"
 docker exec "$rag" python "$container_dir/snapshot.py" --output "$container_dir/before.json"
 docker cp "$rag:$container_dir/before.json" "$backup/s3-before.json"
 printf '[seaweed-reclaim] Stopping the only storage writer.\n'
-docker stop --time 60 "$seaweed"
 storage_stopped=true
+docker stop --time 60 "$seaweed"
 [[ "$(docker inspect --format '{{.State.Running}}' "$seaweed")" == false ]] || fail 'Storage writer still running.'
 python_started=true
 sudo -n python3 "$script_dir/reclaim-seaweed-preallocation.py" --root "$volume_root" --backup "$backup"
