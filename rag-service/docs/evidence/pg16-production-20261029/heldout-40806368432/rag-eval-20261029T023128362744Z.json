@@ -1,0 +1,947 @@
+{
+  "dataset": {
+    "name": "postgresql16_concurrency_v1-heldout",
+    "version": "1.0.0",
+    "itemCount": 10,
+    "selectedItemIds": [
+      "pg-f04",
+      "pg-f08",
+      "pg-f12",
+      "pg-f16",
+      "pg-f20",
+      "pg-m03",
+      "pg-m08",
+      "pg-s02",
+      "pg-s05",
+      "pg-u04"
+    ]
+  },
+  "generatedAt": "2026-10-29T02:31:28.361926+00:00",
+  "topK": 3,
+  "code": {
+    "commit": null,
+    "workingTreeDirty": null
+  },
+  "llmRequestIntervalSeconds": 30,
+  "modes": {
+    "hybrid": {
+      "summary": {
+        "errorCount": 0,
+        "scopeViolations": 0,
+        "citationMetadataViolations": 0,
+        "precision@3": 0.4074074074074074,
+        "recall@3": 0.9166666666666666,
+        "hitRate@3": 1.0,
+        "reciprocalRank": 0.9444444444444444,
+        "nDCG@3": 0.9160085495929907,
+        "retrievalLatencyMs": 612.9107270000077,
+        "answer.evaluatedCount": 10,
+        "answer.answerPointCoverage": 0.9629629629629629,
+        "answer.citationPrecision": 0.8888888888888888,
+        "answer.citationRecall": 0.9444444444444444,
+        "answer.abstentionAccuracy": 1.0,
+        "evidenceGroupCoverage@3": 0.9444444444444444
+      },
+      "items": [
+        {
+          "id": "pg-f04",
+          "question": "If a transaction aborts after advancing a sequence, is that sequence change rolled back?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-5-5b9122643435",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 872.0133570000144
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "No, changes made to a sequence are immediately visible to all other transactions and are not rolled back if the transaction that made the changes aborts.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-5-5b9122643435"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 1.0,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 2150.5407560002823
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f08",
+          "question": "Which system view shows outstanding database locks?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-16-f5886b68b7dc",
+            "doc-2-chunk-25-f125cbc8971d",
+            "doc-2-chunk-17-77aa83c90fdd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 536.3649649998479
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "The `pg_locks` system view can be used to examine a list of currently outstanding locks in a database server.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-16-f5886b68b7dc",
+              "doc-2-chunk-25-f125cbc8971d"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 0.5,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 2179.4821789999332
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f12",
+          "question": "What SQLSTATE identifies a detected deadlock?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-23-046ea5a82b84"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6309297535714575,
+            "latencyMs": 523.9168179996341
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "A detected deadlock is identified by the SQLSTATE code 40P01 (deadlock_detected).",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-31-26240caf2f9b"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 1.0,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 2237.1106140003576
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f16",
+          "question": "Which index type does the chapter recommend for concurrent applications indexing scalar data?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-33-e2c81e0cec3f",
+            "doc-2-chunk-1-d27ddf85436a",
+            "doc-2-chunk-2-83c85663026a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 622.9200709999532
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "For concurrent applications that need to index scalar data, B-tree indexes are recommended because they offer the best performance and have more features than hash indexes.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-33-e2c81e0cec3f"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 1.0,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 3349.4181120004214
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f20",
+          "question": "How long are share/exclusive page-level locks on table pages normally held?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-23-046ea5a82b84",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-17-77aa83c90fdd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 583.2036940000762
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "Page-level share/exclusive locks on table pages are released immediately after a row is fetched or updated.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-23-046ea5a82b84"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 1.0,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 2153.862522000054
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m03",
+          "question": "How do Read Committed and Repeatable Read handle a target row changed by a concurrent updater that then commits?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-9-c3c841c2dc74",
+            "doc-2-chunk-5-5b9122643435",
+            "doc-2-chunk-6-d3ce782d5c88"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 1.0,
+            "recall@3": 0.75,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 611.2678840004264
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "In PostgreSQL, when a target row is changed by a concurrent transaction that then commits:\n\n*   **Read Committed:** The second updater will wait for the first updating transaction to commit. If the first updater commits, the second updater will ignore the row if it was deleted by the first updater. Otherwise, it will attempt to apply its operation to the updated version of the row. The search condition (WHERE clause) is re-evaluated, and if the updated row still matches, the second updater proceeds with its operation using that updated version. For `SELECT FOR UPDATE` and `SELECT FOR SHARE`, the updated version of the row is locked and returned.\n*   **Repeatable Read:** The repeatable read transaction will wait for the first updating transaction to commit. If the first updater commits (and actually updated or deleted the row), the repeatable read transaction will be rolled back with an `ERROR: could not serialize access due to concurrent update` message. This occurs because a repeatable read transaction cannot modify or lock rows changed by other transactions after its own transaction began. Applications must then abort and retry the entire transaction from the beginning.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-5-5b9122643435",
+              "doc-2-chunk-6-d3ce782d5c88",
+              "doc-2-chunk-9-c3c841c2dc74",
+              "doc-2-chunk-10-0b09e1adc667"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 1.0,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 5720.27329499997
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m08",
+          "question": "Can an application assume that a Repeatable Read query on a hot standby has the same consistency guarantee as successful Serializable transactions on the primary?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-28-06564962efaa",
+            "doc-2-chunk-9-c3c841c2dc74",
+            "doc-2-chunk-27-f40a2c845b67"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 0.5,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.6131471927654584,
+            "latencyMs": 572.9322540000794
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "No, an application cannot assume that a Repeatable Read query on a hot standby has the same consistency guarantee as successful Serializable transactions on the primary. The integrity protection provided by Serializable transactions does not extend to hot standby mode.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-28-06564962efaa"
+            ],
+            "metrics": {
+              "answerPointCoverage": 0.6666666666666666,
+              "citationPrecision": 1.0,
+              "citationRecall": 0.5,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 5586.198161000084
+            }
+          },
+          "evidenceGroupCoverage@3": 0.5
+        },
+        {
+          "id": "pg-s02",
+          "question": "In Table 13.2, does a requested ROW EXCLUSIVE table lock conflict with an existing SHARE lock? What about an existing ACCESS SHARE lock?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-20-ea71cbe27e06",
+            "doc-2-chunk-16-f5886b68b7dc",
+            "doc-2-chunk-17-77aa83c90fdd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 594.6924750001017
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "Yes, a requested ROW EXCLUSIVE table lock conflicts with an existing SHARE lock. However, it does not conflict with an existing ACCESS SHARE lock.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-20-ea71cbe27e06"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 1.0,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 2862.5834659997054
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s05",
+          "question": "In the mytab SUM example, can Serializable transactions A and B both commit after computing 30 and 300? Why would A-before-B require 330 instead?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-12-f8bfe05c0241",
+            "doc-2-chunk-11-02422e17ab63",
+            "doc-2-chunk-14-0ca9b0e91021"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 643.4808230001181
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "No, in the `mytab` SUM example, if both transactions A and B are Serializable, only one will be allowed to commit, and the other will be rolled back with an error message indicating a serialization failure. This is because there is no serial order of execution consistent with both transactions committing with their initially computed sums.\n\nIf transaction A had executed before transaction B, B would have computed a sum of 330 instead of 300. This is because transaction A inserts its result (30) into a new row with `class = 2`. If A commits before B starts its `SUM` query, B's query for `SUM(value) FROM mytab WHERE class = 2;` would then include this new row, leading to a sum of 300 (initial sum for class 2) + 30 (from A's insertion) = 330.",
+            "abstained": false,
+            "model": "gemini-2.5-flash",
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": null,
+            "citedChunkIds": [
+              "doc-2-chunk-12-f8bfe05c0241",
+              "doc-2-chunk-11-02422e17ab63"
+            ],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 0.5,
+              "citationRecall": 1.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 4770.962639000118
+            }
+          },
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-u04",
+          "question": "What monthly Azure VM bill and p95 latency will my Library RAG deployment have when using Serializable transactions?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "heldout",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-15-8e545805a6cd",
+            "doc-2-chunk-28-06564962efaa",
+            "doc-2-chunk-12-f8bfe05c0241"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 568.3149289998255
+          },
+          "scopeViolations": 0,
+          "citationMetadataViolations": 0,
+          "answer": {
+            "text": "Không đủ bằng chứng trong ebook để trả lời câu hỏi này.",
+            "abstained": true,
+            "model": null,
+            "promptVersion": "library-ebook-answer-v2",
+            "reason": "MODEL_ABSTAINED",
+            "citedChunkIds": [],
+            "metrics": {
+              "answerPointCoverage": 1.0,
+              "citationPrecision": 0.0,
+              "citationRecall": 0.0,
+              "abstentionAccuracy": 1.0,
+              "latencyMs": 4043.384436999986
+            }
+          }
+        }
+      ],
+      "observedLatency": {
+        "count": 10,
+        "p50Ms": 583.2036940000762,
+        "p95Ms": 872.0133570000144
+      }
+    }
+  },
+  "limitations": [
+    "Golden labels apply to the supplied PDF/chunk version; re-label after re-chunking.",
+    "Answer-point coverage is lexical and is not a semantic faithfulness score.",
+    "Citation relevance does not prove every claim is entailed by the source.",
+    "Fixed English same-document split; assistant source labels are not independently human-reviewed.",
+    "One full split, hybrid only, 30-second pacing; no judge, automatic rerun, subset stitching or ranking/prompt tuning.",
+    "Provider failures remain in all denominators. A contract PASS is not semantic answer accuracy.",
+    "Latency is sequential internal-VPS Ask including retrieval/generation, not a browser SLA or concurrent load test."
+  ],
+  "answerResponses": {
+    "pg-f04": {
+      "answer": "No, changes made to a sequence are immediately visible to all other transactions and are not rolled back if the transaction that made the changes aborts.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 5,
+          "pageEnd": 5,
+          "chunkIndex": 5,
+          "vectorId": "doc-2-chunk-5-5b9122643435",
+          "chunkId": "doc-2-chunk-5-5b9122643435",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nTo set the transaction isolation level of a transaction, use the command SET TRANSACTION.\n\n### **Important**\n\nSome PostgreSQL data types and functions have special rules regarding transactional behavior. In particular, changes made to a sequence (and therefore the counter of a column declared using serial) are immediately visible to all other transactions and are not rolled back if the transaction that made the changes aborts. See Section 9.17 and Section 8.1.4.\n\n### **13.2.1. Read Committed Isolation Level**\n\nRead Committed is the default isolation level i",
+          "score": 0.70132923
+        }
+      ]
+    },
+    "pg-f08": {
+      "answer": "The `pg_locks` system view can be used to examine a list of currently outstanding locks in a database server.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 11,
+          "pageEnd": 11,
+          "chunkIndex": 16,
+          "vectorId": "doc-2-chunk-16-f5886b68b7dc",
+          "chunkId": "doc-2-chunk-16-f5886b68b7dc",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/explicit-locking.html\n\n## **13.3. Explicit Locking**\n\nPostgreSQL provides various lock modes to control concurrent access to data in tables. These modes can be used for application-controlled locking in situations where MVCC does not give the desired behavior. Also, most PostgreSQL commands automatically acquire locks of appropriate modes to ensure that referenced tables are not dropped or modified in incompatible ways while the command executes. (For example, TRUNCATE cannot safely be executed concurrently with other oper",
+          "score": 0.6767037
+        },
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 15,
+          "pageEnd": 15,
+          "chunkIndex": 25,
+          "vectorId": "doc-2-chunk-25-f125cbc8971d",
+          "chunkId": "doc-2-chunk-25-f125cbc8971d",
+          "excerpt": "These are called advisory locks, because the system does not enforce their use - it is up to the application to use them correctly. Advisory locks can be useful for locking strategies that are an awkward fit for the MVCC model. For example, a common use of advisory locks is to emulate pessimistic locking strategies typical of so-called \"flat file\" data management systems. While a flag stored in a table could be used for the same purpose, advisory locks are faster, avoid table bloat, and are automatically cleaned up by the server at the end of the session.\n\nThere are two ways to acquire an advi",
+          "score": 0.6510507
+        }
+      ]
+    },
+    "pg-f12": {
+      "answer": "A detected deadlock is identified by the SQLSTATE code 40P01 (deadlock_detected).",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 19,
+          "pageEnd": 19,
+          "chunkIndex": 31,
+          "vectorId": "doc-2-chunk-31-26240caf2f9b",
+          "chunkId": "doc-2-chunk-31-26240caf2f9b",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/mvcc-serialization-failure-handling.html\n\n## **13.5. Serialization Failure Handling**\n\nBoth Repeatable Read and Serializable isolation levels can produce errors that are designed to prevent serialization anomalies. As previously stated, applications using these levels must be prepared to retry transactions that fail due to serialization errors. Such an error's message text will vary according to the precise circumstances, but it will always have the SQLSTATE code 40001 (serialization_failure).\n\nIt may also be advisable to ",
+          "score": 0.6875465
+        }
+      ]
+    },
+    "pg-f16": {
+      "answer": "For concurrent applications that need to index scalar data, B-tree indexes are recommended because they offer the best performance and have more features than hash indexes.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 21,
+          "pageEnd": 21,
+          "chunkIndex": 33,
+          "vectorId": "doc-2-chunk-33-e2c81e0cec3f",
+          "chunkId": "doc-2-chunk-33-e2c81e0cec3f",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nhttps://www.postgresql.org/docs/16/locking-indexes.html\n\n## **13.7. Locking and Indexes**\n\nThough PostgreSQL provides nonblocking read/write access to table data, nonblocking read/write access is not currently offered for every index access method implemented in PostgreSQL. The various index types are handled as follows:\n\n#### **B-tree, GiST and SP-GiST indexes**\n\nShort-term share/exclusive page-level locks are used for read/write access. Locks are released immediately after each index row is fetched or inserted. These index types provide the highest concur",
+          "score": 0.74994755
+        }
+      ]
+    },
+    "pg-f20": {
+      "answer": "Page-level share/exclusive locks on table pages are released immediately after a row is fetched or updated.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 14,
+          "pageEnd": 14,
+          "chunkIndex": 23,
+          "vectorId": "doc-2-chunk-23-046ea5a82b84",
+          "chunkId": "doc-2-chunk-23-046ea5a82b84",
+          "excerpt": "### **13.3.3. Page-Level Locks**\n\nIn addition to table and row locks, page-level share/exclusive locks are used to control read/write access to table pages in the shared buffer pool. These locks are released immediately after a row is fetched or updated. Application developers normally need not be concerned with page-level locks, but they are mentioned here for completeness.\n\n### **13.3.4. Deadlocks**\n\nThe use of explicit locking can increase the likelihood of deadlocks, wherein two (or more) transactions each hold locks that the other wants. For example, if transaction 1 acquires an exclusive",
+          "score": 0.72508454
+        }
+      ]
+    },
+    "pg-m03": {
+      "answer": "In PostgreSQL, when a target row is changed by a concurrent transaction that then commits:\n\n*   **Read Committed:** The second updater will wait for the first updating transaction to commit. If the first updater commits, the second updater will ignore the row if it was deleted by the first updater. Otherwise, it will attempt to apply its operation to the updated version of the row. The search condition (WHERE clause) is re-evaluated, and if the updated row still matches, the second updater proceeds with its operation using that updated version. For `SELECT FOR UPDATE` and `SELECT FOR SHARE`, the updated version of the row is locked and returned.\n*   **Repeatable Read:** The repeatable read transaction will wait for the first updating transaction to commit. If the first updater commits (and actually updated or deleted the row), the repeatable read transaction will be rolled back with an `ERROR: could not serialize access due to concurrent update` message. This occurs because a repeatable read transaction cannot modify or lock rows changed by other transactions after its own transaction began. Applications must then abort and retry the entire transaction from the beginning.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 5,
+          "pageEnd": 5,
+          "chunkIndex": 5,
+          "vectorId": "doc-2-chunk-5-5b9122643435",
+          "chunkId": "doc-2-chunk-5-5b9122643435",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nTo set the transaction isolation level of a transaction, use the command SET TRANSACTION.\n\n### **Important**\n\nSome PostgreSQL data types and functions have special rules regarding transactional behavior. In particular, changes made to a sequence (and therefore the counter of a column declared using serial) are immediately visible to all other transactions and are not rolled back if the transaction that made the changes aborts. See Section 9.17 and Section 8.1.4.\n\n### **13.2.1. Read Committed Isolation Level**\n\nRead Committed is the default isolation level i",
+          "score": 0.73523587
+        },
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 5,
+          "pageEnd": 5,
+          "chunkIndex": 6,
+          "vectorId": "doc-2-chunk-6-d3ce782d5c88",
+          "chunkId": "doc-2-chunk-6-d3ce782d5c88",
+          "excerpt": "The search condition of the command (the WHERE clause) is re-evaluated to see if the updated version of the row still matches the search condition. If so, the second updater proceeds with its operation using the updated version of the row. In the case of SELECT FOR UPDATE and SELECT FOR SHARE, this means it is the updated version of the row that is locked and returned to the client.\n\nINSERT with an ON CONFLICT DO UPDATE clause behaves similarly. In Read Committed mode, each row proposed for insertion will either insert or update. Unless there are unrelated errors, one of those two outcomes is ",
+          "score": 0.74210984
+        },
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 7,
+          "pageEnd": 7,
+          "chunkIndex": 9,
+          "vectorId": "doc-2-chunk-9-c3c841c2dc74",
+          "chunkId": "doc-2-chunk-9-c3c841c2dc74",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\n### **13.2.2. Repeatable Read Isolation Level**\n\nThe Repeatable Read isolation level only sees data committed before the transaction began; it never sees either uncommitted data or changes committed by concurrent transactions during the transaction's execution. (However, each query does see the effects of previous updates executed within its own transaction, even though they are not yet committed.) This is a stronger guarantee than is required by the SQL standard for this isolation level, and prevents all of the phenomena described in Table 13.1 except for ",
+          "score": 0.75023544
+        },
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 7,
+          "pageEnd": 7,
+          "chunkIndex": 10,
+          "vectorId": "doc-2-chunk-10-0b09e1adc667",
+          "chunkId": "doc-2-chunk-10-0b09e1adc667",
+          "excerpt": "When an application receives this error message, it should abort the current transaction and retry the whole transaction from the beginning. The second time through, the transaction will see the previously-committed change as part of its initial view of the database, so there is no logical conflict in using the new version of the row as the starting point for the new transaction's update.\n\nNote that only updating transactions might need to be retried; read-only transactions will never have serialization conflicts.\n\nThe Repeatable Read mode provides a rigorous guarantee that each transaction se",
+          "score": 0.75023544
+        }
+      ]
+    },
+    "pg-m08": {
+      "answer": "No, an application cannot assume that a Repeatable Read query on a hot standby has the same consistency guarantee as successful Serializable transactions on the primary. The integrity protection provided by Serializable transactions does not extend to hot standby mode.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 17,
+          "pageEnd": 17,
+          "chunkIndex": 28,
+          "vectorId": "doc-2-chunk-28-06564962efaa",
+          "chunkId": "doc-2-chunk-28-06564962efaa",
+          "excerpt": "When using this technique, it will avoid creating an unnecessary burden for application programmers if the application software goes through a framework which automatically retries transactions which are rolled back with a serialization failure. It may be a good idea to set default_transaction_isolation to serializable. It would also be wise to take some action to ensure that no other transaction isolation level is used, either inadvertently or to subvert integrity checks, through checks of the transaction isolation level in triggers.\n\nSee Section 13.2.3 for performance suggestions.\n\n### **War",
+          "score": 0.75034106
+        }
+      ]
+    },
+    "pg-s02": {
+      "answer": "Yes, a requested ROW EXCLUSIVE table lock conflicts with an existing SHARE lock. However, it does not conflict with an existing ACCESS SHARE lock.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 13,
+          "pageEnd": 13,
+          "chunkIndex": 20,
+          "vectorId": "doc-2-chunk-20-ea71cbe27e06",
+          "chunkId": "doc-2-chunk-20-ea71cbe27e06",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\nTable 13.2. Conflicting Lock Modes\n\n|Requested Lock Mode|ACCESS<br>SHARE|ROW<br>SHARE|ROW<br>EXCL.|SHARE<br>UPDATE<br>EXCL.|SHARE|SHARE<br>ROW<br>EXCL.|EXCL.|ACCESS<br>EXCL.|\n|---|---|---|---|---|---|---|---|---|\n|ACCESS SHARE||||||||X|\n|ROW SHARE|||||||X|X|\n|ROW EXCL.|||||X|X|X|X|\n|SHARE UPDATE EXCL.||||X|X|X|X|X|\n|SHARE|||X|X||X|X|X|\n|SHARE ROW EXCL.|||X|X|X|X|X|X|\n|EXCL.||X|X|X|X|X|X|X|\n|ACCESS EXCL.|X|X|X|X|X|X|X|X|",
+          "score": 0.8265
+        }
+      ]
+    },
+    "pg-s05": {
+      "answer": "No, in the `mytab` SUM example, if both transactions A and B are Serializable, only one will be allowed to commit, and the other will be rolled back with an error message indicating a serialization failure. This is because there is no serial order of execution consistent with both transactions committing with their initially computed sums.\n\nIf transaction A had executed before transaction B, B would have computed a sum of 330 instead of 300. This is because transaction A inserts its result (30) into a new row with `class = 2`. If A commits before B starts its `SUM` query, B's query for `SUM(value) FROM mytab WHERE class = 2;` would then include this new row, leading to a sum of 300 (initial sum for class 2) + 30 (from A's insertion) = 330.",
+      "abstained": false,
+      "grounded": true,
+      "reason": null,
+      "model": "gemini-2.5-flash",
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": [
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 8,
+          "pageEnd": 8,
+          "chunkIndex": 12,
+          "vectorId": "doc-2-chunk-12-f8bfe05c0241",
+          "chunkId": "doc-2-chunk-12-f8bfe05c0241",
+          "excerpt": "Concurrently, serializable transaction B computes:\n\n```\nSELECT SUM(value) FROM mytab WHERE class = 2;\n```\n\nand obtains the result 300, which it inserts in a new row with class = 1. Then both transactions try to commit. If either transaction were running at the Repeatable Read isolation level, both would be allowed to commit; but since there is no serial order of execution consistent with the result, using Serializable transactions will allow one transaction to commit and will roll the other back with this message:\n\n```\nERROR:  could not serialize access due to read/write dependencies among tra",
+          "score": 0.76578516
+        },
+        {
+          "documentId": "doc_ebook_11",
+          "documentInternalId": 2,
+          "bookId": 3343,
+          "ebookId": 11,
+          "chapterTitle": "Chapter 13 of the official PostgreSQL documentation",
+          "chapterIndex": 1,
+          "pageStart": 8,
+          "pageEnd": 8,
+          "chunkIndex": 11,
+          "vectorId": "doc-2-chunk-11-02422e17ab63",
+          "chunkId": "doc-2-chunk-11-02422e17ab63",
+          "excerpt": "POSTGRESQL 16 / CONCURRENCY CONTROL\n\ndifferent behavior. The permitted phenomena that distinguish the two techniques were not formalized by database researchers until after the SQL standard was developed, and are outside the scope of this manual. For a full treatment, please see [berenson95].\n\n### **Note**\n\nPrior to PostgreSQL version 9.1, a request for the Serializable transaction isolation level provided exactly the same behavior described here. To retain the legacy Serializable behavior, Repeatable Read should now be requested.\n\n### **13.2.3. Serializable Isolation Level**\n\nThe Serializable",
+          "score": 0.7182537
+        }
+      ]
+    },
+    "pg-u04": {
+      "answer": "Không đủ bằng chứng trong ebook để trả lời câu hỏi này.",
+      "abstained": true,
+      "grounded": false,
+      "reason": "MODEL_ABSTAINED",
+      "model": null,
+      "promptVersion": "library-ebook-answer-v2",
+      "citations": []
+    }
+  },
+  "observedAskLatency": {
+    "count": 10,
+    "p50Ms": 2862.5834659997054,
+    "p95Ms": 5720.27329499997
+  },
+  "qualityGate": {
+    "passed": true,
+    "failures": [],
+    "kind": "completion-scope-citation-page-abstention-contract"
+  },
+  "semanticCorrectnessGate": {
+    "passed": null,
+    "reason": "Source-entailment review is separate; lexical coverage is not answer correctness."
+  },
+  "runtime": {
+    "phase": "heldout",
+    "candidateSha256": "2ac6cc93f707122e8370ddb09fe82490ca4cc2c16a4fa318fd37b3c4d858785f",
+    "manifest": {
+      "runtimeImage": "ghcr.io/phandinhphuc1234/se330-rag@sha256:3f978ac7617e80895abb62635fe598af51ce24172560c33e6d3955bb37d62197",
+      "helperCommit": "680cc6688369fe866b39c0b91e9450cb31be38d3",
+      "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+      "questionSpecSha256": "22930554efe7a7fa5a70a28683ad75c5fe6dd133991c647cedc78c99688addb2",
+      "referenceSha256": "c2b4c0d76bdb092769bd9ac89c62d32411621377f41eedd334a4eca5f1573a79",
+      "promptVersion": "library-ebook-answer-v2",
+      "config": {
+        "embedding_provider": "gemini",
+        "embedding_model": "gemini-embedding-2",
+        "embedding_dim": 3072,
+        "embedding_version": "gemini-embedding-2-3072-v1",
+        "embedding_text_policy": "gemini_search_title_text_v1",
+        "llm_provider": "gemini",
+        "llm_model": "gemini-2.5-flash",
+        "llm_temperature": 0.1,
+        "llm_max_tokens": 2048,
+        "llm_timeout_seconds": 30.0,
+        "gemini_thinking_budget": null,
+        "retrieval_mode": "hybrid",
+        "retrieval_top_k": 10,
+        "reranker_top_k": 3,
+        "hybrid_candidate_multiplier": 3,
+        "hybrid_rrf_k": 60,
+        "hybrid_vector_weight": 0.7,
+        "hybrid_keyword_weight": 0.3,
+        "hybrid_fail_open": true,
+        "keyword_candidate_limit": 5000,
+        "query_rewrite_max_queries": 2,
+        "context_expansion_window": 1,
+        "answer_retrieval_top_k": 6,
+        "answer_score_threshold": 0.6,
+        "answer_max_context_chars": 12000
+      },
+      "protocol": {
+        "mode": "hybrid",
+        "topK": 3,
+        "llmIntervalSeconds": 30,
+        "judge": false
+      }
+    },
+    "generationEnabled": true,
+    "heldoutRun": true
+  }
+}

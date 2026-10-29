@@ -1,0 +1,238 @@
+{
+  "name": "postgresql16_concurrency_v1-heldout",
+  "version": "1.0.0",
+  "description": "Checksum-bound source-labelled technical corpus. Chunk recall counts the union of relevant chunks; see sidecar for alternative evidence groups.",
+  "items": [
+    {
+      "id": "pg-f04",
+      "question": "If a transaction aborts after advancing a sequence, is that sequence change rolled back?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-5-5b9122643435"
+      ],
+      "expectedPages": [
+        5
+      ],
+      "expectedAnswerPoints": [
+        "immediately visible",
+        "not rolled back"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f08",
+      "question": "Which system view shows outstanding database locks?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-16-f5886b68b7dc"
+      ],
+      "expectedPages": [
+        11
+      ],
+      "expectedAnswerPoints": [
+        "pg_locks"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f12",
+      "question": "What SQLSTATE identifies a detected deadlock?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-31-26240caf2f9b"
+      ],
+      "expectedPages": [
+        19
+      ],
+      "expectedAnswerPoints": [
+        "40P01",
+        "deadlock_detected"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f16",
+      "question": "Which index type does the chapter recommend for concurrent applications indexing scalar data?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-33-e2c81e0cec3f"
+      ],
+      "expectedPages": [
+        21
+      ],
+      "expectedAnswerPoints": [
+        "B-tree"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-f20",
+      "question": "How long are share/exclusive page-level locks on table pages normally held?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-23-046ea5a82b84"
+      ],
+      "expectedPages": [
+        14
+      ],
+      "expectedAnswerPoints": [
+        "immediately",
+        "fetched",
+        "updated"
+      ],
+      "answerable": true,
+      "tags": [
+        "factual",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m03",
+      "question": "How do Read Committed and Repeatable Read handle a target row changed by a concurrent updater that then commits?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-5-5b9122643435",
+        "doc-2-chunk-6-d3ce782d5c88",
+        "doc-2-chunk-9-c3c841c2dc74",
+        "doc-2-chunk-10-0b09e1adc667"
+      ],
+      "expectedPages": [
+        5,
+        7
+      ],
+      "expectedAnswerPoints": [
+        "WHERE",
+        "Repeatable Read",
+        "retry"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-m08",
+      "question": "Can an application assume that a Repeatable Read query on a hot standby has the same consistency guarantee as successful Serializable transactions on the primary?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-28-06564962efaa",
+        "doc-2-chunk-32-ca00e4223d65"
+      ],
+      "expectedPages": [
+        17,
+        20
+      ],
+      "expectedAnswerPoints": [
+        "Repeatable Read",
+        "hot standby",
+        "inconsistent"
+      ],
+      "answerable": true,
+      "tags": [
+        "multi-section",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-s02",
+      "question": "In Table 13.2, does a requested ROW EXCLUSIVE table lock conflict with an existing SHARE lock? What about an existing ACCESS SHARE lock?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-20-ea71cbe27e06"
+      ],
+      "expectedPages": [
+        13
+      ],
+      "expectedAnswerPoints": [
+        "SHARE",
+        "ACCESS SHARE"
+      ],
+      "answerable": true,
+      "tags": [
+        "sql-table",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-s05",
+      "question": "In the mytab SUM example, can Serializable transactions A and B both commit after computing 30 and 300? Why would A-before-B require 330 instead?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [
+        "doc-2-chunk-12-f8bfe05c0241"
+      ],
+      "expectedPages": [
+        8
+      ],
+      "expectedAnswerPoints": [
+        "330",
+        "300",
+        "roll"
+      ],
+      "answerable": true,
+      "tags": [
+        "sql-table",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    },
+    {
+      "id": "pg-u04",
+      "question": "What monthly Azure VM bill and p95 latency will my Library RAG deployment have when using Serializable transactions?",
+      "bookId": 3343,
+      "ebookId": 11,
+      "documentId": 2,
+      "expectedChunkIds": [],
+      "expectedPages": [],
+      "expectedAnswerPoints": [],
+      "answerable": false,
+      "tags": [
+        "unanswerable",
+        "heldout",
+        "postgresql16_concurrency_v1"
+      ]
+    }
+  ]
+}

@@ -156,8 +156,10 @@ python -m app.evaluation.run_eval --dataset path/to/fresh-dev.json --modes dense
   This is not a separate Qdrant point-query test. See the production checkpoint below.
 - [x] Dev dense/hybrid retrieval comparison: run 40188794204, 30 cases/mode;
   relevance metrics use 27 answerable dev cases. See results below.
-- [ ] Full dev and frozen held-out answer runs with real provider errors retained.
-- [ ] Production reader/citation positive and authenticated negative smoke.
+- [x] First complete frozen 10-case held-out answer run; raw errors/responses retained.
+- [ ] Separate full 30-case dev answer run.
+- [x] Production MEMBER PDF/citation/abstention positive smoke and anonymous HTTP denial.
+- [ ] Authenticated missing/foreign/closed-session and Range/HEAD production probes.
 - [x] Evidence-backed retrieval-only CV wording with development/sample-size
   caveats prepared in the baseline report; no CV file edited or answer accuracy claimed.
 
@@ -263,3 +265,18 @@ has been measured. The provider-free 35/35-point plan on the old image is only a
 helper check and must be regenerated for the new runtime before answer testing.
 See the [acceptance and rollback ledger](../../../../docs/evidence/2026-10-28-private-reader-acceptance.md)
 for exact image digests, workflow runs, pending checks and recovery boundaries.
+
+### 29/10 completed release and held-out checkpoint
+
+Approved SeaweedFS beyond-EOF reclamation preserved all 114 logical files and
+18 S3 objects, recovering about 17 GiB. The existing scanned release deployed
+successfully; post-release VPS space is 20G free / 31% used. MEMBER reader opens
+22 pages; factual answer/citation page navigation and out-of-corpus abstention
+were verified on the website. Anonymous PDF GET/HEAD/Range each return 401.
+
+The first frozen held-out run 40806368432 completed all ten cases with no
+request/scope/citation-page errors: HitRate@3 9/9 over answerable cases,
+Recall@3 91.67%, one negative abstained. This is a small same-document contract
+PASS, not 100% semantic accuracy. The full 30-case dev answer batch, independent
+human review and authenticated HTTP negatives remain open. See the
+[held-out baseline and source review](../../../../docs/evidence/2026-10-29-pg16-heldout-answer-baseline.md).

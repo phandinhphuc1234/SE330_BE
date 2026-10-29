@@ -1,6 +1,9 @@
 # Production private reader and PostgreSQL acceptance - 2026-10-28
 
-Status: BLOCKED BY VPS DISK CAPACITY. Do not infer production acceptance from CI or merge.
+Status (updated 2026-10-29): DEPLOYED; PDF/citation/browser abstention and the
+10-case held-out contract passed. Full dev answers, authenticated HTTP negatives
+and independent human semantic review remain open. Historical blockers below
+are retained; the disk-capacity blocker was resolved by approved maintenance.
 
 ## Approval and pre-deployment checkpoint
 
@@ -36,14 +39,50 @@ Live image-ID prefixes matched the successful deployment run 40153860722:
 
 - [x] Backend reader PR #41 and dependency follow-up PR #42 merged.
 - [x] Main Java/RAG tests and both immutable-image security gates passed.
-- [ ] Healthy backend/RAG deployment: blocked by insufficient VPS disk space.
-- [ ] Unchanged PostgreSQL PDF loads through private reader API.
+- [x] Healthy backend/RAG deployment after capacity recovery, release attempt 2.
+- [x] PostgreSQL PDF loads through private reader API (22 pages); S3 bytes unchanged.
 - [ ] File/range/HEAD and missing/foreign/closed-session checks in production.
-- [ ] Browser citation opens the expected PDF page and unsupported question abstains.
-- [ ] Frozen candidate, complete dev answer run and first held-out evaluation;
-  preserve provider failures and report lexical metrics separately from semantic review.
+- [x] Browser citation opens the expected PDF page and unsupported question abstains.
+- [x] Frozen candidate and first complete 10-case held-out evaluation; raw responses retained.
+- [ ] Separate full 30-case dev answer run and independent human semantic review.
 
 No new PostgreSQL answer or held-out result has been measured at this checkpoint.
+This sentence describes the original checkpoint, superseded by the 29/10 result below.
+
+## 29/10 completed maintenance, deployment and held-out checkpoint
+
+- Owner-approved maintenance [40804673423](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40804673423)
+  verified a private 114-file logical backup and preserved all logical file bytes,
+  ownership/mode/mtime. Exactly 17 same-length data files released
+  **18,252,746,752 bytes** of beyond-EOF allocation. No file/volume was deleted.
+  Backup archive SHA-256: `099b1e7cd45e26e084323e6b7edf280cfb66d07e680b6c80def65a2de6bb56b9`.
+  All **18 S3 objects / 919,756 bytes** matched before/after, including the source PDF.
+- Maintenance helper `5cff07f00177347ad381cb009171c4895739d8cd` passed
+  CI 40804173170: 360 Java / 830 Python/RAG tests, CodeQL and SonarCloud.
+  First maintenance attempt 40803910885 failed on verifier file permissions
+  before storage stop/data mutation; worker automatically resumed. Stdin transport
+  fixed this without loosening permissions; no intermediate failure is hidden.
+- Deployment [40698306283 attempt 2](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40698306283)
+  succeeded with the already-scanned candidate digests and commit
+  `d94f24e3fec8cb3d624663cd12b23a4ce9cf8f9a`; Flyway installed rank 48, public health UP.
+  Post-release read-only 40806301485 confirmed the commit/new image prefixes,
+  healthy RAG/backend and **20G free / 31% used**. The 8 GiB gate was not reduced.
+- MEMBER browser: PDF rendered with 22 pages; factual development smoke returned
+  Read Committed with page-5 citation; clicking it changed the reader to 5/22.
+  Redis/TTL development negative abstained. Anonymous PDF GET/HEAD/Range each 401.
+  Authenticated Range/HEAD and missing/foreign/closed-session production probes
+  remain unrun (not inferred from the CI tests).
+- Provider-free new-image plan 40805217254 verified all 35 Qdrant points and froze
+  candidate `2ac6cc93f707122e8370ddb09fe82490ca4cc2c16a4fa318fd37b3c4d858785f`.
+- Held-out [40806368432](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40806368432)
+  completed all 10 questions once with hybrid/topK=3, 30-second pacing, no judge
+  or tuning: zero errors/scope/page-metadata violations, HitRate@3 **9/9** over
+  answerable cases, Recall@3 **91.67%**. Negative abstention **1/1**; only one
+  negative sample. Contract PASS is not 100% semantic answer accuracy.
+
+Full raw provenance, source review (including incomplete pg-m08 explanation),
+latency sample limits and remaining gates are in the
+[held-out answer baseline](2026-10-29-pg16-heldout-answer-baseline.md).
 
 ## Verified continuation: release candidate and capacity blocker
 

@@ -5,6 +5,8 @@
 *.cmd text eol=crlf
 # Benchmark manifests/snapshots use byte-level checksums across Windows/Linux.
 /rag-service/tests/fixtures/chunking/*.json text eol=lf
+# Preserve downloaded evaluation evidence across Windows/Linux checkouts.
+/rag-service/docs/evidence/pg16-production-20261029/** text eol=lf
 # Preserve raw upstream HTML as opaque byte-pinned artifacts, like the PDF.
 /rag-service/tests/fixtures/corpora/postgresql16_concurrency_v1/source/*.html -text -diff
 # Generated manifests and the question spec have canonical LF checkouts.
