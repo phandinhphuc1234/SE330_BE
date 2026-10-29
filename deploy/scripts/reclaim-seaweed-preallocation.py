@@ -89,6 +89,13 @@ def run(root, backup, expected=EXPECTED):
             for path in sorted(root.rglob("*")):
                 target.add(path, arcname=path.relative_to(root).as_posix(), recursive=False)
         verify_archive(archive, before)
+        with archive.open("rb") as saved:
+            os.fsync(saved.fileno())
+        directory_fd = os.open(backup, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
         if logical_signature(inventory(root)) != logical_signature(before):
             raise ValueError("Storage changed while offline backup was made")
         state.update(backupVerified=True, backupSha256=digest(archive),
