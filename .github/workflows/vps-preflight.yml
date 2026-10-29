@@ -18,6 +18,11 @@ on:
         type: boolean
         required: false
         default: false
+      reclaim_seaweed_preallocation:
+        description: Approved backed-up SeaweedFS maintenance; pauses storage/worker and checks every object
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -46,7 +51,7 @@ jobs:
           chmod 600 "$HOME/.ssh/quanlythuvien_deploy" "$HOME/.ssh/known_hosts"
 
       - name: Read production status without modifying the VPS
-        if: ${{ inputs.diagnostic_only && !inputs.docker_disk_inventory && !inputs.cleanup_reviewed_library_images }}
+        if: ${{ inputs.diagnostic_only && !inputs.docker_disk_inventory && !inputs.cleanup_reviewed_library_images && !inputs.reclaim_seaweed_preallocation }}
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
@@ -64,7 +69,7 @@ jobs:
           ssh "${ssh_args[@]}" "${VPS_USER}@${VPS_HOST}" 'bash -s' < deploy/scripts/status.sh
 
       - name: Inventory Docker disk without deleting or changing data
-        if: ${{ inputs.docker_disk_inventory && !inputs.cleanup_reviewed_library_images }}
+        if: ${{ inputs.docker_disk_inventory && !inputs.cleanup_reviewed_library_images && !inputs.reclaim_seaweed_preallocation }}
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
@@ -77,7 +82,7 @@ jobs:
           ssh "${ssh_args[@]}" "${VPS_USER}@${VPS_HOST}" 'bash -s' < deploy/scripts/docker-disk-inventory.sh
 
       - name: Require exact-revision CI before destructive maintenance
-        if: ${{ inputs.cleanup_reviewed_library_images }}
+        if: ${{ inputs.cleanup_reviewed_library_images || inputs.reclaim_seaweed_preallocation }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -87,7 +92,7 @@ jobs:
           [[ "$approved" == true ]]
 
       - name: Remove only reviewed unused Library image references
-        if: ${{ inputs.cleanup_reviewed_library_images }}
+        if: ${{ inputs.cleanup_reviewed_library_images && !inputs.reclaim_seaweed_preallocation }}
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
@@ -99,8 +104,26 @@ jobs:
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15)
           ssh "${ssh_args[@]}" "${VPS_USER}@${VPS_HOST}" 'bash -s' < deploy/scripts/cleanup-reviewed-library-images.sh
 
+      - name: Back up and reclaim reviewed SeaweedFS beyond-EOF allocation
+        if: ${{ inputs.reclaim_seaweed_preallocation }}
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh_args=(-i "$HOME/.ssh/quanlythuvien_deploy" -p "$VPS_PORT"
+            -o BatchMode=yes -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15)
+          remote="${VPS_USER}@${VPS_HOST}"
+          remote_dir="/tmp/library-seaweed-maintenance-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          tar -C deploy/scripts -czf - reclaim-seaweed-preallocation.sh reclaim-seaweed-preallocation.py seaweed-object-snapshot.py | \
+            ssh "${ssh_args[@]}" "$remote" "umask 077; mkdir -m 700 '$remote_dir'; tar -xzf - -C '$remote_dir'"
+          ssh "${ssh_args[@]}" "$remote" \
+            "LIBRARY_MAINTENANCE_RUN='${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}' bash '$remote_dir/reclaim-seaweed-preallocation.sh'"
+
       - name: Connect and synchronize deployment assets
-        if: ${{ !inputs.diagnostic_only && !inputs.docker_disk_inventory && !inputs.cleanup_reviewed_library_images }}
+        if: ${{ !inputs.diagnostic_only && !inputs.docker_disk_inventory && !inputs.cleanup_reviewed_library_images && !inputs.reclaim_seaweed_preallocation }}
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
