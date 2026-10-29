@@ -36,7 +36,6 @@ if grep -Eiq 'volumePreallocate(=true)?$' <<< "$args"; then fail 'Disable live p
 backup=$(mktemp -d "$HOME/backups/quanlythuvien/seaweed-20261029-XXXXXX")
 container_dir="/tmp/library-seaweed-${LIBRARY_MAINTENANCE_RUN}"
 docker exec "$rag" mkdir -m 700 "$container_dir"
-docker cp "$script_dir/seaweed-object-snapshot.py" "$rag:$container_dir/snapshot.py"
 docker exec "$worker" python -c 'from celery import Celery; from app.core.config import get_settings; s=get_settings(); a=Celery("maintenance",broker=s.effective_celery_broker_url); i=a.control.inspect(timeout=5); replies=[i.active(),i.reserved(),i.scheduled()]; assert all(replies) and all(not tasks for reply in replies for tasks in reply.values()), "Worker must be idle"; print("[seaweed-reclaim] Worker idle checks passed")'
 worker_stopped=false
 storage_stopped=false
@@ -58,12 +57,12 @@ resume() {
 trap resume EXIT
 printf '[seaweed-reclaim] Private backup directory: %s\n' "$backup"
 worker_stopped=true
-docker stop --time 90 "$worker"
-docker exec "$rag" python "$container_dir/snapshot.py" --output "$container_dir/before.json"
+docker stop --timeout 90 "$worker"
+docker exec -i "$rag" python - --output "$container_dir/before.json" < "$script_dir/seaweed-object-snapshot.py"
 docker cp "$rag:$container_dir/before.json" "$backup/s3-before.json"
 printf '[seaweed-reclaim] Stopping the only storage writer.\n'
 storage_stopped=true
-docker stop --time 60 "$seaweed"
+docker stop --timeout 60 "$seaweed"
 [[ "$(docker inspect --format '{{.State.Running}}' "$seaweed")" == false ]] || fail 'Storage writer still running.'
 python_started=true
 sudo -n python3 "$script_dir/reclaim-seaweed-preallocation.py" --root "$volume_root" --backup "$backup"
@@ -75,7 +74,7 @@ for attempt in $(seq 1 30); do
   sleep 4
 done
 [[ "$healthy" == true ]] || fail 'SeaweedFS did not become healthy.'
-docker exec "$rag" python "$container_dir/snapshot.py" --output "$container_dir/after.json" --compare "$container_dir/before.json"
+docker exec -i "$rag" python - --output "$container_dir/after.json" --compare "$container_dir/before.json" < "$script_dir/seaweed-object-snapshot.py"
 docker cp "$rag:$container_dir/after.json" "$backup/s3-after.json"
 docker start "$worker"
 worker_stopped=false

@@ -105,3 +105,10 @@ def test_unexpected_byte_change_prevents_safe_restart_but_retains_verified_backu
     state = json.loads((backup / "recovery-state.json").read_text())
     assert state["backupVerified"] and not state["dataVerified"] and not state["completed"]
     reclaim.verify_archive(backup / "seaweedfs-logical-backup.tar.gz", before)
+
+
+def test_private_snapshot_script_is_streamed_without_changing_container_permissions():
+    source = (ROOT / "deploy/scripts/reclaim-seaweed-preallocation.sh").read_text()
+    assert source.count('docker exec -i "$rag" python - --output') == 2
+    assert '< "$script_dir/seaweed-object-snapshot.py"' in source
+    assert 'docker cp "$script_dir/seaweed-object-snapshot.py"' not in source
