@@ -1,5 +1,8 @@
 # VPS Docker capacity recovery - 2026-10-28
 
+Updated 2026-10-29: capacity recovery and the scanned application deployment
+succeeded. Earlier blockers below are historical checkpoints, not current status.
+
 Owner explicitly approved removing unused Docker cache/images while preserving
 code, databases/PDFs/vectors, volumes, backups, running images and rollback images.
 
@@ -106,3 +109,58 @@ keep future preallocation disabled and check the live flags before changing them
 This can potentially recover most of 17 GiB without a billable disk expansion,
 but recovery, post-start health and sufficient free space are **not yet verified**.
 Only then retry the existing scanned release and continue reader/held-out tests.
+
+## Approved maintenance completed on 29/10
+
+The owner explicitly approved the short backed-up storage maintenance and deploy.
+Final helper `5cff07f00177347ad381cb009171c4895739d8cd` passed
+[CI 40804173170](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40804173170):
+360 Java / 830 Python/RAG tests, CodeQL and SonarCloud. Eight new Linux allocation,
+backup, fault and transport regression cases supplement the seven Docker guards.
+
+First attempt [40803910885](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40803910885)
+stopped before storage pause or data mutation: a root-owned copied verifier was
+unreadable to the non-root RAG process. The trap resumed the idle worker. Read-only
+status 40804177322 confirmed worker running, SeaweedFS healthy and Spring UP.
+The verifier now streams through stdin; no permissions were weakened.
+
+Successful maintenance [40804673423](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40804673423)
+at 02:10-02:11 UTC / 09:10-09:11 GMT+7:
+
+- Verified private logical-volume backup: **114 regular files**, archive SHA-256
+  `099b1e7cd45e26e084323e6b7edf280cfb66d07e680b6c80def65a2de6bb56b9`.
+  Retained on VPS under `backups/quanlythuvien/seaweed-20261029-WVzqIH/`.
+  This is an operation-recovery backup, not a separately verified off-host DR copy.
+- Reclaimed **18,252,746,752 bytes** (about 17 GiB) by same-length ftruncate of
+  exactly 17 reviewed files. Allocation **18,253,680,640 -> 933,888 bytes**.
+  Logical sizes, every whole-file checksum, ownership, mode and modification
+  timestamps matched. No file/volume was deleted, renamed or logically shortened.
+- Before/after S3 verification matched **18 objects / 919,756 bytes**, including
+  PostgreSQL source PDF SHA-256 `73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26`.
+  Object keys/bytes/credentials and the private file manifests remain on the VPS.
+- SeaweedFS and worker resumed; Spring UP. Available host space **4.0G -> 21G**,
+  usage **86% -> 26%** immediately after maintenance. The 8 GiB gate was unchanged.
+
+## Release deployed and browser smoke verified
+
+Reran only the previously failed deployment job of scanned release
+[40698306283, attempt 2](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40698306283).
+It succeeded at 02:15 UTC / 09:15 GMT+7, source
+`d94f24e3fec8cb3d624663cd12b23a4ce9cf8f9a`, Flyway installed rank 48, public health UP.
+
+- Backend image `ghcr.io/phandinhphuc1234/se330-be@sha256:53fdf974f8a2cfb750aeddd193e5eb349eaacb3ccacb7149c12ccca9a497b40a`.
+- RAG image `ghcr.io/phandinhphuc1234/se330-rag@sha256:3f978ac7617e80895abb62635fe598af51ce24172560c33e6d3955bb37d62197`.
+- Read-only post-release [40806301485](https://github.com/phandinhphuc1234/SE330_BE/actions/runs/40806301485)
+  verified new commit/image prefixes and health; **20G free / 31% used** after pulls.
+- MEMBER browser loaded the unchanged 22-page PDF. A development smoke question
+  returned Read Committed with page-5 evidence; clicking citation changed the
+  reader to **5/22** and the visible page contains the supporting statement.
+  A Redis/TTL out-of-corpus question abstained with no evidence presented.
+- Anonymous PDF GET/HEAD/Range each returned **401**. Authenticated range/HEAD,
+  missing/cross-book/closed-session negative production checks are still not run;
+  their CI coverage must not be presented as production execution.
+
+The original capacity blocker is resolved. Full answer/held-out evidence is
+tracked separately in RAG PR #40; these two browser smokes are not a complete
+development benchmark or a semantic accuracy score. PR #43 remains separate and
+does not need to merge to preserve the already executed maintenance evidence.
