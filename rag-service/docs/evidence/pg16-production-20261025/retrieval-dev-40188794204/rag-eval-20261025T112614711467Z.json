@@ -1,0 +1,2063 @@
+{
+  "dataset": {
+    "name": "postgresql16_concurrency_v1-dev",
+    "version": "1.0.0",
+    "itemCount": 30,
+    "selectedItemIds": [
+      "pg-f01",
+      "pg-f02",
+      "pg-f03",
+      "pg-f05",
+      "pg-f06",
+      "pg-f07",
+      "pg-f09",
+      "pg-f10",
+      "pg-f11",
+      "pg-f13",
+      "pg-f14",
+      "pg-f15",
+      "pg-f17",
+      "pg-f18",
+      "pg-f19",
+      "pg-m01",
+      "pg-m02",
+      "pg-m04",
+      "pg-m05",
+      "pg-m06",
+      "pg-m07",
+      "pg-m09",
+      "pg-m10",
+      "pg-s01",
+      "pg-s03",
+      "pg-s04",
+      "pg-s06",
+      "pg-u01",
+      "pg-u02",
+      "pg-u03"
+    ]
+  },
+  "generatedAt": "2026-10-25T11:26:14.710495+00:00",
+  "topK": 3,
+  "code": {
+    "commit": null,
+    "workingTreeDirty": null
+  },
+  "llmRequestIntervalSeconds": 0.0,
+  "modes": {
+    "dense": {
+      "summary": {
+        "errorCount": 0,
+        "scopeViolations": 0,
+        "citationMetadataViolations": 0,
+        "precision@3": 0.41975308641975306,
+        "recall@3": 0.9320987654320988,
+        "hitRate@3": 0.9629629629629629,
+        "reciprocalRank": 0.9444444444444444,
+        "nDCG@3": 0.9196702444746635,
+        "retrievalLatencyMs": 537.5250742659167,
+        "evidenceGroupCoverage@3": 0.9320987654320988
+      },
+      "items": [
+        {
+          "id": "pg-f01",
+          "question": "What does MVCC let each SQL statement see, and why is this useful?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-2-83c85663026a",
+            "doc-2-chunk-1-d27ddf85436a",
+            "doc-2-chunk-32-ca00e4223d65"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 552.2847230022307
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f02",
+          "question": "What is PostgreSQL's default transaction isolation level?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-5-5b9122643435",
+            "doc-2-chunk-3-7e8486701ab7",
+            "doc-2-chunk-4-57af9a69ef59"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 518.4433969989186
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f03",
+          "question": "Does PostgreSQL implement Read Uncommitted as a separate, weaker isolation mode?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-4-57af9a69ef59",
+            "doc-2-chunk-3-7e8486701ab7",
+            "doc-2-chunk-5-5b9122643435"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 559.3990749985096
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f05",
+          "question": "When does a Repeatable Read transaction fix its snapshot?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-9-c3c841c2dc74",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-30-92d325d63c4f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 536.7269470007159
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f06",
+          "question": "What kind of lock can block an ordinary SELECT without FOR UPDATE or FOR SHARE?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-17-77aa83c90fdd",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-18-d24ce8e4844a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 0.5,
+            "nDCG@3": 0.6934264036172708,
+            "latencyMs": 512.1838060003938
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f07",
+          "question": "Do row-level locks block ordinary reads, and when are they released?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-17-77aa83c90fdd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 582.765785002266
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f09",
+          "question": "How does PostgreSQL resolve a detected deadlock? Can an application rely on which transaction is aborted?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-23-046ea5a82b84",
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-13-d0ea38111149"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 486.5939099981915
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f10",
+          "question": "Does a session-level advisory lock disappear if the transaction that acquired it rolls back?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-25-f125cbc8971d",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-24-781f63f13b25"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 492.1993759999168
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f11",
+          "question": "What SQLSTATE identifies a serialization failure?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-14-0ca9b0e91021",
+            "doc-2-chunk-10-0b09e1adc667"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 484.60589200112736
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f13",
+          "question": "On serialization failure, is retrying just the last SQL statement enough?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-28-06564962efaa"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 493.34885699499864
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f14",
+          "question": "Which DDL operations does this chapter identify as not MVCC-safe?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-32-ca00e4223d65",
+            "doc-2-chunk-1-d27ddf85436a",
+            "doc-2-chunk-2-83c85663026a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 474.22633899986977
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f15",
+          "question": "What is the strictest isolation level supported on a hot standby in this PostgreSQL 16 chapter?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-3-7e8486701ab7",
+            "doc-2-chunk-28-06564962efaa",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 538.585314003285
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 0.0
+        },
+        {
+          "id": "pg-f17",
+          "question": "What lock mode represents Serializable predicate locks in pg_locks?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-13-d0ea38111149",
+            "doc-2-chunk-17-77aa83c90fdd",
+            "doc-2-chunk-20-ea71cbe27e06"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 507.88613299664576
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f18",
+          "question": "Do PostgreSQL Serializable predicate locks cause blocking or deadlocks?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-13-d0ea38111149",
+            "doc-2-chunk-14-0ca9b0e91021",
+            "doc-2-chunk-15-8e545805a6cd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 481.439119001152
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f19",
+          "question": "What happens to locks acquired after a savepoint when the transaction rolls back to that savepoint?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-23-046ea5a82b84"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 505.9992119931849
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m01",
+          "question": "Compare the snapshots used by Read Committed and Repeatable Read for two successive SELECT statements.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-9-c3c841c2dc74",
+            "doc-2-chunk-8-7fce15b5c6c6",
+            "doc-2-chunk-5-5b9122643435"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 744.6183709980687
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m02",
+          "question": "Why can Repeatable Read still violate a business consistency rule, and what extra protection does Serializable add?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-27-f40a2c845b67",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 491.0332159997779
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m04",
+          "question": "Contrast the lifetime and rollback behavior of session-level and transaction-level advisory locks.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-25-f125cbc8971d",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-24-781f63f13b25"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 655.4837119983858
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m05",
+          "question": "How should an application both reduce deadlock risk and recover from a deadlock that still happens?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-23-046ea5a82b84",
+            "doc-2-chunk-31-26240caf2f9b"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 575.1582189986948
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m06",
+          "question": "Is every unique-key violation safe to retry like SQLSTATE 40001? Explain the difference.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-14-0ca9b0e91021"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 610.2338730051997
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m07",
+          "question": "Why is an old Repeatable Read snapshot plus a newly acquired table lock insufficient for a current global consistency check?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-30-92d325d63c4f",
+            "doc-2-chunk-29-68ce0a87179a",
+            "doc-2-chunk-27-f40a2c845b67"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 0.6666666666666666,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.7653606369886217,
+            "latencyMs": 552.7111660048831
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 0.6666666666666666
+        },
+        {
+          "id": "pg-m09",
+          "question": "Compare the lock granularity and release timing of B-tree and hash indexes, and explain the chapter's scalar-data recommendation.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-33-e2c81e0cec3f",
+            "doc-2-chunk-16-f5886b68b7dc",
+            "doc-2-chunk-19-5573bd1b70e8"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 560.2362839999842
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m10",
+          "question": "How is SERIALIZABLE READ ONLY DEFERRABLE different from an ordinary Serializable read, and why must ordinary transaction results wait for commit?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-13-d0ea38111149",
+            "doc-2-chunk-14-0ca9b0e91021",
+            "doc-2-chunk-11-02422e17ab63"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 0.5,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.6131471927654584,
+            "latencyMs": 574.2858800003887
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 0.5
+        },
+        {
+          "id": "pg-s01",
+          "question": "Using Table 13.1, which anomalies are still possible under PostgreSQL Repeatable Read, and does it allow phantom reads?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-3-7e8486701ab7",
+            "doc-2-chunk-4-57af9a69ef59",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 507.64920999790775
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s03",
+          "question": "According to Table 13.3, can FOR KEY SHARE coexist with FOR NO KEY UPDATE on the same row? Can it coexist with FOR UPDATE?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-22-ebe9d4524365",
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-20-ea71cbe27e06"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 487.17382099857787
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s04",
+          "question": "In the website.hits example starting with rows 9 and 10, why can DELETE WHERE hits = 10 delete nothing while a concurrent UPDATE increments both rows?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-8-7fce15b5c6c6",
+            "doc-2-chunk-7-b28b144c9e8c",
+            "doc-2-chunk-6-d3ce782d5c88"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 532.9062989985687
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s06",
+          "question": "Why is SELECT pg_advisory_lock(id) FROM foo WHERE id > 12345 LIMIT 100 dangerous, and how does the chapter's subquery form avoid that hazard?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-26-48d0b9cac5a1",
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-25-f125cbc8971d"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 617.1191439934773
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-u01",
+          "question": "What exact value of spring.datasource.hikari.maximum-pool-size does this chapter prescribe for my Library Spring Boot application?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-26-48d0b9cac5a1",
+            "doc-2-chunk-1-d27ddf85436a",
+            "doc-2-chunk-2-83c85663026a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 492.385181998543
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "pg-u02",
+          "question": "What Redis Lua script and reservation TTL does this chapter specify to prevent flash-sale overselling?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-16-f5886b68b7dc",
+            "doc-2-chunk-29-68ce0a87179a",
+            "doc-2-chunk-0-867b8a976da8"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 502.1135779970791
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "pg-u03",
+          "question": "What exact retry count and exponential-backoff delay in milliseconds does PostgreSQL require for every serialization failure?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-28-06564962efaa"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 495.95638799655717
+          },
+          "scopeViolations": 0
+        }
+      ],
+      "observedLatency": {
+        "count": 30,
+        "p50Ms": 512.1838060003938,
+        "p95Ms": 655.4837119983858
+      }
+    },
+    "hybrid": {
+      "summary": {
+        "errorCount": 0,
+        "scopeViolations": 0,
+        "citationMetadataViolations": 0,
+        "precision@3": 0.4444444444444444,
+        "recall@3": 0.9876543209876544,
+        "hitRate@3": 1.0,
+        "reciprocalRank": 1.0,
+        "nDCG@3": 0.97941643679931,
+        "retrievalLatencyMs": 618.9365100333816,
+        "evidenceGroupCoverage@3": 0.9876543209876544
+      },
+      "items": [
+        {
+          "id": "pg-f01",
+          "question": "What does MVCC let each SQL statement see, and why is this useful?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-2-83c85663026a",
+            "doc-2-chunk-0-867b8a976da8",
+            "doc-2-chunk-3-7e8486701ab7"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 600.6793199994718
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f02",
+          "question": "What is PostgreSQL's default transaction isolation level?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-5-5b9122643435",
+            "doc-2-chunk-4-57af9a69ef59",
+            "doc-2-chunk-3-7e8486701ab7"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 611.4262170012807
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f03",
+          "question": "Does PostgreSQL implement Read Uncommitted as a separate, weaker isolation mode?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-4-57af9a69ef59",
+            "doc-2-chunk-3-7e8486701ab7",
+            "doc-2-chunk-5-5b9122643435"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 663.1207350001205
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f05",
+          "question": "When does a Repeatable Read transaction fix its snapshot?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-9-c3c841c2dc74",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-30-92d325d63c4f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 624.6389869993436
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f06",
+          "question": "What kind of lock can block an ordinary SELECT without FOR UPDATE or FOR SHARE?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-17-77aa83c90fdd",
+            "doc-2-chunk-18-d24ce8e4844a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 558.10264700267
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f07",
+          "question": "Do row-level locks block ordinary reads, and when are they released?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-23-046ea5a82b84"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 632.4240690009901
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f09",
+          "question": "How does PostgreSQL resolve a detected deadlock? Can an application rely on which transaction is aborted?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-23-046ea5a82b84",
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-13-d0ea38111149"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 640.600186001393
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f10",
+          "question": "Does a session-level advisory lock disappear if the transaction that acquired it rolls back?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-25-f125cbc8971d",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-24-781f63f13b25"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 587.5304419969325
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f11",
+          "question": "What SQLSTATE identifies a serialization failure?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-14-0ca9b0e91021",
+            "doc-2-chunk-11-02422e17ab63"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 643.2050459989114
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f13",
+          "question": "On serialization failure, is retrying just the last SQL statement enough?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-28-06564962efaa",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 611.1770610004896
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f14",
+          "question": "Which DDL operations does this chapter identify as not MVCC-safe?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-32-ca00e4223d65",
+            "doc-2-chunk-2-83c85663026a",
+            "doc-2-chunk-1-d27ddf85436a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 588.903151001432
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f15",
+          "question": "What is the strictest isolation level supported on a hot standby in this PostgreSQL 16 chapter?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-32-ca00e4223d65",
+            "doc-2-chunk-28-06564962efaa",
+            "doc-2-chunk-11-02422e17ab63"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 567.2975150009734
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f17",
+          "question": "What lock mode represents Serializable predicate locks in pg_locks?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-13-d0ea38111149",
+            "doc-2-chunk-16-f5886b68b7dc",
+            "doc-2-chunk-17-77aa83c90fdd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 640.5595799951698
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f18",
+          "question": "Do PostgreSQL Serializable predicate locks cause blocking or deadlocks?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-13-d0ea38111149",
+            "doc-2-chunk-14-0ca9b0e91021",
+            "doc-2-chunk-15-8e545805a6cd"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 670.4895770017174
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-f19",
+          "question": "What happens to locks acquired after a savepoint when the transaction rolls back to that savepoint?",
+          "answerable": true,
+          "tags": [
+            "factual",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-29-68ce0a87179a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 628.7572459987132
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m01",
+          "question": "Compare the snapshots used by Read Committed and Repeatable Read for two successive SELECT statements.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-9-c3c841c2dc74",
+            "doc-2-chunk-5-5b9122643435",
+            "doc-2-chunk-30-92d325d63c4f"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 630.8810690024984
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m02",
+          "question": "Why can Repeatable Read still violate a business consistency rule, and what extra protection does Serializable add?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-27-f40a2c845b67",
+            "doc-2-chunk-10-0b09e1adc667",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 608.8989929994568
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m04",
+          "question": "Contrast the lifetime and rollback behavior of session-level and transaction-level advisory locks.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-25-f125cbc8971d",
+            "doc-2-chunk-19-5573bd1b70e8",
+            "doc-2-chunk-24-781f63f13b25"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 655.9128269946086
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m05",
+          "question": "How should an application both reduce deadlock risk and recover from a deadlock that still happens?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-23-046ea5a82b84",
+            "doc-2-chunk-31-26240caf2f9b"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 727.1874869984458
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m06",
+          "question": "Is every unique-key violation safe to retry like SQLSTATE 40001? Explain the difference.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-14-0ca9b0e91021",
+            "doc-2-chunk-13-d0ea38111149"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 619.7985030012205
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m07",
+          "question": "Why is an old Repeatable Read snapshot plus a newly acquired table lock insufficient for a current global consistency check?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-30-92d325d63c4f",
+            "doc-2-chunk-29-68ce0a87179a",
+            "doc-2-chunk-27-f40a2c845b67"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 0.6666666666666666,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.7653606369886217,
+            "latencyMs": 618.0442380064051
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 0.6666666666666666
+        },
+        {
+          "id": "pg-m09",
+          "question": "Compare the lock granularity and release timing of B-tree and hash indexes, and explain the chapter's scalar-data recommendation.",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-33-e2c81e0cec3f",
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-23-046ea5a82b84"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 571.898500995303
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-m10",
+          "question": "How is SERIALIZABLE READ ONLY DEFERRABLE different from an ordinary Serializable read, and why must ordinary transaction results wait for commit?",
+          "answerable": true,
+          "tags": [
+            "multi-section",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-13-d0ea38111149",
+            "doc-2-chunk-11-02422e17ab63",
+            "doc-2-chunk-12-f8bfe05c0241"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 0.9197207891481876,
+            "latencyMs": 628.5677129999385
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s01",
+          "question": "Using Table 13.1, which anomalies are still possible under PostgreSQL Repeatable Read, and does it allow phantom reads?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-3-7e8486701ab7",
+            "doc-2-chunk-4-57af9a69ef59",
+            "doc-2-chunk-9-c3c841c2dc74"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 549.7859770039213
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s03",
+          "question": "According to Table 13.3, can FOR KEY SHARE coexist with FOR NO KEY UPDATE on the same row? Can it coexist with FOR UPDATE?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-22-ebe9d4524365",
+            "doc-2-chunk-21-7c98f5af1d48",
+            "doc-2-chunk-16-f5886b68b7dc"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 630.1345840038266
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s04",
+          "question": "In the website.hits example starting with rows 9 and 10, why can DELETE WHERE hits = 10 delete nothing while a concurrent UPDATE increments both rows?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-7-b28b144c9e8c",
+            "doc-2-chunk-8-7fce15b5c6c6",
+            "doc-2-chunk-6-d3ce782d5c88"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.6666666666666666,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 620.4148979959427
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-s06",
+          "question": "Why is SELECT pg_advisory_lock(id) FROM foo WHERE id > 12345 LIMIT 100 dangerous, and how does the chapter's subquery form avoid that hazard?",
+          "answerable": true,
+          "tags": [
+            "sql-table",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-26-48d0b9cac5a1",
+            "doc-2-chunk-24-781f63f13b25",
+            "doc-2-chunk-25-f125cbc8971d"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.3333333333333333,
+            "recall@3": 1.0,
+            "hitRate@3": 1.0,
+            "reciprocalRank": 1.0,
+            "nDCG@3": 1.0,
+            "latencyMs": 587.750088001485
+          },
+          "scopeViolations": 0,
+          "evidenceGroupCoverage@3": 1.0
+        },
+        {
+          "id": "pg-u01",
+          "question": "What exact value of spring.datasource.hikari.maximum-pool-size does this chapter prescribe for my Library Spring Boot application?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-26-48d0b9cac5a1",
+            "doc-2-chunk-1-d27ddf85436a",
+            "doc-2-chunk-0-867b8a976da8"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 675.6025720023899
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "pg-u02",
+          "question": "What Redis Lua script and reservation TTL does this chapter specify to prevent flash-sale overselling?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-16-f5886b68b7dc",
+            "doc-2-chunk-0-867b8a976da8",
+            "doc-2-chunk-1-d27ddf85436a"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 569.3970450010966
+          },
+          "scopeViolations": 0
+        },
+        {
+          "id": "pg-u03",
+          "question": "What exact retry count and exponential-backoff delay in milliseconds does PostgreSQL require for every serialization failure?",
+          "answerable": false,
+          "tags": [
+            "unanswerable",
+            "dev",
+            "postgresql16_concurrency_v1"
+          ],
+          "retrievedChunkIds": [
+            "doc-2-chunk-31-26240caf2f9b",
+            "doc-2-chunk-28-06564962efaa",
+            "doc-2-chunk-11-02422e17ab63"
+          ],
+          "embeddingVersion": "gemini-embedding-2-3072-v1",
+          "chunkingVersions": [
+            "v1"
+          ],
+          "retrievalSources": [
+            "keyword",
+            "vector"
+          ],
+          "retrieval": {
+            "precision@3": 0.0,
+            "recall@3": 0.0,
+            "hitRate@3": 0.0,
+            "reciprocalRank": 0.0,
+            "nDCG@3": 0.0,
+            "latencyMs": 604.9090269953012
+          },
+          "scopeViolations": 0
+        }
+      ],
+      "observedLatency": {
+        "count": 30,
+        "p50Ms": 619.7985030012205,
+        "p95Ms": 675.6025720023899
+      }
+    }
+  },
+  "limitations": [
+    "Golden labels apply to the supplied PDF/chunk version; re-label after re-chunking.",
+    "Answer-point coverage is lexical and is not a semantic faithfulness score.",
+    "Citation relevance does not prove every claim is entailed by the source.",
+    "Dev only: 30 English cases, 27 answerable and 3 unanswerable. Held-out not run.",
+    "No generated answers; no abstention accuracy, answer faithfulness, or end-to-end reader claim.",
+    "Dense runs before hybrid, 30 sequential cases each. Cache warmness can affect latency; not a controlled load test or SLA.",
+    "Evidence-group coverage counts alternatives once; existing chunk recall still counts their union. These are different metrics.",
+    "Search may populate normal caches/counters and consumes embedding quota; no ingestion or entitlement mutation is requested."
+  ],
+  "operationGate": {
+    "passed": true,
+    "failures": []
+  },
+  "semanticReleaseGate": {
+    "passed": null,
+    "reason": "Baseline collection only; no semantic release threshold is declared."
+  },
+  "runtime": {
+    "generatedAt": "2026-10-25T11:25:38.684616+00:00",
+    "environment": "production",
+    "helperCommit": "139d1b50613e9857d3e2a898d46de0ac56387dca",
+    "runtimeImage": "ghcr.io/phandinhphuc1234/se330-rag@sha256:4ea6573ac9cd624c4e472d2f7f0344ca02194a4dfae745bf7b6b3140b73a158e",
+    "embeddingVersion": "gemini-embedding-2-3072-v1",
+    "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+    "mode": "pg16-retrieval-dev",
+    "generationEnabled": false,
+    "heldoutRun": false
+  }
+}

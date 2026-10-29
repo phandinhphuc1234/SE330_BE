@@ -1,0 +1,275 @@
+{
+  "environment": "production",
+  "generatedAt": "2026-10-25T09:23:07.644625+00:00",
+  "mode": "inventory",
+  "promptVersion": "library-ebook-answer-v2",
+  "embeddingVersion": "gemini-embedding-2-3072-v1",
+  "documents": [
+    {
+      "documentId": 1,
+      "bookId": 3342,
+      "ebookId": 10,
+      "sourceSha256": "cd4206e9dfc52aabb655b27e3935da81b18f244209e30f8304b249f9156b96c9",
+      "status": "INDEXED",
+      "jobId": 1,
+      "chunks": [
+        {
+          "index": 0,
+          "vectorId": "doc-1-chunk-0-66a6bcec62ec",
+          "sha256": "66a6bcec62ecad6f038f41c599d53fe91e58cb61ae79c270cd58b5b379f1dc2d",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 1,
+          "vectorId": "doc-1-chunk-1-a151810c5f32",
+          "sha256": "a151810c5f32a72e996d6d4472421ebaac984ee3ea7ba13faef520bafd1000df",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 2,
+          "vectorId": "doc-1-chunk-2-6a266139d37a",
+          "sha256": "6a266139d37af54ed6e17d3a8c256c44c1c75cd6721bb1529d1716c0c71d7c95",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 3,
+          "vectorId": "doc-1-chunk-3-17c98c4ff9df",
+          "sha256": "17c98c4ff9dffeecc0e8749a6d2021f38dded45e3cd133985bc431f063c5d894",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 4,
+          "vectorId": "doc-1-chunk-4-8b84a70fff8f",
+          "sha256": "8b84a70fff8f8ca8bb72070a4aca67c5f42fb3b3d21489f5271106dccba3cdf1",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 5,
+          "vectorId": "doc-1-chunk-5-53eecbd6d3a5",
+          "sha256": "53eecbd6d3a50bbca5ac0bce4400329848418a15ed59c1b9ee74058b08103f07",
+          "chunkingVersion": "v1"
+        }
+      ]
+    },
+    {
+      "documentId": 2,
+      "bookId": 3343,
+      "ebookId": 11,
+      "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+      "status": "INDEXED",
+      "jobId": 2,
+      "chunks": [
+        {
+          "index": 0,
+          "vectorId": "doc-2-chunk-0-867b8a976da8",
+          "sha256": "867b8a976da874f9f7d7653dfd2236b63341c2efc28e89b959935f347d6b25ce",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 1,
+          "vectorId": "doc-2-chunk-1-d27ddf85436a",
+          "sha256": "d27ddf85436a723f00bb5ddcd825c65f087659be2d97070381780f740719227e",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 2,
+          "vectorId": "doc-2-chunk-2-83c85663026a",
+          "sha256": "83c85663026a67d62d1b345a870bbe2e60461cf49ef695d6b6e485ce65d21e46",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 3,
+          "vectorId": "doc-2-chunk-3-7e8486701ab7",
+          "sha256": "7e8486701ab7d7b0a3661e46b0c188cc07533b14425f60e8ac0b4c22cb9941c4",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 4,
+          "vectorId": "doc-2-chunk-4-57af9a69ef59",
+          "sha256": "57af9a69ef59f1143b50306932130f0cd2b192217dfb29caa99b3a3682d8b945",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 5,
+          "vectorId": "doc-2-chunk-5-5b9122643435",
+          "sha256": "5b912264343591ffd1902f115d74dd4887806074b75d513cbd6c0163261d50f1",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 6,
+          "vectorId": "doc-2-chunk-6-d3ce782d5c88",
+          "sha256": "d3ce782d5c88d3472db664eeacda56bcdec479b7c71654304d9970f7100e6418",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 7,
+          "vectorId": "doc-2-chunk-7-b28b144c9e8c",
+          "sha256": "b28b144c9e8c444cd52e4e5f37bc02acc12d172878a0d8336f951a9e2211ef4f",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 8,
+          "vectorId": "doc-2-chunk-8-7fce15b5c6c6",
+          "sha256": "7fce15b5c6c6dc996134e6153dae0ab91038a684a9b1859a3c6a8fc056d1e2dc",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 9,
+          "vectorId": "doc-2-chunk-9-c3c841c2dc74",
+          "sha256": "c3c841c2dc74ecc5e0f4e20ad6eee077c07ac40b51180c0e0625739c7f685dde",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 10,
+          "vectorId": "doc-2-chunk-10-0b09e1adc667",
+          "sha256": "0b09e1adc667ad21d8c3b6877976437b9ad10aef540ce0f99e2e80c1b772e294",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 11,
+          "vectorId": "doc-2-chunk-11-02422e17ab63",
+          "sha256": "02422e17ab6310657ba5fb1b2f8afa98ef92a89fdadc431bf7701c058aabceec",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 12,
+          "vectorId": "doc-2-chunk-12-f8bfe05c0241",
+          "sha256": "f8bfe05c024176afddcb5f9141ebeddea8a2f39342c6932c4858cd1045991de4",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 13,
+          "vectorId": "doc-2-chunk-13-d0ea38111149",
+          "sha256": "d0ea38111149b57a6312ff07d314ef6bf92d0e24a808bbe0fbf2c911b7213958",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 14,
+          "vectorId": "doc-2-chunk-14-0ca9b0e91021",
+          "sha256": "0ca9b0e91021d21bf478e2a8169a38f03d2e9fa244f549d395cb26f1278e3247",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 15,
+          "vectorId": "doc-2-chunk-15-8e545805a6cd",
+          "sha256": "8e545805a6cdd996ce6a79154884e533d795f94c697671fb56e08044ca1791aa",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 16,
+          "vectorId": "doc-2-chunk-16-f5886b68b7dc",
+          "sha256": "f5886b68b7dcf16569cf69ec5a66202fe3d249ada35e392e6351aab4540f2d3c",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 17,
+          "vectorId": "doc-2-chunk-17-77aa83c90fdd",
+          "sha256": "77aa83c90fddda69e22d8d6dde71e69c4427632ccd10a08fe68588862ad55a27",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 18,
+          "vectorId": "doc-2-chunk-18-d24ce8e4844a",
+          "sha256": "d24ce8e4844afb652bf286dbb9423443f41c997ba02690c9fbd4043adacba79c",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 19,
+          "vectorId": "doc-2-chunk-19-5573bd1b70e8",
+          "sha256": "5573bd1b70e8014810aa1c96bb1e2b9b7d8b11fa330b300df0372737933af6ce",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 20,
+          "vectorId": "doc-2-chunk-20-ea71cbe27e06",
+          "sha256": "ea71cbe27e06c7bfe93d4e5a9715c70db9589c4bf67725a1867eac9d0b689373",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 21,
+          "vectorId": "doc-2-chunk-21-7c98f5af1d48",
+          "sha256": "7c98f5af1d48271b2cc2a9cb28e75d4383b1b510db37e4ac4961822908c27a98",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 22,
+          "vectorId": "doc-2-chunk-22-ebe9d4524365",
+          "sha256": "ebe9d4524365480b000faa3e99ca56ccc5ae11400ad9d7ef2955cfa43fc5d0a8",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 23,
+          "vectorId": "doc-2-chunk-23-046ea5a82b84",
+          "sha256": "046ea5a82b84b7dac899a7958a91ddca575ed954830994beea4e8cbc6378b524",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 24,
+          "vectorId": "doc-2-chunk-24-781f63f13b25",
+          "sha256": "781f63f13b25fe17f1bc0b704ffd84988e152eaf2419e0c558c3756e8e1f0617",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 25,
+          "vectorId": "doc-2-chunk-25-f125cbc8971d",
+          "sha256": "f125cbc8971d9e5c7e4cac9aaa7b7b1d74cd0646ac6444665262cd338c407ea9",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 26,
+          "vectorId": "doc-2-chunk-26-48d0b9cac5a1",
+          "sha256": "48d0b9cac5a1a08ee496832e786d6f8f949221a9914c2c6ff0136518a7a4e94a",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 27,
+          "vectorId": "doc-2-chunk-27-f40a2c845b67",
+          "sha256": "f40a2c845b672d3734a4d65df0a0488e4af8d5006e710a094a563c33816d17e4",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 28,
+          "vectorId": "doc-2-chunk-28-06564962efaa",
+          "sha256": "06564962efaa2457e08fe084adb7649c7b052fc98195d4d201b15660b2f3ed69",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 29,
+          "vectorId": "doc-2-chunk-29-68ce0a87179a",
+          "sha256": "68ce0a87179a41c8120d7761c83f02e2b03c659cdeff400529c4e1bd77f48d06",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 30,
+          "vectorId": "doc-2-chunk-30-92d325d63c4f",
+          "sha256": "92d325d63c4f1b40e193c31f5e6ac873e8398bb0285d3630bf3ca12f3ddddef0",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 31,
+          "vectorId": "doc-2-chunk-31-26240caf2f9b",
+          "sha256": "26240caf2f9b74d4910b8990d57abd0fe1b0d0fbb1775583ebfcd853c8c4b12a",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 32,
+          "vectorId": "doc-2-chunk-32-ca00e4223d65",
+          "sha256": "ca00e4223d65898dca7a09252af2640b1e639cd7a42aad0dcf956ee44196380d",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 33,
+          "vectorId": "doc-2-chunk-33-e2c81e0cec3f",
+          "sha256": "e2c81e0cec3f0fbe2fdd54e6330fdb90c4999172b8350df8cd39ff15eb0f0d23",
+          "chunkingVersion": "v1"
+        },
+        {
+          "index": 34,
+          "vectorId": "doc-2-chunk-34-901a0d1071aa",
+          "sha256": "901a0d1071aa8b121ab65bb61097404e64c1bd16e6ee4392a79583def1908316",
+          "chunkingVersion": "v1"
+        }
+      ]
+    }
+  ]
+}

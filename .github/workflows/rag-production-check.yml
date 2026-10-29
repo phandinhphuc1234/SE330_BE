@@ -4,16 +4,24 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Inventory is read-only; evaluate makes at most 20 paced answer requests
+        description: Inventory; Magi answers; PG16 retrieval; PG16 frozen plan or full dev/heldout answers
         required: true
         type: choice
         default: inventory
-        options: [inventory, evaluate]
+        options: [inventory, evaluate, pg16-retrieval-dev, pg16-answer-plan, pg16-answer-dev, pg16-answer-heldout]
       document_id:
         description: Exact verified production document ID; required for evaluation
         required: false
         default: '0'
         type: string
+      expected_rag_image:
+        description: Exact deployed RAG digest; required for PG16 answer plan/evaluation
+        type: string
+        default: ''
+      candidate_sha:
+        description: Reviewed provider-free plan SHA256; required for PG16 dev/heldout answers
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -24,6 +32,7 @@ concurrency:
 
 jobs:
   check:
+    if: inputs.mode == 'inventory' || inputs.mode == 'evaluate'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: production
@@ -72,6 +81,104 @@ jobs:
         if: always()
         with:
           name: production-rag-evidence-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  pg16-retrieval-dev:
+    name: PostgreSQL isolated evaluation (explicit retrieval or frozen answer mode)
+    if: inputs.mode == 'pg16-retrieval-dev' || startsWith(inputs.mode, 'pg16-answer-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Require successful PR CI for this exact helper revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          ci_metadata=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/backend-ci.yml/runs?head_sha=$GITHUB_SHA&event=pull_request&per_page=10" \
+            --jq '.workflow_runs | sort_by(.created_at) | last | select(.status == "completed" and .conclusion == "success") | [.id,.head_sha] | @tsv')
+          read -r ci_run ci_sha <<< "$ci_metadata"
+          [[ "$ci_run" =~ ^[0-9]+$ && "$ci_sha" == "$GITHUB_SHA" ]] || { echo 'Exact helper commit has not passed PR CI.'; exit 1; }
+          printf 'Approved CI run: %s\n' "$ci_run"
+      - name: Run isolated helper against pinned deployed image
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DOCUMENT_ID: ${{ inputs.document_id }}
+          EXPECTED_RAG_IMAGE: ${{ inputs.expected_rag_image || 'ghcr.io/phandinhphuc1234/se330-rag@sha256:4ea6573ac9cd624c4e472d2f7f0344ca02194a4dfae745bf7b6b3140b73a158e' }}
+          REQUESTED_RAG_IMAGE: ${{ inputs.expected_rag_image }}
+          PG16_CHECK_MODE: ${{ inputs.mode }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$DOCUMENT_ID" =~ ^[1-9][0-9]{0,11}$ ]]
+          [[ "$EXPECTED_RAG_IMAGE" =~ ^ghcr\.io/phandinhphuc1234/se330-rag@sha256:[a-f0-9]{64}$ ]]
+          if [[ "$PG16_CHECK_MODE" != pg16-retrieval-dev ]]; then
+            [[ -n "$REQUESTED_RAG_IMAGE" ]]
+            [[ "$PG16_CHECK_MODE" == pg16-answer-plan || "$PG16_CHECK_MODE" == pg16-answer-dev || "$PG16_CHECK_MODE" == pg16-answer-heldout ]]
+            [[ "$PG16_CHECK_MODE" == pg16-answer-plan || "$CANDIDATE_SHA" =~ ^[a-f0-9]{64}$ ]]
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/pg16_check"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/pg16_check" "$HOME/.ssh/known_hosts"
+          ssh_args=(-i "$HOME/.ssh/pg16_check" -p "$VPS_PORT" -o BatchMode=yes
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15)
+          scp_args=(-i "$HOME/.ssh/pg16_check" -P "$VPS_PORT" -o BatchMode=yes
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15)
+          remote="${VPS_USER}@${VPS_HOST}"
+          remote_dir="/tmp/library-pg16-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          tar -C rag-service -czf pg16-benchmark.tar.gz app/evaluation/corpus_binding.py \
+            scripts/corpora/run_pg16_retrieval.py scripts/corpora/run_pg16_acceptance.py \
+            tests/fixtures/corpora/postgresql16_concurrency_v1/ingestion-v1.json
+          ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" <<'REMOTE'
+          set -Eeuo pipefail
+          [[ "$1" =~ ^/tmp/library-pg16-[0-9]+-[0-9]+$ ]]
+          mkdir -m 700 "$1"
+          REMOTE
+          scp "${scp_args[@]}" pg16-benchmark.tar.gz "$remote:$remote_dir/input.tar.gz"
+          result=0
+          ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" "$DOCUMENT_ID" "$GITHUB_SHA" "$EXPECTED_RAG_IMAGE" "$PG16_CHECK_MODE" "$CANDIDATE_SHA" <<'REMOTE' || result=$?
+          set -Eeuo pipefail
+          ids=( $(docker ps -q --filter label=com.docker.compose.project=quanlythuvien --filter label=com.docker.compose.service=rag-api) )
+          [[ ${#ids[@]} == 1 ]]
+          actual_image=$(docker inspect --format '{{.Config.Image}}' "${ids[0]}")
+          [[ "$actual_image" == "$4" ]] || { echo 'Deployed image changed: re-review runtime before benchmarking.'; exit 1; }
+          printf 'Runtime image: %s\n' "$actual_image"
+          docker exec "${ids[0]}" mkdir -m 700 "$1"
+          docker exec -i "${ids[0]}" tar -xzf - -C "$1" < "$1/input.tar.gz"
+          if [[ "$5" == pg16-retrieval-dev ]]; then
+            docker exec "${ids[0]}" python "$1/scripts/corpora/run_pg16_retrieval.py" \
+              --document-id "$2" --helper-commit "$3" --runtime-image "$actual_image" --output "$1/result"
+          else
+            phase="${5#pg16-answer-}"
+            [[ "$phase" == plan || "$phase" == dev || "$phase" == heldout ]]
+            docker exec "${ids[0]}" python "$1/scripts/corpora/run_pg16_acceptance.py" \
+              --phase "$phase" --candidate-sha "${6:-}" --document-id "$2" --helper-commit "$3" \
+              --runtime-image "$actual_image" --output "$1/result"
+          fi
+          REMOTE
+          mkdir -p artifacts
+          ssh "${ssh_args[@]}" "$remote" bash -s -- "$remote_dir" > artifacts/pg16-retrieval-evidence.tar.gz <<'REMOTE' || result=1
+          set -Eeuo pipefail
+          ids=( $(docker ps -q --filter label=com.docker.compose.project=quanlythuvien --filter label=com.docker.compose.service=rag-api) )
+          [[ ${#ids[@]} == 1 ]]
+          docker exec "${ids[0]}" tar -C "$1/result" -czf - .
+          REMOTE
+          exit "$result"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: pg16-retrieval-evidence-${{ github.run_id }}
           path: artifacts/
           if-no-files-found: warn
           retention-days: 14

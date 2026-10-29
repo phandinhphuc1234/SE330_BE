@@ -1,0 +1,198 @@
+{
+  "corpus": "postgresql16_concurrency_v1",
+  "split": "dev",
+  "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+  "questionSpecSha256": "22930554efe7a7fa5a70a28683ad75c5fe6dd133991c647cedc78c99688addb2",
+  "scope": {
+    "bookId": 3343,
+    "ebookId": 11,
+    "documentId": 2
+  },
+  "evidenceGroups": {
+    "pg-f01": [
+      [
+        "doc-2-chunk-2-83c85663026a"
+      ]
+    ],
+    "pg-f02": [
+      [
+        "doc-2-chunk-5-5b9122643435"
+      ]
+    ],
+    "pg-f03": [
+      [
+        "doc-2-chunk-4-57af9a69ef59"
+      ]
+    ],
+    "pg-f05": [
+      [
+        "doc-2-chunk-9-c3c841c2dc74"
+      ]
+    ],
+    "pg-f06": [
+      [
+        "doc-2-chunk-18-d24ce8e4844a",
+        "doc-2-chunk-19-5573bd1b70e8"
+      ]
+    ],
+    "pg-f07": [
+      [
+        "doc-2-chunk-21-7c98f5af1d48"
+      ]
+    ],
+    "pg-f09": [
+      [
+        "doc-2-chunk-23-046ea5a82b84"
+      ]
+    ],
+    "pg-f10": [
+      [
+        "doc-2-chunk-25-f125cbc8971d"
+      ]
+    ],
+    "pg-f11": [
+      [
+        "doc-2-chunk-31-26240caf2f9b"
+      ]
+    ],
+    "pg-f13": [
+      [
+        "doc-2-chunk-31-26240caf2f9b"
+      ]
+    ],
+    "pg-f14": [
+      [
+        "doc-2-chunk-32-ca00e4223d65"
+      ]
+    ],
+    "pg-f15": [
+      [
+        "doc-2-chunk-32-ca00e4223d65"
+      ]
+    ],
+    "pg-f17": [
+      [
+        "doc-2-chunk-13-d0ea38111149"
+      ]
+    ],
+    "pg-f18": [
+      [
+        "doc-2-chunk-13-d0ea38111149"
+      ]
+    ],
+    "pg-f19": [
+      [
+        "doc-2-chunk-19-5573bd1b70e8"
+      ]
+    ],
+    "pg-m01": [
+      [
+        "doc-2-chunk-5-5b9122643435"
+      ],
+      [
+        "doc-2-chunk-9-c3c841c2dc74"
+      ]
+    ],
+    "pg-m02": [
+      [
+        "doc-2-chunk-10-0b09e1adc667"
+      ],
+      [
+        "doc-2-chunk-27-f40a2c845b67"
+      ]
+    ],
+    "pg-m04": [
+      [
+        "doc-2-chunk-24-781f63f13b25",
+        "doc-2-chunk-25-f125cbc8971d"
+      ],
+      [
+        "doc-2-chunk-25-f125cbc8971d"
+      ]
+    ],
+    "pg-m05": [
+      [
+        "doc-2-chunk-24-781f63f13b25"
+      ],
+      [
+        "doc-2-chunk-31-26240caf2f9b"
+      ]
+    ],
+    "pg-m06": [
+      [
+        "doc-2-chunk-31-26240caf2f9b"
+      ],
+      [
+        "doc-2-chunk-31-26240caf2f9b"
+      ]
+    ],
+    "pg-m07": [
+      [
+        "doc-2-chunk-29-68ce0a87179a",
+        "doc-2-chunk-30-92d325d63c4f"
+      ],
+      [
+        "doc-2-chunk-30-92d325d63c4f"
+      ],
+      [
+        "doc-2-chunk-9-c3c841c2dc74"
+      ]
+    ],
+    "pg-m09": [
+      [
+        "doc-2-chunk-33-e2c81e0cec3f"
+      ],
+      [
+        "doc-2-chunk-33-e2c81e0cec3f"
+      ],
+      [
+        "doc-2-chunk-33-e2c81e0cec3f"
+      ]
+    ],
+    "pg-m10": [
+      [
+        "doc-2-chunk-12-f8bfe05c0241"
+      ],
+      [
+        "doc-2-chunk-13-d0ea38111149"
+      ]
+    ],
+    "pg-s01": [
+      [
+        "doc-2-chunk-3-7e8486701ab7"
+      ],
+      [
+        "doc-2-chunk-4-57af9a69ef59"
+      ]
+    ],
+    "pg-s03": [
+      [
+        "doc-2-chunk-22-ebe9d4524365"
+      ],
+      [
+        "doc-2-chunk-22-ebe9d4524365"
+      ]
+    ],
+    "pg-s04": [
+      [
+        "doc-2-chunk-7-b28b144c9e8c"
+      ],
+      [
+        "doc-2-chunk-7-b28b144c9e8c",
+        "doc-2-chunk-8-7fce15b5c6c6"
+      ]
+    ],
+    "pg-s06": [
+      [
+        "doc-2-chunk-26-48d0b9cac5a1"
+      ],
+      [
+        "doc-2-chunk-26-48d0b9cac5a1"
+      ]
+    ],
+    "pg-u01": [],
+    "pg-u02": [],
+    "pg-u03": []
+  },
+  "status": "bound-not-evaluated"
+}

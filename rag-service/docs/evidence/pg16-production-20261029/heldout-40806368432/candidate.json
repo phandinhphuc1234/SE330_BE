@@ -1,0 +1,44 @@
+{
+  "sha256": "2ac6cc93f707122e8370ddb09fe82490ca4cc2c16a4fa318fd37b3c4d858785f",
+  "manifest": {
+    "runtimeImage": "ghcr.io/phandinhphuc1234/se330-rag@sha256:3f978ac7617e80895abb62635fe598af51ce24172560c33e6d3955bb37d62197",
+    "helperCommit": "680cc6688369fe866b39c0b91e9450cb31be38d3",
+    "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+    "questionSpecSha256": "22930554efe7a7fa5a70a28683ad75c5fe6dd133991c647cedc78c99688addb2",
+    "referenceSha256": "c2b4c0d76bdb092769bd9ac89c62d32411621377f41eedd334a4eca5f1573a79",
+    "promptVersion": "library-ebook-answer-v2",
+    "config": {
+      "embedding_provider": "gemini",
+      "embedding_model": "gemini-embedding-2",
+      "embedding_dim": 3072,
+      "embedding_version": "gemini-embedding-2-3072-v1",
+      "embedding_text_policy": "gemini_search_title_text_v1",
+      "llm_provider": "gemini",
+      "llm_model": "gemini-2.5-flash",
+      "llm_temperature": 0.1,
+      "llm_max_tokens": 2048,
+      "llm_timeout_seconds": 30.0,
+      "gemini_thinking_budget": null,
+      "retrieval_mode": "hybrid",
+      "retrieval_top_k": 10,
+      "reranker_top_k": 3,
+      "hybrid_candidate_multiplier": 3,
+      "hybrid_rrf_k": 60,
+      "hybrid_vector_weight": 0.7,
+      "hybrid_keyword_weight": 0.3,
+      "hybrid_fail_open": true,
+      "keyword_candidate_limit": 5000,
+      "query_rewrite_max_queries": 2,
+      "context_expansion_window": 1,
+      "answer_retrieval_top_k": 6,
+      "answer_score_threshold": 0.6,
+      "answer_max_context_chars": 12000
+    },
+    "protocol": {
+      "mode": "hybrid",
+      "topK": 3,
+      "llmIntervalSeconds": 30,
+      "judge": false
+    }
+  }
+}

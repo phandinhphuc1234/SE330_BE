@@ -1,0 +1,74 @@
+{
+  "corpus": "postgresql16_concurrency_v1",
+  "split": "heldout",
+  "sourceSha256": "73eb52598379f4c6799e85a73e02eb2cc18535fa29f534fe484ac12cbe91bd26",
+  "questionSpecSha256": "22930554efe7a7fa5a70a28683ad75c5fe6dd133991c647cedc78c99688addb2",
+  "scope": {
+    "bookId": 3343,
+    "ebookId": 11,
+    "documentId": 2
+  },
+  "evidenceGroups": {
+    "pg-f04": [
+      [
+        "doc-2-chunk-5-5b9122643435"
+      ]
+    ],
+    "pg-f08": [
+      [
+        "doc-2-chunk-16-f5886b68b7dc"
+      ]
+    ],
+    "pg-f12": [
+      [
+        "doc-2-chunk-31-26240caf2f9b"
+      ]
+    ],
+    "pg-f16": [
+      [
+        "doc-2-chunk-33-e2c81e0cec3f"
+      ]
+    ],
+    "pg-f20": [
+      [
+        "doc-2-chunk-23-046ea5a82b84"
+      ]
+    ],
+    "pg-m03": [
+      [
+        "doc-2-chunk-5-5b9122643435",
+        "doc-2-chunk-6-d3ce782d5c88"
+      ],
+      [
+        "doc-2-chunk-9-c3c841c2dc74"
+      ],
+      [
+        "doc-2-chunk-10-0b09e1adc667",
+        "doc-2-chunk-9-c3c841c2dc74"
+      ]
+    ],
+    "pg-m08": [
+      [
+        "doc-2-chunk-28-06564962efaa"
+      ],
+      [
+        "doc-2-chunk-32-ca00e4223d65"
+      ]
+    ],
+    "pg-s02": [
+      [
+        "doc-2-chunk-20-ea71cbe27e06"
+      ]
+    ],
+    "pg-s05": [
+      [
+        "doc-2-chunk-12-f8bfe05c0241"
+      ],
+      [
+        "doc-2-chunk-12-f8bfe05c0241"
+      ]
+    ],
+    "pg-u04": []
+  },
+  "status": "bound-not-evaluated"
+}
