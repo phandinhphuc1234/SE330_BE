@@ -174,6 +174,14 @@ pipeline khi provider unavailable. Không trình bày report partial như qualit
 
 ## 7. Release đang chờ
 
+**Checkpoint mới nhất 25/10:** owner đã duyệt lại publishing và PR #37/#38 đã
+merge sau CI; release `7ce3bc4` đã deploy thành công. Retrieval production PASS,
+nhưng full answer baseline có ba `LLM_RATE_LIMITED` và một false abstention;
+PDF browser bị chặn bởi storage public origin loopback. Xem
+[production acceptance/evidence](evidence/2026-10-25-production-rag-validation.md).
+Các ghi chú giữ local/quota bên dưới là lịch sử trước lần duyệt mới, không phải
+trạng thái deploy hiện tại. Chưa được gọi acceptance toàn bộ là PASS.
+
 - Full tests/runtime reborrow fix đã pass local; phải kiểm chứng lại trên commit CI/release.
 - Có xác nhận mới trước commit/push/PR/merge/deploy; hiện vẫn giữ local.
 - CI source/tests/image scan pass trên commit release.
